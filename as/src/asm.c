@@ -82,7 +82,7 @@ char asm_sequ(char *a, char *b) {
 		if (lower >= 'A' && lower <= 'Z')
 			lower += 'a'-'A';
 		
-		if (*a != *b)
+		if (lower != *b)
 			return 0;
 		
 		a++;
@@ -1011,67 +1011,65 @@ void asm_emit(uint16_t value, uint8_t size)
 {
 	int i;
 	
+
+	// text segment?
+	if (asm_seg == 1) {
 	
-	if (asm_pass) {
+		// get address
+		i = asm_address;
+		if (!is_lower)
+			i -= 128;
 		
-		// text segment?
-		if (asm_seg == 1) {
+		// make sure we aren't overruning the current bank
+		if (i >= 128)
+			asm_error("out of space in text bank");
 		
-			// get address
-			i = asm_address;
-			if (!is_lower)
-				i -= 128;
-			
+		// write to output
+		isr_out[128 * text_bank + i] = value;
+		asm_address++;
+		
+		// keep track of maximum bank
+		if (text_bank > max_bank)
+			max_bank = text_bank;
+	}
+	
+	
+	// data segment 
+	else if (asm_seg == 2 || asm_seg == 3) {
+				
+		// get address
+		i = asm_address;
+		
+		// write to output
+		if (size == 1) {
 			// make sure we aren't overruning the current bank
 			if (i >= 128)
-				asm_error("out of space in text bank");
+				asm_error("out of space in data bank");
 			
-			// write to output
-			isr_out[128 * text_bank + i] = value;
+			isr_out[128 * data_bank + i] = value;
 			asm_address++;
+		} else {
+			// make sure we aren't overruning the current bank
+			if (i >= 127)
+				asm_error("out of space in data bank");
 			
-			// keep track of maximum bank
-			if (text_bank > max_bank)
-				max_bank = text_bank;
+			isr_out[128 * data_bank + i] = value >> 8;
+			isr_out[128 * data_bank + i + 1] = value & 0xFF;
+			asm_address += 2;
 		}
 		
-		
-		// data segment 
-		else if (asm_seg == 2 || asm_seg == 3) {
-					
-			// get address
-			i = asm_address;
-			
-			// write to output
-			if (size == 1) {
-				// make sure we aren't overruning the current bank
-				if (i >= 128)
-					asm_error("out of space in data bank");
-				
-				isr_out[128 * data_bank + i] = value;
-				asm_address++;
-			} else {
-				// make sure we aren't overruning the current bank
-				if (i >= 127)
-					asm_error("out of space in data bank");
-				
-				isr_out[128 * data_bank + i] = value >> 8;
-				isr_out[128 * data_bank + i + 1] = value & 0xFF;
-				asm_address += 2;
-			}
-			
-			// check segment stuff
-			if (asm_seg == 2) {
-				// keep track of maximum bank
-				if (data_bank > max_bank)
-					max_bank = data_bank;
-			} else {
-				// no data in bss!!!
-				if (value)
-					asm_error("data in bss");
-			}
+		// check segment stuff
+		if (asm_seg == 2) {
+			// keep track of maximum bank
+			if (data_bank > max_bank)
+				max_bank = data_bank;
+		} else {
+			// no data in bss!!!
+			if (value)
+				asm_error("data in bss");
 		}
 	}
+
 }
 
 /*
@@ -1190,7 +1188,7 @@ void asm_emit_expression(uint16_t size, char tok)
 		value = 0;
 	}
 	
-	asm_emit_addr(value, size);
+	asm_emit(value, size);
 }
 
 /*
@@ -1370,6 +1368,45 @@ void asm_type(char *name)
 
 
 /*
+ * helper function that outputs a high byte and a low byte
+ *
+ * high = this should be obvious
+ * low = this too
+ */
+void asm_emit_isr(uint8_t high, uint8_t low)
+{
+	asm_emit((high << 8) | low, 2);
+}
+
+/*
+ * parses an operand, used to extract an register
+ */
+uint8_t asm_arg() {
+	int i;
+	char tok;
+	
+	// check if there is anything next
+	if (sio_peek() == '\n' || sio_peek() == -1)
+		return 255;
+
+	// read the token
+	tok = asm_token_read();
+	
+	// maybe a register symbol?
+	if (tok == 'a') {
+		i = 0;
+		while (op_table[i].type != 255) {
+			if (asm_sequ(token_buf, op_table[i].mnem)) {
+				return op_table[i].type;
+			}
+			i++;
+		}
+	} 
+	
+	return 255;
+}
+
+/*
  * assembles an instructions
  * if/elses that would make yandev blush
  *
@@ -1377,16 +1414,216 @@ void asm_type(char *name)
  * returns 0 if successful
  */
 char asm_doisr(struct instruct *isr) {
-	uint8_t prim, arg, reg, type;
-	uint16_t con, value;
+	char type, tok;
+	uint8_t src, dst;
+	uint16_t value;
 	
-	// primary select to 0
-	prim = 0;
+	// basic operation
 	if (isr->type == BASIC) {
-		// basic ops
-		asm_emit(isr->opcode, 2);
+		asm_emit_isr(isr->opcode, 0x00);
 	} 
 	
+	// arithmetic operation
+	else if (isr-> type == ARITH) {
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// grab next arg and generate instruction
+		asm_expect(',');
+		src = asm_arg();
+		if (src >= 4)
+			return 1;
+		
+		asm_emit_isr(isr->opcode + (dst<<2) + src, 0x00);
+	}
+	
+	// immediate operation
+	else if (isr-> type == IMM) {
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// next arg should be an expression
+		asm_expect(',');
+		type = asm_evaluate(&value, 0);
+		if (type == 0 && asm_pass)
+			asm_error("undefined expression");
+		
+		asm_emit_isr(isr->opcode + (dst<<2), value);
+	}
+	
+	// single pointer operation
+	else if (isr-> type == PNT) {
+		asm_expect('[');
+		
+		// evaluate expression
+		type = asm_evaluate(&value, 0);
+		if (type == 0 && asm_pass)
+			asm_error("undefined expression");
+		asm_expect(']');
+		
+		asm_emit_isr(isr->opcode, value);
+	}
+	
+	// single pointer + register operation
+	else if (isr-> type == PNTO) {
+		asm_expect('[');
+		src = asm_arg();
+		
+		// we should get a simple register
+		if (src >= 4)
+			return 1;
+		
+		// do we have an expression to add?
+		value = 0;
+		tok = asm_token_read();
+		if (tok == '+') {
+			// evaluate expression
+			type = asm_evaluate(&value, 0);
+			if (type == 0 && asm_pass)
+				asm_error("undefined expression");
+			asm_expect(']');
+		} else if (tok != ']')
+			return 1;
+		
+		asm_emit_isr(isr->opcode + (src<<2), value);
+	}
+	
+	// load operation
+	else if (isr-> type == LOAD) {
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// next arg should be a backet expression
+		asm_expect(',');
+		asm_expect('[');
+		
+		// evaluate expression
+		type = asm_evaluate(&value, 0);
+		if (type == 0 && asm_pass)
+			asm_error("undefined expression");
+		asm_expect(']');
+		
+		asm_emit_isr(isr->opcode + (dst<<2), value);
+	}
+	
+	// load offset operation
+	else if (isr-> type == LOADF) {
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// next arg should be a backet expression
+		asm_expect(',');
+		asm_expect('[');
+		src = asm_arg();
+		
+		// we should get a simple register
+		if (src >= 4)
+			return 1;
+		
+		// do we have an expression to add?
+		value = 0;
+		tok = asm_token_read();
+		if (tok == '+') {
+			// evaluate expression
+			type = asm_evaluate(&value, 0);
+			if (type == 0 && asm_pass)
+				asm_error("undefined expression");
+			asm_expect(']');
+		} else if (tok != ']')
+			return 1;
+		
+		asm_emit_isr(isr->opcode + (dst<<2) + src, value);
+	}
+	
+	// store operation
+	else if (isr-> type == STORE) {
+		// arg should be a backet expression
+		asm_expect('[');
+		
+		// evaluate expression
+		type = asm_evaluate(&value, 0);
+		if (type == 0 && asm_pass)
+			asm_error("undefined expression");
+		asm_expect(']');
+		asm_expect(',');
+		src = asm_arg();
+		
+		// we should get a simple register
+		if (src >= 4)
+			return 1;
+		
+		asm_emit_isr(isr->opcode + (src<<2), value);
+	}
+	
+	// store offset operation
+	else if (isr-> type == STOREF) {
+		// arg should be a backet expression
+		asm_expect('[');
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// do we have an expression to add?
+		value = 0;
+		tok = asm_token_read();
+		if (tok == '+') {
+			// evaluate expression
+			type = asm_evaluate(&value, 0);
+			if (type == 0 && asm_pass)
+				asm_error("undefined expression");
+			asm_expect(']');
+		} else if (tok != ']')
+			return 1;
+		asm_expect(',');
+		
+		src = asm_arg();
+		
+		// we should get a simple register
+		if (src >= 4)
+			return 1;
+		
+		asm_emit_isr(isr->opcode + (src<<2) + dst, value);
+	}
+	
+	// single register operation
+	else if (isr-> type == SINGLE) {
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// generate instruction
+		asm_emit_isr(isr->opcode + (dst<<2), 0x00);
+	}
+	
+	// branch operation
+	else if (isr-> type == BRANCH) {
+		// evaluate expression
+		type = asm_evaluate(&value, 0);
+		if (type == 0 && asm_pass)
+			asm_error("undefined expression");
+		
+		// calculate offset for instruction
+		dst = value - (asm_address + 1);
+		
+		// generate instruction
+		asm_emit_isr(isr->opcode, dst);
+	}
 	
 	return 0;
 }
@@ -1427,6 +1664,32 @@ void asm_change_seg(char next)
 }
 
 /*
+ * generates the final binary
+ */
+void asm_generate_binary()
+{
+	int i, o;
+	
+	for (o = 0; o <= max_bank; o++) {
+		// output header
+		sio_out(0x02);
+		sio_out(0x81);
+		for (i = 0; i < 126; i++)
+			sio_out(0xFF);
+		
+		// output data segment
+		for (i = 0; i < 128; i++)
+			sio_out(data_out[o * 128 + i]);
+		
+		// output isr segment
+		for (i = 0; i < 128; i++) {
+			sio_out(isr_out[o * 128 + i] >> 8);
+			sio_out(isr_out[o * 128 + i] & 0xFF);
+		}
+	}
+}
+
+/*
  * perform assembly functions
  */
 void asm_assemble(char flagv, char flagl)
@@ -1435,7 +1698,7 @@ void asm_assemble(char flagv, char flagl)
 	int ifdepth, trdepth, i;
 	uint16_t result, size;
 	struct symbol *sym;
-	
+
 	// set lower flag
 	is_lower = flagl;
 
@@ -1445,11 +1708,11 @@ void asm_assemble(char flagv, char flagl)
 	// start at pass 1
 	asm_pass = 0;
 
-	// assembler starts at 128;
-	asm_address = 128;
+	// place pointer starts
+	asm_address = is_lower ? 0 : 128;
 	for (i = 0; i < 256; i++) {
 		data_bank_addr[i] = 0;
-		text_bank_addr[i] = 128;
+		text_bank_addr[i] = is_lower ? 0 : 128;
 	}
 	
 	// reset the segments too
@@ -1471,6 +1734,7 @@ void asm_assemble(char flagv, char flagl)
 	while (1) {
 		// read the next 
 		tok = asm_token_read();
+		sio_mark();
 		//if (tok != 'a') printf("reading: %c\n", tok);
 		//else printf("reading: %s\n", token_buf);
 		
@@ -1487,6 +1751,13 @@ void asm_assemble(char flagv, char flagl)
 				asm_pass++;
 				loc_cnt = 0;
 				
+				// place pointer starts
+				asm_address = is_lower ? 0 : 128;
+				for (i = 0; i < 256; i++) {
+					data_bank_addr[i] = 0;
+					text_bank_addr[i] = is_lower ? 0 : 128;
+				}
+				
 				// fix segment symbols
 				asm_change_seg(1);
 
@@ -1495,7 +1766,10 @@ void asm_assemble(char flagv, char flagl)
 				
 				continue;
 			} else {
-				// emit relocation data and symbol stuff
+
+				// emit the binary
+				asm_generate_binary();
+				
 				if (flagv)
 					printf("second pass done: %d symbols %d locals\n", sym_count, loc_count);
 				
@@ -1669,4 +1943,5 @@ void asm_assemble(char flagv, char flagl)
 			asm_error("unexpected token");
 		}
 	}
+	
 }

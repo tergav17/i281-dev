@@ -94,8 +94,8 @@ void sio_open(int argc, char *argv[])
 
 	sprintf(tname, "/tmp/atm%d", getpid());
 
-	if (!(sio_fout = fopen("a.out", "wb"))) {
-		printf("cannot open a.out\n");
+	if (!(sio_fout = fopen("a.bin", "wb"))) {
+		printf("cannot open a.bin\n");
 		exit(1);
 	}
 	

@@ -1,5 +1,5 @@
 all:
-	make -C i281as
+	make -C as
 	
 clean:
-	make -C i281as clean
+	make -C as clean
