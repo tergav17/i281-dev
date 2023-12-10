@@ -197,37 +197,3 @@ void sio_out(char out)
 {
 	fwrite(&out, 1, 1, sio_fout);
 }
-
-/*
- * writes a byte to the temp file
- *
- * tmp = byte to write to tmp
- */
-void sio_tmp(char tmp)
-{
-	fwrite(&tmp, 1, 1, sio_ftmp);
-}
-
-/*
- * appends contents of tmp file to output file
- */
-void sio_append()
-{
-	char c;
-	
-	fclose(sio_ftmp);
-	
-	if (!(sio_ftmp = fopen(tname, "rb"))) {
-		printf("cannot open tmp file\n");
-		exit(1);
-	}
-	
-	while (0 < fread(&c, 1, 1, sio_ftmp))
-		sio_out(c);
-
-	fclose(sio_ftmp);
-	if (!(sio_ftmp = fopen(tname, "wb"))) {
-		printf("cannot open tmp file\n");
-		exit(1);
-	}
-}

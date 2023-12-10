@@ -8,6 +8,7 @@
 
 /* flags */
 char flagv = 0;
+char flagl = 0;
 
 /* arg zero */
 char *argz;
@@ -17,7 +18,7 @@ char *argz;
  */
 void usage()
 {
-	printf("usage: %s [-v] source.s ...\n", argz);
+	printf("usage: %s [-vl] source.s ...\n", argz);
 	exit(1);
 }
 
@@ -38,6 +39,9 @@ int main(int argc, char *argv[])
 					case 'v':
 						flagv++;
 						break;
+						
+					case 'l':
+						flagl++;
 						
 					default:
 						usage();
@@ -62,7 +66,7 @@ int main(int argc, char *argv[])
 	sio_open(argc, argv);
 	
 	// do the assembly
-	asm_assemble(flagg, flagv);
+	asm_assemble(flagv, flagl);
 	
 	// all done
 	sio_close();

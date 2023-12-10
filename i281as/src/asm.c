@@ -2,7 +2,6 @@
  * asm.c 
  *
  * assembler guts
- * i really should have broken this up, but it will all be rewritten in assembly later...
  */
 #include "asm.h"
 #include "sio.h"
@@ -16,27 +15,34 @@
 /*
  * there are a number of global variables to reduce the amount of data being passed
  */
+ 
+
+/* we will just output everything to an array because we are lazy */
+uint8_t data_out[128 * 256];
+uint16_t isr_out[128 * 256];
 
 /* token buffer */
 char token_buf[TOKEN_BUF_SIZE];
 char sym_name[TOKEN_BUF_SIZE];
 
 /* current assembly address */
-uint16_t asm_address;
+uint8_t asm_address;
 
-/* segment tops */
-uint16_t text_top;
-uint16_t data_top;
-uint16_t bss_top;
-
-uint16_t text_size;
+/* cached addresses for other banks */
+uint8_t text_bank_addr[256];
+uint8_t data_bank_addr[256];
 
 /* current pass */
-char asm_pass;
+uint8_t asm_pass;
 
 /* current segment */
-char asm_seg;
+uint8_t asm_seg;
 
+/* banking information */
+uint8_t text_bank;
+uint8_t data_bank;
+
+uint8_t max_bank;
 /* the expression evaluator requires some larger data structures, lets define them */
 
 /* value stack */
@@ -54,25 +60,13 @@ struct local *loc_table;
 /* counts how many locals have been encountered this pass */
 int loc_cnt;
 
-/* head of global table */
-struct global *glob_table;
-
-/* head of relocation tables */
-struct header textr;
-struct header datar;
-
-/* record keeping */
-uint16_t reloc_rec;
-uint16_t glob_rec;
-
 /* telemetry stuff */
 int sym_count;
 int loc_count;
-int glob_count;
-int reloc_count;
 
-/* extern number */
-uint8_t extn;
+/* are we assembling in lower memory? */
+char is_lower;
+
 /*
  * checks if a string is equal
  * string a is read as lower case
@@ -122,25 +116,6 @@ void asm_error(char *msg)
 void *asm_alloc(int size)
 {
 	return (void *) malloc(size);
-}
-
-/*
- * creates a new reloc struct and inits it
- *
- * returns new object
- */
-struct reloc *asm_alloc_reloc()
-{
-	struct reloc *new;
-	int i;
-	
-	// allocate start of relocation table
-	reloc_count++;
-	new = (struct reloc *) asm_alloc(sizeof(struct reloc));
-	for (i = 0; i < RELOC_SIZE; i++) new->toff[i].off = 255;
-	new->next = NULL;
-	
-	return new;
 }
 
 /*
@@ -493,34 +468,14 @@ void asm_reset()
 	
 	sym_table = NULL;
 	loc_table = NULL;
-	glob_table = NULL;
 	
 	// allocate empty table
 	sym_table = (struct symbol *) asm_alloc(sizeof(struct symbol));
 	sym_table->parent = NULL;
 	
-	asm_sym_update(sym_table, "sys", 1, NULL, 0x0005);
-	asm_sym_update(sym_table, "header", 1, NULL, 0x0000);
-	
-	// allocate relocation tables
-	textr.last = 0;
-	textr.index = 0;
-	textr.head = asm_alloc_reloc();
-	textr.tail = textr.head;
-	datar.last = 0;
-	datar.index = 0;
-	datar.head = asm_alloc_reloc();
-	datar.tail = datar.head;
-
-	
 	// count memory consumption
 	sym_count = 0;
 	loc_count = 0;
-	glob_count = 0;
-	reloc_count = 0;
-	
-	// externs start at 5
-	extn = 5;
 }
 
 /*
@@ -591,113 +546,6 @@ char asm_local_fetch(uint16_t *result, int index, uint8_t label, char dir)
 	return 0;
 }
 
-/*
- * adds a symbol to the global table
- *
- * sym = symbol to add
- */
-void asm_glob(struct symbol *sym) 
-{
-	struct global *curr, *new;
-	
-	glob_count++;
-	glob_rec++;
-	new = (struct global *) asm_alloc(sizeof(struct global));
-	new->symbol = sym;
-	new->next = NULL;
-	
-	curr = NULL;
-	if (glob_table) {
-		curr = glob_table;
-		
-		while (1) {
-			// if the symbol already is glob, just ignore it
-			if (curr->symbol == sym)
-				return;
-			
-			if (curr->next) {
-				curr = curr->next;
-			} else {
-				curr->next = new;
-				return;
-			}
-		}
-	} else {
-		glob_table = new;
-	}
-}
-
-/*
- * adds an address into a relocation table, extending it if needed
- *
- * tab = reloc table
- * target = address to add
- */
-void asm_reloc(struct header *tab, uint16_t addr, uint8_t type)
-{
-	uint16_t diff;
-	uint8_t i, next;
-	
-	
-	if (addr < tab->last) 
-		asm_error("backwards reloc");
-	
-	diff = addr - tab->last;
-	
-	// grab the initial index
-	i = tab->index;
-	do {
-		if (diff >= 254) {
-			diff -= 254;
-			next = 254;
-		} else {
-			next = diff;
-		}
-		
-		// set the type and value
-		tab->tail->toff[i].type = type;
-		tab->tail->toff[i++].off = next;
-	
-		// see if another table is needed
-		if (i == RELOC_SIZE) {
-			i = 0;
-			tab->tail->next = asm_alloc_reloc();
-			tab->tail = tab->tail->next;
-		}
-	} while (next == 254);
-
-	// set the index back
-	tab->index = i;
-	tab->last = addr;
-	reloc_rec++;
-}
-
-
-/*
- * outputs a relocation table to a.out
- *
- * tab = relocation table
- */
-void asm_reloc_out(struct reloc *tab, uint16_t base)
-{
-	int i;
-	
-	i = 0;
-	while (tab) {
-		base += tab->toff[i].off;
-		if (tab->toff[i].off == 255) break;
-		
-		if (tab->toff[i].off != 254) {
-			sio_out(tab->toff[i].type);
-			sio_out(base & 0xFF);
-			sio_out(base >> 8);
-		}
-		if (++i >= RELOC_SIZE) {
-			tab = tab->next;
-			i = 0;
-		}
-	}
-}
 
 /*
  * converts an escaped char into its value
@@ -1156,41 +1004,74 @@ uint16_t asm_bracket(char nofail)
  * emits a byte into assembly output
  * no bytes emitted on first pass, only indicies updated
  *
- * b = byte to emit
+ * value = value to emit
+ * size = # of bytes that represent value
  */
-void asm_emit(uint8_t b)
+void asm_emit(uint16_t value, uint8_t size)
 {
+	int i;
+	
+	
 	if (asm_pass) {
-		switch (asm_seg) {
-			case 1:
-				sio_out((char) b);
-				break;
+		
+		// text segment?
+		if (asm_seg == 1) {
+		
+			// get address
+			i = asm_address;
+			if (!is_lower)
+				i -= 128;
+			
+			// make sure we aren't overruning the current bank
+			if (i >= 128)
+				asm_error("out of space in text bank");
+			
+			// write to output
+			isr_out[128 * text_bank + i] = value;
+			asm_address++;
+			
+			// keep track of maximum bank
+			if (text_bank > max_bank)
+				max_bank = text_bank;
+		}
+		
+		
+		// data segment 
+		else if (asm_seg == 2 || asm_seg == 3) {
+					
+			// get address
+			i = asm_address;
+			
+			// write to output
+			if (size == 1) {
+				// make sure we aren't overruning the current bank
+				if (i >= 128)
+					asm_error("out of space in data bank");
 				
-			case 2:
-				sio_tmp((char) b);
-				break;
+				isr_out[128 * data_bank + i] = value;
+				asm_address++;
+			} else {
+				// make sure we aren't overruning the current bank
+				if (i >= 127)
+					asm_error("out of space in data bank");
 				
-			case 3:
-				if (b) 
+				isr_out[128 * data_bank + i] = value >> 8;
+				isr_out[128 * data_bank + i + 1] = value & 0xFF;
+				asm_address += 2;
+			}
+			
+			// check segment stuff
+			if (asm_seg == 2) {
+				// keep track of maximum bank
+				if (data_bank > max_bank)
+					max_bank = data_bank;
+			} else {
+				// no data in bss!!!
+				if (value)
 					asm_error("data in bss");
-				break;
-				
-			default:
-				break;
+			}
 		}
 	}
-	
-	asm_address++;
-}
-
-/*
- * emits a little endian word to the binary
- *
- * w = word to emit
- */
-void asm_emit_word(uint16_t w) {
-	asm_emit(w & 0xFF);
-	asm_emit(w >> 8);
 }
 
 /*
@@ -1214,7 +1095,7 @@ void asm_emit_string()
 		if (c == '"') {
 			if (state != 1) {
 				if (state == 3) {
-					asm_emit(decode);
+					asm_emit(decode, 1);
 				}
 				
 				break;
@@ -1227,7 +1108,7 @@ void asm_emit_string()
 			if (c == '\\') 
 				state = 1;
 			else 
-				asm_emit(c);
+				asm_emit(c, 1);
 			
 			
 		} else if (state == 1) {
@@ -1236,7 +1117,7 @@ void asm_emit_string()
 			
 			// simple escape
 			if (decode) {
-				asm_emit(decode);
+				asm_emit(decode, 1);
 				state = 0;
 			} else if (asm_num(c)) {
 				state = 3;
@@ -1266,7 +1147,7 @@ void asm_emit_string()
 			// end the parsing
 			if (length < 1 || num == -1 || num >= radix) {
 				state = 0;
-				asm_emit(decode);
+				asm_emit(decode, 1);
 			}
 		}
 		
@@ -1281,86 +1162,11 @@ void asm_emit_string()
 /*
  * fills a region with either zeros or undefined allocated space
  *
- * size = number of bytes to fille
+ * size = number of bytes to fill
  */
 void asm_fill(uint16_t size)
 {
-	while (size--) asm_emit(0);
-}
-
-/*
- * emits up to two bytes, and handels relocation tracking
- *
- * size = number of bytes to emit
- * value = value to emit
- * type = segment to emit into
- */
-void asm_emit_addr(uint16_t size, uint16_t value, uint8_t type)
-{
-	uint16_t rel;
-
-	
-	if (!type) {
-		// if we are on the second pass, error out
-		if (asm_pass)
-			asm_error("undefined symbol");
-		
-		value = 0;
-	}
-	
-	if (!size)
-		asm_error("not a type");
-	
-	if (size == 1) {
-		// here we output only a byte
-		if (type > 4 && asm_pass)
-			asm_error("cannot extern byte");
-		
-		if (type > 0 && type < 4) {
-			// emit a relative address
-			rel = (value - asm_address) - 1;
-			if (rel < 0x80 || rel > 0xFF7F)
-				asm_emit(rel);
-			else
-				asm_error("relative out of bounds");
-		} else {
-			asm_emit(value);
-		}
-	
-	} else {
-		
-		if (((type > 0 && type < 4) || type > 4) && asm_pass) {
-			
-			// relocate!
-			switch (asm_seg) {
-				case 1:
-					asm_reloc(&textr, asm_address, type);
-					break;
-					
-				case 2:
-					asm_reloc(&datar, asm_address - text_top, type);
-					break;
-					
-				default:
-					asm_error("invalid segment");
-			}
-		}
-		
-		// here we output a word
-		asm_emit_word(value);
-	}
-}
-
-/*
- * helper function to emit an immediate and do type checking
- * only absolute resolutions will be allowed
- */
-void asm_emit_imm(uint16_t value, uint8_t type)
-{	
-	if (type != 4 && asm_pass)
-		asm_error("must be absolute");
-	
-	asm_emit(value);
+	while (size--) asm_emit(0, 1);
 }
 
 /*
@@ -1376,7 +1182,15 @@ void asm_emit_expression(uint16_t size, char tok)
 	
 	type = asm_evaluate(&value, tok);
 	
-	asm_emit_addr(size, value, type);
+	if (!type) {
+		// if we are on the second pass, error out
+		if (asm_pass)
+			asm_error("undefined symbol");
+		
+		value = 0;
+	}
+	
+	asm_emit_addr(value, size);
 }
 
 /*
@@ -1554,125 +1368,6 @@ void asm_type(char *name)
 	
 }
 
-/*
- * parses an operand, extracting the type of operation and/or constant
- *
- * con = pointer to constant return
- * eval = automatically evaluate expressions into con
- *		  it also converts 'c' from a register to a flag is eval is not on
- * returns type of operand
- */
-uint8_t asm_arg(uint16_t *con, uint8_t eval) {
-	int i;
-	char tok;
-	uint8_t ret, type;
-	
-	// check if there is anything next
-	if (sio_peek() == '\n' || sio_peek() == -1)
-		return 255;
-	
-	// assume at plain expression at first
-	ret = 31;
-	
-	// read the token
-	tok = asm_token_read();
-	
-	// maybe a register symbol?
-	if (tok == 'a') {
-		i = 0;
-		while (op_table[i].type != 255) {
-			if (asm_sequ(token_buf, op_table[i].mnem)) {
-				if (!eval && op_table[i].type == 1)
-					return 16;
-				return op_table[i].type;
-			}
-			i++;
-		}
-	} 
-	
-	// maybe in parathesis?
-	if (tok == '(') {
-		tok = asm_token_read();
-		
-		// check for hl
-		if (asm_sequ(token_buf, "hl")) {
-			asm_expect(')');
-			return 6;
-		} 
-		
-		// check for c
-		else if (asm_sequ(token_buf, "c")) {
-			asm_expect(')');
-			return 33;
-		}
-		
-		// check for sp
-		else if (asm_sequ(token_buf, "sp")) {
-			asm_expect(')');
-			return 34;
-		}
-		
-		// check for bc
-		else if (asm_sequ(token_buf, "bc")) {
-			asm_expect(')');
-			return 35;
-		}
-		
-		// check for de
-		else if (asm_sequ(token_buf, "de")) {
-			asm_expect(')');
-			return 36;
-		}
-		
-		
-		// check for ix and iy
-		else if (asm_sequ(token_buf, "ix")) {
-			if (sio_peek() == '+') {
-				// its got a constant
-				asm_token_read();
-				tok = 0;
-				ret = 25;
-			} else {
-				asm_expect(')');
-				return 29;
-			}
-		} else if (asm_sequ(token_buf,"iy")) {
-			if (sio_peek() == '+') {
-				// its got a constant
-				asm_token_read();
-				tok = 0;
-				ret = 28;
-			} else {
-				asm_expect(')');
-				return 30;
-			}
-		} 
-		
-		// evaluate as deferred expression
-		else {
-			ret = 32;
-		}
-	}
-	
-	// ok, its an expression
-	if (eval) {
-		type = asm_evaluate(con, tok);
-		if (type == 0) {
-			*con = 0;
-			if (asm_pass)
-				asm_error("undefined symbol");
-		} else if (type != 4)
-			asm_error("must be absolute");
-		
-		// if not 29, needs a trailing ')'
-		if (ret != 31)
-			asm_expect(')');
-	} else {
-		// hack to return tok so the caller can run asm_emit_exp
-		*con = tok;
-	}
-	return ret;
-}
 
 /*
  * assembles an instructions
@@ -1689,716 +1384,9 @@ char asm_doisr(struct instruct *isr) {
 	prim = 0;
 	if (isr->type == BASIC) {
 		// basic ops
-		asm_emit(isr->opcode);
+		asm_emit(isr->opcode, 2);
 	} 
 	
-	else if (isr->type == BASIC_EXT) {
-		// basic extended ops
-		asm_emit(isr->arg);
-		asm_emit(isr->opcode);
-	} 
-	
-	else if (isr->type == ARITH) {
-		// arithmetic operations
-		arg = asm_arg(&con, 1);
-		
-		// detect type of operation
-		if (isr->arg == CARRY) {
-			// carry op
-			if (arg == 10) {
-				// hl adc/sbc
-				prim = 1;
-			} else  if (arg != 7)
-				return 1;
-			
-			// grab next arg
-			asm_expect(',');
-			arg = asm_arg(&con, 1);
-		} else if (isr->arg == ADD) {
-			// add op
-			if (arg == 10) {
-				// hl add
-				prim = 2;
-				
-			} else if (arg == 21 || arg == 22) {
-				// ix/iy add
-				prim = 3;
-				reg = arg;
-			} else if (arg != 7)
-				return 1;
-			
-			// grab next arg
-			asm_expect(',');
-			arg = asm_arg(&con, 1);
-			
-			// no add i*,hl
-			if (prim == 3 && arg == 10)
-				return 1;
-			
-			// add i*,i*
-			if (prim == 3 && arg == reg)
-				arg = 10;
-		}
-		
-		if (prim == 0) {
-			if (arg < 8) {
-				// basic from a-(hl)
-				asm_emit(isr->opcode + arg);
-			} else if (arg >= 23 && arg <= 25) {
-				// ix class
-				asm_emit(0xDD);
-				asm_emit(isr->opcode + (arg - 23) + 4);
-				if (arg == 25)
-					asm_emit(con & 0xFF);
-			} else if (arg >= 26 && arg <= 28) {
-				// iy class
-				asm_emit(0xFD);
-				asm_emit(isr->opcode + (arg - 26) + 4);
-				if (arg == 28)
-					asm_emit(con & 0xFF);
-			} else if (arg == 31) {
-				// constant
-				asm_emit(isr->opcode + 0x46);
-				asm_emit(con);
-			} else 
-				return 1;
-		} else if (prim == 1) {
-			// 16 bit carry ops bc-sp
-			if (arg >= 8 && arg <= 11) {
-				asm_emit(0xED);
-				asm_emit((0x42 + (isr->opcode == 0x88 ? 8 : 0)) + ((arg-8)<<4));
-			} else 
-				return 1;
-		} else if (prim == 2) {
-			// 16 bit add ops bc-sp
-			if (arg >= 8 && arg <= 11) {
-				asm_emit(0x09 + ((arg-8)<<4));
-			} else
-				return 1;
-		} else if (prim == 3) {
-			// correct for hl -> ix,iy
-			if (arg == 10)
-				arg = reg;
-			if (arg == reg)
-				arg = 10;
-			
-			// pick ext block
-			if (reg == 21)
-				asm_emit(0xDD);
-			else
-				asm_emit(0xFD);
-			
-			// 16 bit add ops bc-sp
-			if (arg >= 8 && arg <= 11) {
-				asm_emit(0x09 + ((arg-8)<<4));
-			} else 
-				return 1;
-		}
-	}
-	
-	else if (isr->type == INCR) {
-		// increment / decrement
-		arg = asm_arg(&con, 1);
-		
-		if (arg < 8) {
-			// basic from a-(hl)
-			asm_emit(isr->opcode + ((arg)<<3));
-		} else if (arg < 12) {
-			// words bc-sp
-			asm_emit(isr->arg + ((arg-8)<<4));
-		} else if (arg == 21) {
-			// ix
-			asm_emit(0xDD);
-			asm_emit(isr->arg + 0x20);
-		} else if (arg == 22) {
-			// iy
-			asm_emit(0xFD);
-			asm_emit(isr->arg + 0x20);
-		} else if (arg >= 23 && arg <= 25) {
-			// ixh-(ix+*)
-			asm_emit(0xDD);
-			asm_emit(isr->opcode + ((arg-19)<<3));
-			if (arg == 25)
-				asm_emit(con);
-		} else if (arg >= 26 && arg <= 28) {
-			// iyh-(iy+*)
-			asm_emit(0xFD);
-			asm_emit(isr->opcode + ((arg-22)<<3));
-			if (arg == 28)
-				asm_emit(con);
-		} else
-			return 1;
-	}
-	
-	else if (isr->type == BITSH) {
-		// bit / shift
-		arg = asm_arg(&con, 1);
-		
-		// bit instructions have a bit indicator that must be parsed
-		reg = 0;
-		if (isr->arg) {
-			if (arg != 31)
-				return 1;
-			
-			if (con > 7)
-				return 1;
-			
-			reg = con;
-			
-			// grab next
-			asm_expect(',');
-			arg = asm_arg(&con, 1);
-		}
-		
-		// check for (ix+*) / (iy+*)
-		if (arg == 25 || arg == 28) {
-			
-			if (arg == 25)
-				asm_emit(0xDD);
-			else
-				asm_emit(0xFD);
-			
-			asm_emit(0xCB);
-			
-			// write offset
-			asm_emit(con);
-			
-			arg = 6;
-			// its an undefined operation
-			if (sio_peek() == ',') {
-				asm_expect(',');
-				arg = asm_arg(&con, 1);
-				
-				// short out for (hl)
-				if (arg == 6)
-					arg = 8;
-			}
-		} else
-			asm_emit(0xCB);			
-	
-		if (arg > 7)
-			return 1;
-		
-		asm_emit(isr->opcode + arg + (reg<<3));
-	}
-	
-	else if (isr->type == STACK) {
-		// stack operation
-		arg = asm_arg(&con, 1);
-		
-		// swap af for sp
-		if (arg == 11)
-			arg = 12;
-		else if (arg == 12)
-			arg = 11;
-		
-		if (arg >= 8 && arg <= 11) {
-			// bc-af
-			asm_emit(isr->opcode + ((arg-8)<<4));
-		} else if (arg == 21) {
-			asm_emit(0xDD);
-			asm_emit(isr->opcode + 0x20);
-		} else if (arg == 22) {
-			asm_emit(0xFD);
-			asm_emit(isr->opcode + 0x20);
-		} else
-			return 1;
-	}
-	
-	else if (isr->type == RETFLO) {
-		// return
-		arg = asm_arg(&con, 0);
-		
-		if (arg >= 13 && arg <= 20) {
-			asm_emit(isr->opcode + ((arg-13)<<3));
-		} else if (arg == 255) {
-			asm_emit(isr->arg);
-		} else
-			return 1;
-	}
-	
-	else if (isr->type == JMPFLO) {
-		// jump (absolute)
-		arg = asm_arg(&con, 0);
-		
-		if (arg >= 13 && arg <= 20) {
-			asm_emit(isr->opcode + ((arg-13)<<3));
-			asm_expect(',');
-			asm_emit_expression(2, 0);
-		} else if (arg == 31) {
-			asm_emit(isr->opcode + 1);
-			asm_emit_expression(2, con);
-		} else if (arg == 6) {
-			asm_emit(isr->arg);
-		} else if (arg == 29) {
-			asm_emit(0xDD);
-			asm_emit(isr->arg);
-		} else if (arg == 30) {
-			asm_emit(0xFD);
-			asm_emit(isr->arg);
-		} else
-			return 1;
-	}
-	
-	else if (isr->type == JRLFLO) {
-		// jump (relative)
-		arg = asm_arg(&con, 0);
-		
-		// jr allows for 4 conditional modes
-		reg = 0;
-		if (isr->arg) {
-			if (arg >= 13 && arg <= 16) {
-				reg = (arg - 12)<<3;
-				asm_expect(',');
-				arg = asm_arg(&con, 0);
-			} else if (arg != 31)
-				return 1;
-		}
-		
-		if (arg != 31)
-			return 1;
-		
-		asm_emit(isr->opcode + reg);
-		asm_emit_expression(1, con);
-	}
-	
-	else if (isr->type == CALFLO) {
-		// call
-		arg = asm_arg(&con, 0);
-		
-		if (arg >= 13 && arg <= 20) {
-			asm_emit(isr->opcode + ((arg-13)<<3));
-			asm_expect(',');
-			asm_emit_expression(2, 0);
-		} else if (arg == 31) {
-			asm_emit(isr->arg);
-			asm_emit_expression(2, con);
-		} else
-			return 1;
-	}
-	
-	else if (isr->type == RSTFLO) {
-		// rst
-		arg = asm_arg(&con, 1);
-		
-		if (arg != 31 || con & 0x7 || con > 0x38)
-			return 1;
-		
-		
-		asm_emit(isr->opcode + con);
-	}
-	
-	else if (isr->type == IOIN) {
-		// in
-		arg = asm_arg(&con, 1);
-		
-		// special case for (c) only
-		if (arg == 33) {
-			asm_emit(0xED);
-			asm_emit(isr->arg + 0x30);
-			return 0;
-		}
-		
-		// throw out (hl)
-		if (arg == 6 || arg > 7)
-			return 1;
-		
-		// grab next argument
-		reg = arg;
-		asm_expect(',');
-		arg = asm_arg(&con, 1);
-		
-		// decode
-		if (reg == 7 && arg == 32) {
-			asm_emit(isr->opcode);
-			asm_emit(con);
-		} else if (arg == 33) {
-			asm_emit(0xED);
-			asm_emit(isr->arg + (reg<<3));
-		} else
-			return 1;
-	}
-	
-	else if (isr->type == IOOUT) {
-		// out
-		arg = asm_arg(&con, 1);
-		
-		if (arg == 32) {
-			// immedate
-			reg = con;
-			asm_expect(',');
-			arg = asm_arg(&con, 1);
-			
-			// only 'a' is supported
-			if (arg != 7)
-				return 1;
-			
-			asm_emit(isr->opcode);
-			asm_emit(reg);
-		} else if (arg == 33) {
-			// (c)
-			asm_expect(',');
-			arg = asm_arg(&con, 1);
-			
-			// no (hl), but we can do '0' instead
-			if (arg == 6)
-				return 1;
-			if (arg == 31 && !con)
-				arg = 6;
-				
-			if (arg > 7)
-				return 1;
-			
-			asm_emit(0xED);
-			asm_emit(isr->arg + (arg<<3));
-		} else
-			return 1;
-	}
-	
-	else if (isr->type == EXCH) {
-		// exchange
-		reg = asm_arg(&con, 1);
-		asm_expect(',');
-		arg = asm_arg(&con, 1);
-		
-		// af
-		if (reg == 12) {
-			if (arg == 12) {
-				asm_expect('\'');
-				asm_emit(isr->arg);
-			} else
-				return 1;
-		}
-		
-		// de
-		else if (reg == 9) {
-			if (arg == 10) {
-				asm_emit(isr->opcode + 0x08);
-			} else
-				return 1;
-		}
-		
-		// (sp)
-		else if (reg == 34) {
-			switch (arg) {
-				case 10:
-					break;
-					
-				case 21:
-					asm_emit(0xDD);
-					break;
-					
-				case 22:
-					asm_emit(0xFD);
-					break;
-					
-				default:
-					return 1;
-			}
-			
-			asm_emit(isr->opcode);
-		}
-	}
-	
-	else if (isr->type == INTMODE) {
-		// interrupt mode
-		arg = asm_arg(&con, 1);
-		
-		// only 0-2
-		if (arg != 31)
-			return 1;
-		
-		asm_emit(0xED);
-		switch (con) {
-			case 0:
-			case 1:
-				asm_emit(isr->opcode + (con<<4));
-				break;
-				
-			case 2:
-				asm_emit(isr->arg);
-				break;
-				
-			default:
-				return 1;
-		}
-	}
-	
-	else if (isr->type == LOAD) {
-		// load instruction
-		// i will never forgive you zilog
-		
-		// correct for carry flag
-		arg = asm_arg(&con, 0);
-		if (arg == 16)
-			arg = 1;
-		
-		// special case for deferred constant
-		if (arg == 32) {
-			type = asm_evaluate(&value, con);
-			asm_expect(')');
-			asm_expect(',');
-			arg = asm_arg(&con, 1);
-			
-			switch (arg) {
-				case 10:
-					asm_emit(0x22);
-					break;
-					
-				case 7:
-					asm_emit(0x32);
-					break;
-					
-				case 21:
-					asm_emit(0xDD);
-					asm_emit(0x22);
-					break;
-					
-				case 22:
-					asm_emit(0xFD);
-					asm_emit(0x22);
-					break;
-					
-				case 8:
-				case 9:
-				case 11:
-					asm_emit(0xED);
-					asm_emit(0x43 + ((arg-8)<<4));
-					break;
-					
-				default:
-					return 1;
-			}
-			
-			asm_emit_addr(2, value, type);
-		}
-		
-		// standard a-(hl) and ixh-(iy+*)
-		else if (arg < 8 || (arg >= 23 && arg <= 28)) {
-			// grab any constants if they exist
-			if (arg == 25 || arg == 28) {
-				type = asm_evaluate(&value, con);
-				asm_expect(')');
-				prim++;
-			}
-			asm_expect(',');
-			
-			// correct for carry flag
-			reg = asm_arg(&con, 0);
-			if (reg == 16)
-				reg = 1;
-			
-			// i* class dest?
-			if (arg >= 23 && arg <= 28) {
-				// check for ix or iy, correct iy
-				if (arg <= 25) {
-					// ix
-					asm_emit(0xDD);
-				} else {
-					// iy
-					asm_emit(0xFD);
-					
-					// iy should now act like ix
-					if (reg >= 23 && reg <= 28) {
-						if (reg < 26)
-							return 1;
-						reg = reg - 3;		
-					}
-					arg = arg - 3;
-				}
-				
-				// check if arg is (ix+*) or not
-				if (arg == 25) {
-					// no (hl)
-					if (reg == 6)
-						return 1;
-				} else {
-					// no h-(hl)
-					if (reg >= 4 && reg <= 6)
-						return 1;
-					
-					// downconvert ix*
-					if (reg >= 23 && reg <= 25) {
-						if (reg == 25)
-							return 1;
-						reg = reg - 19;
-					}
-				}
-				
-				arg = arg - 19;
-				
-			}
-			
-			// i* class src?
-			else if (reg >= 23 && reg <= 28) {
-				// no (hl)
-				if (arg == 6)
-					return 1;
-				
-				// check for ix or iy, correct iy
-				if (reg <= 25) {
-					// ix
-					asm_emit(0xDD);
-				} else {
-					// iy
-					asm_emit(0xFD);
-					
-					// iy should now act like ix
-					if (reg >= 23 && reg <= 28) {
-						if (reg < 26)
-							return 1;
-						reg = reg - 3;		
-					}
-				}
-				
-				// grab ix/iy offset
-				// h/l only allowed for ix+*
-				if (reg == 25) {
-					type = asm_evaluate(&value, con);
-					asm_expect(')');
-					prim++;
-				} else if (arg == 4 || arg == 5)
-					return 1;
-				
-				reg = reg - 19;
-			}
-			
-			// no (hl),(hl)
-			if (arg == 6 && reg == 6)
-				return 1;
-			
-			if (arg < 8 && reg < 8) {
-				// reg8->reg8
-				asm_emit(0x40 + (arg<<3) + reg);
-				if (prim)
-					asm_emit_imm(value, type);
-			} else if (arg < 8 && reg == 31) {
-				// *->reg8
-				asm_emit(0x06 + (arg<<3));
-				if (prim)
-					asm_emit_imm(value, type);
-				type = asm_evaluate(&value, con);
-				asm_emit_imm(value, type);
-			} else if (arg == 7) {
-				// special a loads
-				switch (reg) {
-					case 35:
-						asm_emit(0x0A);
-						break;
-					
-					case 36:
-						asm_emit(0x1A);
-						break;
-						
-					case 32:
-						asm_emit(0x3A);
-						asm_emit_expression(2, con);
-						asm_expect(')');
-						break;
-						
-					case 37:
-						asm_emit(0xED);
-						asm_emit(0x57);
-						break;
-						
-					case 38:
-						asm_emit(0xED);
-						asm_emit(0x5F);
-						break;
-						
-					default:
-						return 1;
-				}
-			} else
-				return 1;
-			
-		
-		}
-		
-		
-		// bc-sp, and ix/iy
-		else if ((arg >= 8 && arg <= 11) || (arg == 21 || arg == 22)) {
-			// correct for ix,iy into hl
-			if (arg == 21) {
-				asm_emit(0xDD);
-				arg = 10;
-			} else if (arg == 22) {
-				asm_emit(0xFD);
-				arg = 10;
-			} 
-			
-			// grab a direct or deferred word
-			asm_expect(',');
-			reg = asm_arg(&con, 0);
-			
-			if (reg == 31) {
-				// direct
-				asm_emit(0x01 + ((arg-8)<<4));
-				asm_emit_expression(2, con);
-			} else if (reg == 32) {
-				// deferred
-				if (arg == 10) {
-					// do hl
-					asm_emit(0x2A);
-				} else {
-					// bc, de, sp
-					asm_emit(0xED);
-					asm_emit(0x4B + ((arg-8)<<4));
-				}
-				asm_emit_expression(2, con);
-				asm_expect(')');
-			} else if (arg == 11) {
-				// sp specials
-				switch (reg) {
-					case 10:
-						break;
-						
-					case 21:
-						asm_emit(0xDD);
-						break;
-						
-					case 22:
-						asm_emit(0xFD);
-						break;
-						
-					default:
-						return 1;
-				}
-				asm_emit(0xF9);
-			} else
-				return 1;
-			
-		}
-		
-		// special loads
-		else if (arg >= 35 && arg <= 38) {
-			asm_expect(',');
-			reg = asm_arg(&con, 1);
-			if (reg != 7)
-				return 1;
-			
-			switch (arg) {
-				case 35:
-					asm_emit(0x02);
-					break;
-					
-				case 36:
-					asm_emit(0x12);
-					break;
-					
-				case 37:
-					asm_emit(0xED);
-					asm_emit(0x47);
-					break;
-					
-				case 38:
-					asm_emit(0xED);
-					asm_emit(0x4F);
-					break;
-			}
-		} else
-			return 1;
-	}
 	
 	return 0;
 }
@@ -2435,155 +1423,21 @@ char asm_instr(char *in)
  */
 void asm_change_seg(char next)
 {
-	switch (asm_seg) {
-		case 1:
-			text_top = asm_address;
-			break;
-			
-		case 2:
-			data_top = asm_address;
-			break;
-			
-		case 3:
-			bss_top = asm_address;
-			break;
-			
-		default:
-			break;
-	}
-	
-	switch (next) {
-		case 1:
-			asm_address = text_top;
-			break;
-			
-		case 2:
-			asm_address = data_top;
-			break;
-			
-		case 3:
-			asm_address = bss_top ;
-			break;
-			
-		default:
-			break;
-	}
-}
 
-/*
- * iterates through and fixes all segments for the second pass
- */
-void asm_fix_seg()
-{
-	struct symbol *sym;
-	struct local *loc;
-	
-	sym = sym_table->parent;
-	
-	while (sym) {
-		
-		// printf("fixed %s from %d:%d to ", sym->name, sym->type, sym->value);
-		
-		// data -> text
-		if (sym->type == 2) {
-			sym->value += text_top;
-		}
-		
-		// bss -> text
-		if (sym->type == 3) {
-			sym->value += text_top + data_top;
-		}
-		
-		// printf("%d:%d\n", sym->type, sym->value);
-		
-		sym = sym->next;
-	}
-	
-	loc = loc_table;
-	while (loc) {
-		
-		// printf("fixed $%d from %d:%d to ", loc->label, loc->type, loc->value);
-		
-		// data -> text
-		if (loc->type == 2) {
-			loc->value += text_top;
-		}
-		
-		// bss -> text
-		if (loc->type == 3) {
-			loc->value += text_top + data_top;
-		}
-		
-		// printf("%d:%d\n", loc->type, loc->value);
-		
-		loc = loc->next;
-	}
-}
-
-/*
- * outputs the metadata blocks after assembly is done
- */
-void asm_meta()
-{
-	int i;
-	uint8_t lextn;
-	struct global *glob;
-	
-	// output size of reloc records
-	reloc_rec++;
-	sio_out(reloc_rec & 0xFF);
-	sio_out(reloc_rec >> 8);
-					
-	// output reloc table
-	asm_reloc_out(textr.head, 0);
-	asm_reloc_out(datar.head, text_top);
-	
-	// output terminator
-	sio_out(0);
-	sio_out(0);
-	sio_out(0);
-	
-	// output size of global records
-	sio_out(glob_rec & 0xFF);
-	sio_out(glob_rec >> 8);
-	
-	// output all globals
-	glob = glob_table;
-	lextn = 5;
-	while (glob) {
-		
-		// make sure that we aren't outputting the same external twice
-		// hard to do, but may be possible
-		if (glob->symbol->type > 4)
-			if (glob->symbol->type != lextn++)
-				asm_error("multiple external emissions");
-		
-		
-		// size-1 bytes for the name
-		i = 0;
-		while (i < SYMBOL_NAME_SIZE-1) {
-			sio_out(glob->symbol->name[i]);
-			i++;
-		}
-		// 1 for the type
-		sio_out(glob->symbol->type);
-		// 2 for the value
-		sio_out(glob->symbol->value & 0xFF);
-		sio_out(glob->symbol->value >> 8);
-		
-		glob = glob->next;
-	}
 }
 
 /*
  * perform assembly functions
  */
-void asm_assemble(char flagg, char flagv)
+void asm_assemble(char flagv, char flagl)
 {
 	char tok, type, next;
-	int ifdepth, trdepth;
+	int ifdepth, trdepth, i;
 	uint16_t result, size;
 	struct symbol *sym;
+	
+	// set lower flag
+	is_lower = flagl;
 
 	// reset data structures
 	asm_reset();
@@ -2591,24 +1445,27 @@ void asm_assemble(char flagg, char flagv)
 	// start at pass 1
 	asm_pass = 0;
 
-	// assembler start at 0;
-	asm_address = 0;
+	// assembler starts at 128;
+	asm_address = 128;
+	for (i = 0; i < 256; i++) {
+		data_bank_addr[i] = 0;
+		text_bank_addr[i] = 128;
+	}
 	
 	// reset the segments too
 	asm_seg = 1;
-	text_top = data_top = bss_top = 0;
 	
 	// reset local count
 	loc_cnt = 0;
 	
-	// reset records
-	glob_rec = reloc_rec = 0;
-	
 	// reset if and true depth
 	ifdepth = trdepth = 0;
 	
-	// fill space for a.out header
-	asm_fill(16);
+	// reset outputs
+	for (i = 0; i < 128 * 256; i++) {
+		data_out[i] = 0;
+		isr_out[i] = 0;
+	}
 	
 	// general line input stuff
 	while (1) {
@@ -2626,66 +1483,21 @@ void asm_assemble(char flagg, char flagv)
 			if (!asm_pass) {
 				// first pass -> second pass
 				if (flagv)
-					printf("first pass done, %d Z80 bytes used (%d:%d:%d:%d)\n", (18 * sym_count) + (6 * loc_count) + (4 * glob_count) + ((2 + RELOC_SIZE*2) * reloc_count), sym_count, loc_count, glob_count, reloc_count);
+					printf("first pass done: %d symbols %d locals\n", sym_count, loc_count);
 				asm_pass++;
 				loc_cnt = 0;
 				
 				// fix segment symbols
 				asm_change_seg(1);
-				asm_fix_seg();
-				
-				// store bss_top for header emission
-				size = text_top + data_top + bss_top;
-				
-				// reset segment addresses
-				bss_top = text_top + data_top;
-				data_top = text_size = text_top;
-				asm_address = text_top = 0;
-				asm_seg = 1;
-				
+
+				// reset assembly pointer
 				sio_rewind();
-				
-				// emit header
-				
-				// magic number
-				asm_emit(0x18);
-				asm_emit(0x0E);
-				
-				// info byte
-				asm_emit(0x01);
-				
-				// text base
-				asm_emit(0x00);
-				asm_emit(0x00);
-				
-				// syscall vector
-				asm_emit(0xC3);
-				asm_emit(0x00);
-				asm_emit(0x00);
-				
-				// text entry
-				asm_emit(0x00);
-				asm_emit(0x00);
-				
-				// text top
-				asm_emit_word(data_top);
-				
-				// data top
-				asm_emit_word(bss_top);
-				
-				// bss top
-				asm_emit_word(size);
-				
 				
 				continue;
 			} else {
 				// emit relocation data and symbol stuff
 				if (flagv)
-					printf("second pass done, %d Z80 bytes used (%d:%d:%d:%d)\n", (18 * sym_count) + (6 * loc_count) + (4 * glob_count)  + ((2 + RELOC_SIZE*2) * reloc_count), sym_count, loc_count, glob_count, reloc_count);
-				sio_append();
-				
-				// output metablock
-				asm_meta();
+					printf("second pass done: %d symbols %d locals\n", sym_count, loc_count);
 				
 				break;
 			}
@@ -2753,60 +1565,6 @@ void asm_assemble(char flagg, char flagv)
 				continue;
 			}
 			
-			// globl directive
-			else if (asm_sequ(token_buf, "globl")) {
-				// these can be chained with commas
-				while (1) {
-					tok = asm_token_read();
-					if (tok != 'a') 
-						asm_error("expected symbol");
-					if (asm_pass) {
-						sym = asm_sym_fetch(sym_table, token_buf);
-						if (!sym)
-							asm_error("undefined symbol");
-						if (sym->type > 4)
-							asm_error("symbol is external");
-						asm_glob(sym);
-					}
-					
-					// see if there is another
-					if (sio_peek() == ',')
-						asm_expect(',');
-					else
-						break;
-				}
-				asm_eol();
-			}
-			
-			// extern directive
-			else if (asm_sequ(token_buf, "extern")) {
-				// these can be chained with commas
-				while (1) {
-					tok = asm_token_read();
-					if (tok != 'a') 
-						asm_error("expected symbol");
-					if (!asm_pass) {
-						
-						if (!extn)
-							asm_error("out of externals");
-		
-						// create external symbol, and increment extern counter
-						sym = asm_sym_update(sym_table, token_buf, extn++, NULL, 0);
-		
-						// output extern to the global table
-						// this will ensure that it is outputted so the linker can see it
-						asm_glob(sym);
-						
-					}
-					
-					// see if there is another
-					if (sio_peek() == ',')
-						asm_expect(',');
-					else
-						break;
-				}
-				asm_eol();
-			}
 			
 			// define directive
 			else if (asm_sequ(token_buf, "def")) {
@@ -2836,7 +1594,7 @@ void asm_assemble(char flagg, char flagv)
 				if (!size)
 					asm_error("not a type");
 				
-				sym = asm_sym_update(sym_table, token_buf, asm_seg, sym, asm_address);
+				sym = asm_sym_update(sym_table, token_buf, 4, sym, asm_address);
 				sym->size = size;
 				asm_define(sym_name, result);
 				asm_eol();
@@ -2878,20 +1636,14 @@ void asm_assemble(char flagg, char flagv)
 				type = asm_evaluate(&result, 0);
 				
 				// set the new symbol
-				asm_sym_update(sym_table, sym_name, type, NULL, result);
+				asm_sym_update(sym_table, sym_name, 4, NULL, result);
 				asm_eol();
 			} else if (sio_peek() == ':') {
 				// it's a label
 				
 				// set the new symbol (if it is the first pass)
 				if (!asm_pass) {
-					asm_sym_update(sym_table, token_buf, asm_seg, NULL, asm_address);
-					
-					// auto globals?
-					if (flagg) {
-						sym = asm_sym_fetch(sym_table, token_buf);
-						asm_glob (sym);
-					}
+					asm_sym_update(sym_table, token_buf, 4, NULL, asm_address);
 				}
 				
 				asm_token_read();
@@ -2911,7 +1663,7 @@ void asm_assemble(char flagg, char flagv)
 			
 			loc_cnt++;
 			if (!asm_pass)
-				asm_local_add(result, asm_seg, asm_address);
+				asm_local_add(result, 4, asm_address);
 			
 		} else if (tok != 'n') {
 			asm_error("unexpected token");

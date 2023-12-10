@@ -8,6 +8,7 @@ as [-v] source.s ...
 | Option | Description |
 | ------ | ----------- |
 | -v     | Verbose output, will display information about the overall assembly |
+| -l     | Assembly in the lower 128 words of instruction address space |
 
 ## Symbols
 Symbol definition follows the syntax used in Version 6 UNIX. Unlike most Z80 assemblers, the `equ` directive is not used. All symbols can also be redefined as many times as needed, thought this isn't recommended for labels as it may make the final product confusing to read. Symbols are limited to 8 characters to save memory. If a symbol is longer than 8 characters, the other characters will be ignored. The following code example will show off some simple symbol definitions:
@@ -42,8 +43,6 @@ A small number of directives are included in the assembler to make configuration
 | `.bss`                            | Sets the current segment to bss |
 | `.if exp`                         | If the exp resolves to 0, skip all until next .endif. Exp must be defined and absolute |
 | `.endif`                          | Marks the end of a `.if` block |
-| `.extern sym1, sym2, ...`         | Defines an external symbol |
-| `.globl sym1, sym2, ...`          | Sets a symbol to global, externals cannot be made global |
 | `.type name { type_1, ...}`       | Defines a type, will be elaborated on later |
 
 ## Types

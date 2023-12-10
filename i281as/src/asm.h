@@ -8,8 +8,8 @@
 
 #define EXP_STACK_DEPTH 16
 
-#define TOKEN_BUF_SIZE 19
-#define SYMBOL_NAME_SIZE 9
+#define TOKEN_BUF_SIZE 129
+#define SYMBOL_NAME_SIZE 33
 
 #define RELOC_SIZE 8
 
@@ -21,12 +21,8 @@ struct tval {
 	uint8_t type;
 };
 
-struct toff {
-	uint8_t off;
-	uint8_t type;
-};
 
-/* Z80 size = 18 bytes */
+/* symbol (full) */
 struct symbol {
 	uint8_t type;
 	char name[SYMBOL_NAME_SIZE];
@@ -36,7 +32,7 @@ struct symbol {
 	struct symbol *next;
 };
 
-/* Z80 size = 6 bytes */
+/* symbol (local) */
 struct local {
 	uint8_t type;
 	uint8_t label;
@@ -44,30 +40,10 @@ struct local {
 	struct local *next;
 };
 
-/* Z80 size = RELOC_SIZE*2 + 2 bytes */
-struct reloc {
-	struct toff toff[RELOC_SIZE];
-	struct reloc *next;
-};
-
-/* Z80 size = 4 bytes */
-struct global {
-	struct symbol *symbol;
-	struct global *next;
-};
-
-/* headers for reloc tables */
-struct header {
-	uint16_t last;
-	uint8_t index;
-	struct reloc *head;
-	struct reloc *tail;
-};
-
 
 /* interface functions */
 
 void asm_reset();
-void asm_assemble(char flagg, char flagv);
+void asm_assemble(char flagv, char flagl);
 
 #endif
