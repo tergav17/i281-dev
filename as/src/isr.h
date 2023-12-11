@@ -77,6 +77,12 @@ struct instruct isr_table[] = {
 	{ BRANCH, "brne", 0xF1, 0 },
 	{ BRANCH, "brg", 0xF2, 0 },
 	{ BRANCH, "brge", 0xF3, 0 },
+	{ BRANCH, "brc", 0xF4, 0 },
+	{ BRANCH, "brnc", 0xF5, 0 },
+	{ BRANCH, "brn", 0xF6, 0 },
+	{ BRANCH, "brnn", 0xF7, 0 },
+	{ BRANCH, "bro", 0xF8, 0 },
+	{ BRANCH, "brno", 0xF9, 0 },
 	
 	{ END, "", 0x00, 0x00}
 };
