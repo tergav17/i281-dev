@@ -41,12 +41,13 @@ A small number of directives are included in the assembler to make configuration
 | `.text`                           | Sets the current segment to text |
 | `.data`                           | Sets the current segment to data |
 | `.bss`                            | Sets the current segment to bss |
-| `.if exp`                         | If the exp resolves to 0, skip all until next .endif. Exp must be defined and absolute |
+| `.bank exp`                       | Sets the current bank. Exp must be defined in pass 1 |
+| `.if exp`                         | If the exp resolves to 0, skip all until next .endif. Exp must be defined in pass 1 |
 | `.endif`                          | Marks the end of a `.if` block |
 | `.type name { type_1, ...}`       | Defines a type, will be elaborated on later |
 
 ## Types
-The TRASM assembler has the ability to define custom types. These types act as primitive structs and make handling custom data
+The i281 assembler has the ability to define custom types. These types act as primitive structs and make handling custom data
 structures a bit easier. The size of a type is equal to the size of its child symbols. Child symbols occupy a different namespace than normal symbols. Below is an example type being defined:
 ```
 .type symbol {
@@ -66,7 +67,7 @@ The offsets for child symbols can be indexed by using the symbols name directly.
   0
 }
 ```
-In this case, the statement `exsym.value` will return the address to the value element in memory. This would be the same as `exsym + symbol.value`. The size of a type can be accessed using `$(type)`.
+In this case, the statement `exsym.value` will return the address to the value element in memory. This would be the same as `exsym + symbol.value`. The size of a type can be accessed using `$type`.
 
 ## Expressions
 All numberic or symbol inputs during assembly are treated as expressions. These will be fully parsed before they are emitted. When evaluating an expression, the order of operation is observed. The expression will either be absolute if it contains only numbers, or it will inherit the segment that the included symbols exist in. When using segment symbols, special rules apply.

@@ -39,8 +39,7 @@ uint8_t asm_pass;
 uint8_t asm_seg;
 
 /* banking information */
-uint8_t text_bank;
-uint8_t data_bank;
+uint8_t curr_bank;
 
 uint8_t max_bank;
 /* the expression evaluator requires some larger data structures, lets define them */
@@ -1025,17 +1024,17 @@ void asm_emit(uint16_t value, uint8_t size)
 			asm_error("out of space in text bank");
 		
 		// write to output
-		isr_out[128 * text_bank + i] = value;
+		isr_out[128 * curr_bank + i] = value;
 		asm_address++;
 		
 		// keep track of maximum bank
-		if (text_bank > max_bank)
-			max_bank = text_bank;
+		if (curr_bank > max_bank)
+			max_bank = curr_bank;
 	}
 	
 	
 	// data segment 
-	else if (asm_seg == 2 || asm_seg == 3) {
+	else {
 				
 		// get address
 		i = asm_address;
@@ -1046,23 +1045,23 @@ void asm_emit(uint16_t value, uint8_t size)
 			if (i >= 128)
 				asm_error("out of space in data bank");
 			
-			isr_out[128 * data_bank + i] = value;
+			data_out[128 * curr_bank + i] = value;
 			asm_address++;
 		} else {
 			// make sure we aren't overruning the current bank
 			if (i >= 127)
 				asm_error("out of space in data bank");
 			
-			isr_out[128 * data_bank + i] = value >> 8;
-			isr_out[128 * data_bank + i + 1] = value & 0xFF;
+			data_out[128 * curr_bank + i] = value >> 8;
+			data_out[128 * curr_bank + i + 1] = value & 0xFF;
 			asm_address += 2;
 		}
 		
 		// check segment stuff
 		if (asm_seg == 2) {
 			// keep track of maximum bank
-			if (data_bank > max_bank)
-				max_bank = data_bank;
+			if (curr_bank > max_bank)
+				max_bank = curr_bank;
 		} else {
 			// no data in bss!!!
 			if (value)
@@ -1284,6 +1283,10 @@ void asm_define(char *type, uint16_t count)
 		}
 		
 		// see how many elements we emitted, and align to size
+		// first, correct size for instruction memory
+		// sorta hacky, but whatever
+		if (size == 2 && asm_seg == 1)
+			size = 1;
 		while (asm_address > addr) {
 			addr += size;
 			i++;
@@ -1656,11 +1659,32 @@ char asm_instr(char *in)
 /*
  * changes segments for first pass segment top tracking
  *
- * next = next segment
+ * nseg = next segment
+ * nbank = next bank
  */
-void asm_change_seg(char next)
+void asm_change_seg(char nseg, char nbank)
 {
-
+	// first we put away the current pointer
+	if (asm_seg == 1) {
+		// text segment
+		text_bank_addr[curr_bank] = asm_address;
+	} else {
+		// data / bss segment
+		data_bank_addr[curr_bank] = asm_address;
+	}
+	
+	// change bank and segment
+	asm_seg = nseg;
+	curr_bank = nbank;
+	
+	// get the pointer back
+	if (asm_seg == 1) {
+		// text segment
+		asm_address = text_bank_addr[curr_bank];
+	} else {
+		// data / bss segment
+		asm_address = data_bank_addr[curr_bank];
+	}
 }
 
 /*
@@ -1717,6 +1741,7 @@ void asm_assemble(char flagv, char flagl)
 	
 	// reset the segments too
 	asm_seg = 1;
+	curr_bank = 0;
 	
 	// reset local count
 	loc_cnt = 0;
@@ -1758,8 +1783,9 @@ void asm_assemble(char flagv, char flagl)
 					text_bank_addr[i] = is_lower ? 0 : 128;
 				}
 				
-				// fix segment symbols
-				asm_change_seg(1);
+				// reset segmenting
+				asm_seg = 1;
+				curr_bank = 0;
 
 				// reset assembly pointer
 				sio_rewind();
@@ -1833,8 +1859,24 @@ void asm_assemble(char flagv, char flagl)
 			
 			// change segment
 			if (next != 0) {
-				asm_change_seg(next);
-				asm_seg = next;
+				asm_change_seg(next, curr_bank);
+				asm_eol();
+				continue;
+			}
+			
+			// bank directive
+			if (asm_sequ(token_buf, "bank")) {
+
+				// evaluate the expression
+				type = asm_evaluate(&result, 0);
+				
+				if (type != 4)
+					asm_error("must be absolute");
+				
+				if (result > 255)
+					asm_error("invalid bank");
+				
+				asm_change_seg(asm_seg, result);
 				asm_eol();
 				continue;
 			}
