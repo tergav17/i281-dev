@@ -42,6 +42,7 @@ A small number of directives are included in the assembler to make configuration
 | `.data`                           | Sets the current segment to data |
 | `.bss`                            | Sets the current segment to bss |
 | `.bank exp`                       | Sets the current bank. Exp must be defined in pass 1 |
+| `.org exp`						| Sets the current assembly address. Exp must be defined in pass 1 |
 | `.if exp`                         | If the exp resolves to 0, skip all until next .endif. Exp must be defined in pass 1 |
 | `.endif`                          | Marks the end of a `.if` block |
 | `.type name { type_1, ...}`       | Defines a type, will be elaborated on later |
@@ -68,6 +69,8 @@ The offsets for child symbols can be indexed by using the symbols name directly.
 }
 ```
 In this case, the statement `exsym.value` will return the address to the value element in memory. This would be the same as `exsym + symbol.value`. The size of a type can be accessed using `$type`.
+
+Custom types should not be used in the `.text` segment unless you know exactly what you are doing.
 
 ## Expressions
 All numberic or symbol inputs during assembly are treated as expressions. These will be fully parsed before they are emitted. When evaluating an expression, the order of operation is observed. The expression will either be absolute if it contains only numbers, or it will inherit the segment that the included symbols exist in. When using segment symbols, special rules apply.
@@ -97,6 +100,8 @@ Numeric values can be written in the following formats:
 - Hexadecimal (`0x00, 0h00, 00x, 00h`)
 - Octal (`0o00, 00o`)
 - Binary (`0b00, 00b`)
+
+The special value `@` can be used to return the current address of assembly.
 
 ## Known Bugs
 The string and char tokenization has some issues. Any whitespace after the initial `'` or `"` will be ignored.

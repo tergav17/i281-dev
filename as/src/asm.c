@@ -875,11 +875,14 @@ uint8_t asm_evaluate(uint16_t *result, char itok)
 					num = 0;
 				}
 			}
-		} else if (tok == '0') {
+		} else if (tok == '0' || tok == '@') {
 			// it is a numeric (maybe)
 			op = 0;
 		
-			if (asm_num(token_buf[0]) && (token_buf[1] == 'f' || token_buf[1] == 'b') && token_buf[2] == 0) {
+			if (tok == '@') {
+				// current asm pointer
+				num = asm_address;
+			} else if (asm_num(token_buf[0]) && (token_buf[1] == 'f' || token_buf[1] == 'b') && token_buf[2] == 0) {
 				// nope, actually a local label
 				type = asm_local_fetch(&num, loc_cnt, asm_char_parse(token_buf[0]), token_buf[1] == 'f');
 			} else {
