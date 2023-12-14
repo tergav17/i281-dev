@@ -1881,6 +1881,23 @@ void asm_assemble(char flagv, char flagl)
 				continue;
 			}
 			
+			// org directive
+			if (asm_sequ(token_buf, "org")) {
+
+				// evaluate the expression
+				type = asm_evaluate(&result, 0);
+				
+				if (type != 4)
+					asm_error("must be absolute");
+				
+				if (result > 255)
+					asm_error("invalid origin");
+				
+				asm_address = result;
+				asm_eol();
+				continue;
+			}
+			
 			
 			// define directive
 			else if (asm_sequ(token_buf, "def")) {
