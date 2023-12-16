@@ -18,7 +18,7 @@ char *argz;
  */
 void usage()
 {
-	printf("usage: %s [-vl] source.s ...\n", argz);
+	printf("usage: %s [-vl] [-o output] source.s ...\n", argz);
 	exit(1);
 }
 
@@ -26,8 +26,12 @@ void usage()
 int main(int argc, char *argv[])
 {
 	int i, o;
-	
+	char *name;
+
 	argz = argv[0];
+
+	// default name is a
+	name = "a";
 	
 	// flag switch
 	for (i = 1; i < argc; i++) {
@@ -42,12 +46,21 @@ int main(int argc, char *argv[])
 						
 					case 'l':
 						flagl++;
+						break;
+						
+					case 'o':
+						i++;
+						if (i >= argc)
+							usage();
+						name = argv[i];
+						break;
 						
 					default:
 						usage();
 				}
 			}
-		}
+		} else
+			break;
 	}
 
 	// check to see if there are any actual arguments
@@ -63,7 +76,7 @@ int main(int argc, char *argv[])
 		printf("i281as cross assembler v%s\n", VERSION);
 	
 	// open up the source files
-	sio_open(argc, argv);
+	sio_open(argc, argv, name);
 	
 	// do the assembly
 	asm_assemble(flagv, flagl);

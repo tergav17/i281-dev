@@ -33,11 +33,7 @@ FILE *sio_curr;
 /* output file */
 FILE *sio_fout;
 
-/* tmp file */
-FILE *sio_ftmp;
-
-/* pid */
-char tname[32];
+char lname[256];
 
 /*
  * loads up the first block of the next file
@@ -87,20 +83,15 @@ void sio_nextfile()
  * argc = argument count
  * argv = array of arguments
  */
-void sio_open(int argc, char *argv[])
+void sio_open(int argc, char *argv[], char *name)
 {
 	sio_argv = argv;
 	sio_argc = argc;
 
-	sprintf(tname, "/tmp/atm%d", getpid());
+	sprintf(lname, "%s.bin", name);
 
-	if (!(sio_fout = fopen("a.bin", "wb"))) {
-		printf("cannot open a.bin\n");
-		exit(1);
-	}
-	
-	if (!(sio_ftmp = fopen(tname, "wb"))) {
-		printf("cannot open tmp file\n");
+	if (!(sio_fout = fopen(lname, "wb"))) {
+		printf("cannot open %s\n", lname);
 		exit(1);
 	}
 
@@ -115,13 +106,8 @@ void sio_close()
 {
 	if (sio_curr) fclose(sio_curr);
 	fclose(sio_fout);
-	fclose(sio_ftmp);
 	sio_curr = NULL;
 	sio_fout = NULL;
-	sio_ftmp = NULL;
-	
-	// delete temp file
-	remove(tname);
 }
 
 /*

@@ -2,7 +2,7 @@
 #define SIO_H
 
 /* These are the functions needed to interface with the rest of the assembler */
-void sio_open(int argc, char *argv[]);
+void sio_open(int argc, char *argv[], char *name);
 void sio_close();
 char sio_peek();
 char sio_next();

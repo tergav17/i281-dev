@@ -3,7 +3,7 @@ Assembler for the i281 toolchain. Takes in a source file and assembles it into a
 
 ## Usage
 ```
-as [-v] source.s ...
+as [-vl] source.s ...
 ```
 | Option | Description |
 | ------ | ----------- |
