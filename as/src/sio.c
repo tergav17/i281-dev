@@ -15,6 +15,7 @@
 char **sio_argv;
 int sio_argc;
 int sio_argi;
+int sio_argini;
 
 /* buffer state stuff */
 char sio_buf[512];
@@ -83,12 +84,13 @@ void sio_nextfile()
  * argc = argument count
  * argv = array of arguments
  */
-void sio_open(int argc, char *argv[], char *name)
+void sio_open(int argini, int argc, char *argv[], char *name)
 {
 	sio_argv = argv;
 	sio_argc = argc;
+	sio_argini = argini;
 
-	sprintf(lname, "%s.bin", name);
+	sprintf(lname, "%s.sav", name);
 
 	if (!(sio_fout = fopen(lname, "wb"))) {
 		printf("cannot open %s\n", lname);
@@ -153,7 +155,9 @@ char sio_next()
  */
 void sio_rewind()
 {	
-	sio_argi = 0;
+
+	printf("argini = %d\n", sio_argini);
+	sio_argi = sio_argini;
 	
 	sio_nextfile();
 }

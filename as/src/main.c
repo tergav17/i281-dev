@@ -25,7 +25,7 @@ void usage()
 
 int main(int argc, char *argv[])
 {
-	int i, o;
+	int i, o, l;
 	char *name;
 
 	argz = argv[0];
@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
 	// flag switch
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
-			o = 1;
-			while (argv[i][o]) {
+			l = o = 1;
+			while (argv[i][o] && l) {
 				switch (argv[i][o++]) {
 						
 					case 'v':
@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 						
 					case 'o':
 						i++;
+						l = 0;
 						if (i >= argc)
 							usage();
 						name = argv[i];
@@ -64,11 +65,7 @@ int main(int argc, char *argv[])
 	}
 
 	// check to see if there are any actual arguments
-	o = 1;
-	for (i = 1; i < argc; i++)
-		if (argv[i][0] != '-')
-			o = 0;
-	if (o)
+	if (i == argc) 
 		usage();
 	
 	// intro message
@@ -76,7 +73,7 @@ int main(int argc, char *argv[])
 		printf("i281as cross assembler v%s\n", VERSION);
 	
 	// open up the source files
-	sio_open(argc, argv, name);
+	sio_open(--i, argc, argv, name);
 	
 	// do the assembly
 	asm_assemble(flagv, flagl);
