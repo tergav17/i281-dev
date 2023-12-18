@@ -34,6 +34,9 @@ FILE *sio_curr;
 /* output file */
 FILE *sio_fout;
 
+/* listing file */
+FILE *sio_lst;
+
 char lname[256];
 
 /*
@@ -96,6 +99,13 @@ void sio_open(int argini, int argc, char *argv[], char *name)
 		printf("cannot open %s\n", lname);
 		exit(1);
 	}
+	
+	sprintf(lname, "%s.lst", name);
+
+	if (!(sio_lst = fopen(lname, "wb"))) {
+		printf("cannot open %s\n", lname);
+		exit(1);
+	}
 
 	sio_curr = NULL;
 	sio_rewind();
@@ -108,8 +118,10 @@ void sio_close()
 {
 	if (sio_curr) fclose(sio_curr);
 	fclose(sio_fout);
+	fclose(sio_lst);
 	sio_curr = NULL;
 	sio_fout = NULL;
+	sio_lst = NULL;
 }
 
 /*
