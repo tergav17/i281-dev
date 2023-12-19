@@ -1762,7 +1762,7 @@ void asm_assemble(char flagv, char flagl)
 	while (1) {
 		// read the next 
 		tok = asm_token_read();
-		sio_mark();
+		sio_mark(asm_address);
 		//if (tok != 'a') printf("reading: %c\n", tok);
 		//else printf("reading: %s\n", token_buf);
 		

@@ -21,6 +21,9 @@ int sio_argini;
 char sio_buf[512];
 int sio_bufc;
 int sio_bufi;
+int sio_chari;
+int sio_address;
+int sio_pass;
 
 /* current line number */
 int sio_line;
@@ -37,7 +40,7 @@ FILE *sio_fout;
 /* listing file */
 FILE *sio_lst;
 
-char lname[256];
+char lbuff[SIO_BUFFER_LENGTH];
 
 /*
  * loads up the first block of the next file
@@ -93,22 +96,23 @@ void sio_open(int argini, int argc, char *argv[], char *name)
 	sio_argc = argc;
 	sio_argini = argini;
 
-	sprintf(lname, "%s.sav", name);
+	snprintf(lbuff, SIO_BUFFER_LENGTH, "%s.sav", name);
 
-	if (!(sio_fout = fopen(lname, "wb"))) {
-		printf("cannot open %s\n", lname);
+	if (!(sio_fout = fopen(lbuff, "wb"))) {
+		printf("cannot open %s\n", lbuff);
 		exit(1);
 	}
 	
-	sprintf(lname, "%s.lst", name);
+	snprintf(lbuff, SIO_BUFFER_LENGTH, "%s.lst", name);
 
-	if (!(sio_lst = fopen(lname, "wb"))) {
-		printf("cannot open %s\n", lname);
+	if (!(sio_lst = fopen(lbuff, "wb"))) {
+		printf("cannot open %s\n", lbuff);
 		exit(1);
 	}
 
 	sio_curr = NULL;
 	sio_rewind();
+	sio_pass = 0;
 }
 
 /*
@@ -157,7 +161,16 @@ char sio_next()
 	}
 	
 	// if we have just passed a line break, increment the pointer
-	if (out == '\n') sio_line++;
+	// also process listing stuff here
+	if (out == '\n') {
+		sio_line++;
+		lbuff[sio_chari] = 0;
+		sio_chari = 0;
+		if (sio_pass)
+			fprintf(sio_lst, "%04X:   %s\n", sio_address, lbuff);
+	} else if (sio_chari < SIO_BUFFER_LENGTH-1) {
+		lbuff[sio_chari++] = out;
+	}
 	
 	return out;
 }
@@ -167,9 +180,10 @@ char sio_next()
  */
 void sio_rewind()
 {	
-
-	printf("argini = %d\n", sio_argini);
 	sio_argi = sio_argini;
+	sio_chari = 0;
+	sio_address = 0;
+	sio_pass++;
 	
 	sio_nextfile();
 }
@@ -185,8 +199,9 @@ void sio_status()
 /*
  * used by the assembler to mark what line is being assembled
  */
-void sio_mark()
-{
+void sio_mark(int address)
+{	
+	sio_address = address;
 	sio_current = sio_line;
 }
 
