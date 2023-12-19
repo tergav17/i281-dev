@@ -10,8 +10,9 @@ char sio_peek();
 char sio_next();
 void sio_rewind();
 void sio_status();
-void sio_mark(int addres);
+void sio_mark(int address, int bank);
 
 void sio_out(char out);
+void sio_emit(char out);
 
 #endif

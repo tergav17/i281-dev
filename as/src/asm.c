@@ -1028,6 +1028,8 @@ void asm_emit(uint16_t value, uint8_t size)
 		
 		// write to output
 		isr_out[128 * curr_bank + i] = value;
+		sio_emit(value >> 8);
+		sio_emit(value & 0xFF);
 		asm_address++;
 		
 		// keep track of maximum bank
@@ -1049,6 +1051,7 @@ void asm_emit(uint16_t value, uint8_t size)
 				asm_error("out of space in data bank");
 			
 			data_out[128 * curr_bank + i] = value;
+			sio_emit(value);
 			asm_address++;
 		} else {
 			// make sure we aren't overruning the current bank
@@ -1056,7 +1059,9 @@ void asm_emit(uint16_t value, uint8_t size)
 				asm_error("out of space in data bank");
 			
 			data_out[128 * curr_bank + i] = value >> 8;
+			sio_emit(value >> 8);
 			data_out[128 * curr_bank + i + 1] = value & 0xFF;
+			sio_emit(value & 0xFF);
 			asm_address += 2;
 		}
 		
@@ -1762,7 +1767,7 @@ void asm_assemble(char flagv, char flagl)
 	while (1) {
 		// read the next 
 		tok = asm_token_read();
-		sio_mark(asm_address);
+		sio_mark(asm_address, curr_bank);
 		//if (tok != 'a') printf("reading: %c\n", tok);
 		//else printf("reading: %s\n", token_buf);
 		

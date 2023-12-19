@@ -7,6 +7,7 @@
  
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 
 //todo: fix bytewise i/o on fout and tmp files
@@ -21,8 +22,12 @@ int sio_argini;
 char sio_buf[512];
 int sio_bufc;
 int sio_bufi;
+
+/* listing stuff */
 int sio_chari;
+int sio_datai;
 int sio_address;
+int sio_bank;
 int sio_pass;
 
 /* current line number */
@@ -40,7 +45,9 @@ FILE *sio_fout;
 /* listing file */
 FILE *sio_lst;
 
+/* buffers */
 char lbuff[SIO_BUFFER_LENGTH];
+uint8_t dbuff[256];
 
 /*
  * loads up the first block of the next file
@@ -141,6 +148,7 @@ char sio_peek()
  */
 char sio_next()
 {
+	int i, o;
 	char out;
 	
 	// nothing more to read, return -1
@@ -166,8 +174,27 @@ char sio_next()
 		sio_line++;
 		lbuff[sio_chari] = 0;
 		sio_chari = 0;
-		if (sio_pass)
-			fprintf(sio_lst, "%04X:   %s\n", sio_address, lbuff);
+		if (sio_pass) {
+			fprintf(sio_lst, "%02X/%02X: ", sio_bank, sio_address);
+			o = 7;
+			
+			for (i = 0; i < sio_datai; i++) {
+				if (o > 14) {
+					fprintf(sio_lst, "\n       ");
+					o = 7;
+				}
+				
+				fprintf(sio_lst, "%02X", dbuff[i]);
+				o += 2;
+			}
+			
+			// pad line
+			while (o++ != 16)
+				fprintf(sio_lst, " ");
+			
+			fprintf(sio_lst, "%s\n", lbuff);
+		}
+		sio_datai = 0;
 	} else if (sio_chari < SIO_BUFFER_LENGTH-1) {
 		lbuff[sio_chari++] = out;
 	}
@@ -182,7 +209,9 @@ void sio_rewind()
 {	
 	sio_argi = sio_argini;
 	sio_chari = 0;
+	sio_datai = 0;
 	sio_address = 0;
+	sio_bank = 0;
 	sio_pass++;
 	
 	sio_nextfile();
@@ -199,9 +228,10 @@ void sio_status()
 /*
  * used by the assembler to mark what line is being assembled
  */
-void sio_mark(int address)
+void sio_mark(int address, int bank)
 {	
 	sio_address = address;
+	sio_bank = bank;
 	sio_current = sio_line;
 }
 
@@ -213,4 +243,14 @@ void sio_mark(int address)
 void sio_out(char out)
 {
 	fwrite(&out, 1, 1, sio_fout);
+}
+
+/*
+ * adds a byte to the listing
+ *
+ * out = byte to output
+ */
+void sio_emit(char out)
+{
+	 dbuff[sio_datai++] = out;
 }
