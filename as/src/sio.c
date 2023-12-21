@@ -185,6 +185,7 @@ char sio_next()
 				}
 				
 				fprintf(sio_lst, "%02X", dbuff[i]);
+				sio_address++;
 				o += 2;
 			}
 			

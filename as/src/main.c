@@ -4,7 +4,7 @@
 #include "sio.h"
 #include "asm.h"
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 /* flags */
 char flagv = 0;
