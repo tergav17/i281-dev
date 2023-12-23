@@ -12,13 +12,37 @@
 			body {
 				font: normal 17px Courier, Verdana, Arial, sans-serif;
 			}
+			
+			.monitortext {
+				resize: none;
+				width: 29vw;
+				box-sizing: border-box
+			}
+			
+			td {
+				vertical-align: top;
+			}
 	</style>
 	</head>
 	
 	<body>
 	<h1>i281 Development Simulator</h1>
-		<canvas id="diagflow" width="640" height="360"></canvas>
-		<script src="simulator.js"></script>
+	
+	<table>
+	<tr>
+		<td>
+			<canvas id="diagflow" width="640" height="360"></canvas>
+		</td>
+		
+		<td>
+			<textarea class="monitortext" id="monitortext">foobar</textarea>
+		</td>
+	</tr>
+	</table>
+	
+	
+	
+	<script src="simulator.js"></script>
 	</body>
 	</body>
 </html>
