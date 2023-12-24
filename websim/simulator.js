@@ -1,8 +1,6 @@
 const diag_flow = document.getElementById("diagflow");
-const monitor_text = document.getElementById("monitortext");
 
-console.log(monitor_text);
-// Attempt to get the context for the daig flow
+// Attempt to get the context for the diag flow
 if (diag_flow.getContext) {
 	var flow_ctx = diag_flow.getContext("2d");
 } else {
@@ -15,7 +13,7 @@ window.addEventListener('keydown',keyDownListener,false);
 window.addEventListener('resize', resizeCanvas, false);
 
 // Do initial drawing of canvas
-draw(true);
+updateFlow(true);
 
 
 function keyUpListener(e) {
@@ -35,24 +33,68 @@ function keyDownListener(e) {
 }
 
 function resizeCanvas() {
-	draw(true);
+	updateFlow(true);
 }
 
-function draw(doResize) {
+function drawFlow() {
+	
+	// Set up style commons
+	flow_ctx.font = "10px courier";
+	let x, y;
+	
+	// Draw Code Memory Section
+	x = 30; y = 20;
+	flow_ctx.strokeStyle = "black";
+	flow_ctx.roundRect(x, y, 120, 150, 5);
+	flow_ctx.stroke();
+	flow_ctx.fillText("Code Memory", x + 26, y + 10);
+	
+	// Draw Instruction Decoder
+	x = 200; y = 20;
+	flow_ctx.strokeStyle = "black";
+	flow_ctx.roundRect(x, y, 250, 50, 5);
+	flow_ctx.stroke();
+	flow_ctx.fillText("Instruction Decoder", x + 26, y + 10);
+}
+
+function updateFlow(doResize) {
+	
+	let vWidth = 640;
+	let vHeight = 360;
 	
 	// Handle resizing
 	if (doResize) {
 		
-		//let r
+		let ratioX = 16;
+		let ratioY = 9;
+		let offsetX = 20;
+		let minimumLowerSpace = 400;
+		let minimumWidth = 320;
 		
+		// Initially, try to fill up the entire width of the screen
+		let newWidth = window.innerWidth - offsetX;
+		let newHeight = ratioY * newWidth / ratioX;
+		
+		// See if the new height is going to be too tall
+		let remaining = window.innerHeight - newHeight;
+		if (remaining < minimumLowerSpace) {
+			newWidth = ratioX * (window.innerHeight - minimumLowerSpace) / ratioY;
+		}
+		
+		// Ensure that the new width meets the minimum size
+		if (newWidth < minimumWidth)
+			newWidth = minimumWidth;
+		
+		// Resize the window to meet standards
+		flow_ctx.canvas.width = newWidth;
+		flow_ctx.canvas.height = ratioY * flow_ctx.canvas.width / ratioX;
+		
+		// 
 		flow_ctx.setTransform(1, 0, 0, 1, 0, 0);
-		flow_ctx.scale(1.0, 1.0);
-		
-		flow_ctx.canvas.width = window.innerWidth * (2/3);
-		flow_ctx.canvas.height = 9 * flow_ctx.canvas.width / 16;
-		monitor_text.style.height = (flow_ctx.canvas.height) + "px";
+		flow_ctx.scale(flow_ctx.canvas.width / vWidth, flow_ctx.canvas.height / vHeight);
 		
 	}
 	
-	flow_ctx.fillRect(0, 0, 10, 10);
+	// Redraw the flow
+	drawFlow();
 }
