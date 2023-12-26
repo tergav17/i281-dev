@@ -45,16 +45,23 @@ function drawFlow() {
 	// Draw Code Memory Section
 	x = 30; y = 20;
 	flow_ctx.strokeStyle = "black";
-	flow_ctx.roundRect(x, y, 120, 150, 5);
+	flow_ctx.roundRect(x, y, 100, 150, 5);
 	flow_ctx.stroke();
-	flow_ctx.fillText("Code Memory", x + 26, y + 10);
+	flow_ctx.fillText("Code Memory", x + 20, y + 10);
 	
 	// Draw Instruction Decoder
-	x = 200; y = 20;
+	x = 180; y = 20;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 250, 50, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("Instruction Decoder", x + 26, y + 10);
+	
+	// Draw Register FIle Section
+	x = 180; y = 100;
+	flow_ctx.strokeStyle = "black";
+	flow_ctx.roundRect(x, y, 150, 200, 5);
+	flow_ctx.stroke();
+	flow_ctx.fillText("Register File", x + 20, y + 10);
 }
 
 function updateFlow(doResize) {
