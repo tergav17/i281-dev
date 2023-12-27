@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0" http-equiv="X-UA-Compatible"
+  content="ie=edge" X-Content-Type-Options="nosniff" />
+
+<html lang="en">
+
+<head>
+
+  <title>i281 CPU Assembler and Simulator Demo</title>
+  <link rel="stylesheet" href="./index.css">
+  <script src="./cpu.js" type="module"></script>
+
+</head>
+<style>
+  * {
+    font-family: monospace;
+  }
+  /* Create three equal columns that floats next to each other */
+  .column {
+    float: left;
+    width: 33.33%;
+  }
+
+  /* Clear floats after the columns */
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+</style>
+
+<body>
+  <h1>Assembler and Simulator Demo</h1>
+  <h2 id="pc"></h2>
+  <h2 id="currentInstruction"></h2>
+  <div class="row">
+    <div class="column">
+      <h2>iMem</h2>
+      <table id="iMem"></table>
+    </div>
+    <div class="column">
+      <h2>registers</h2>
+      <table id="registers"></table>
+    </div>
+    <div class="column">
+      <h2>dMem</h2>
+      <table id="dMem"></table>
+    </div>
+  </div>
+
+  <script src="./cpu_website.js" type="module"></script>
+
+  <input type="button" id="nextCycle" value="Next Cycle">
+
+</body>
+
+</html>

@@ -1,0 +1,228 @@
+.modal {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 30%; /* Could be more or less, depending on screen size */
+  height: 30%;
+}
+
+#wrapper {
+  list-style: lower-roman;
+  width: auto;
+  height: auto;
+  margin: 4px;
+  padding: 0px;
+  white-space: nowrap;
+}
+
+#wrapper > input[type="text"] {
+  font-size: 28px;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: bold;
+  width: 22px;
+  height: auto;
+  margin: 6px;
+  border: 0;
+  border-style: none;
+  border-color: transparent;
+  outline: none;
+}
+
+#wrapper > #wrapper {
+  margin: 0px;
+  margin-top: -40px;
+  margin-bottom: -40px;
+  margin-left: 5px;
+  margin-right: 35px;
+}
+
+.spacer {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+}
+
+#switchGroup {
+  width: auto;
+  height: auto;
+  margin: 8px;
+  display: inline-block;
+}
+
+#switchGroup > #switchGroup {
+  margin: 40px;
+  margin-top: -40px;
+  margin-bottom: -40px;
+}
+
+#switchGroup > label[class="switch"] > input[type="checkbox"] {
+  margin: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  margin-left: 10px;
+  margin-right: 0px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 60px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgb(175, 159, 159);
+  -webkit-transition: 4s;
+  transition: 0.4s;
+}
+
+.slider:checked {
+  background-color: black;
+}
+
+.switch:focus {
+  background-color: black;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+}
+
+input:checked + .slider {
+  background-color: grey;
+}
+
+input:focus + .slider:before {
+  background-color: black;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateY(-26px);
+  -ms-transform: translateY(-26px);
+  transform: translateY(-26px);
+}
+
+.push {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  background-color: darkgrey;
+  border: 3px solid #000000;
+  transition: 1s;
+}
+
+.push input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.navbar-nav.navbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translatex(-50%);
+}
+
+.pushin {
+  position: absolute;
+  cursor: pointer;
+  height: 65px;
+  width: 65px;
+  border-radius: 50%;
+  top: 4px;
+  left: 4px;
+  background-color: black;
+}
+
+.pushin:active {
+  background-color: green;
+}
+
+.speed {
+  -webkit-appearance: none;
+  width: 700px;
+  height: 30px;
+  background: darkgrey;
+  outline-color: black;
+  outline-width: 1px;
+  outline-style: solid;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2s;
+}
+
+.speed::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 40px;
+  height: 30px;
+  background: black;
+  cursor: pointer;
+}
+
+.speed::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: black;
+  cursor: pointer;
+}
+
+.push:hover .tooltiptext {
+  visibility: visible;
+}
+
+.switch .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  height: auto;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  font-family: "Courier New", Courier, monospace;
+  font-size: x-large;
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+}
+
+.switch:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tooltip-inner {
+  font-size: small;
+}

@@ -40,6 +40,7 @@ function drawFlow() {
 	
 	// Set up style commons
 	flow_ctx.font = "10px courier";
+	flow_ctx.lineCap = "round";
 	let x, y;
 	
 	// Draw Code Memory Section
@@ -56,12 +57,33 @@ function drawFlow() {
 	flow_ctx.stroke();
 	flow_ctx.fillText("Instruction Decoder", x + 26, y + 10);
 	
-	// Draw Register FIle Section
+	// Draw Register File Section
 	x = 180; y = 100;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 150, 200, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("Register File", x + 20, y + 10);
+	
+	// Draw ALU Section
+	x = 350; y = 120;
+	flow_ctx.strokeStyle = "black";
+	flow_ctx.roundRect(x, y, 100, 160, 5);
+	flow_ctx.stroke();
+	flow_ctx.fillText("ALU", x + 20, y + 10);
+
+	// Draw Program Counter Section
+	x = 30; y = 200;
+	flow_ctx.strokeStyle = "black";
+	flow_ctx.roundRect(x, y, 100, 80, 5);
+	flow_ctx.stroke();
+	flow_ctx.fillText("Program Counter", x + 5, y + 10);
+	
+	// Draw Data Memory Section
+	x = 470; y = 100;
+	flow_ctx.strokeStyle = "black";
+	flow_ctx.roundRect(x, y, 100, 150, 5);
+	flow_ctx.stroke();
+	flow_ctx.fillText("Data Memory", x + 20, y + 10);
 }
 
 function updateFlow(doResize) {
