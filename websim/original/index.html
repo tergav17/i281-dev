@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  
+    
+    <title>i281 CPU</title>
+    <link rel="stylesheet" href="./GUI/index.css">
+ 
+    <script src="./GUI/display.js" type="module"></script>
+<meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=.5"
+http-equiv="X-UA-Compatible"  X-Content-Type-Options="nosniff"/>
+<link
+rel="stylesheet"
+href="./lib/bootstrap.min.css"
+/>
+
+   <script
+   src="./lib/jquery-3.3.1.slim.min.js"
+   ></script>
+
+</head>
+
+
+
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark " role="navigation">
+  <div class="container-fluid"> 
+      <ul class="nav navbar-nav navbar-left">
+        <div style="overflow: hidden;color: white;font-weight: bold;">
+          <li><a style="float: left; text-align: left;">Current Instruction:&nbsp</a><a style="float: right; text-align: left;"id="assembly_inst"></a></li>
+         
+        </div>
+      </ul>
+      <ul class="nav navbar-nav navbar-center">
+        <div style="overflow: hidden;color: white;font-weight: bold;">
+          <li><a style = "float: left;" >i281 CPU Running:&nbsp</a><a style = "float: right;" id="progName">test</a></li>
+          </div>
+          
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+          <input
+          type="button"
+          data-toggle="modal" 
+          data-target="#aboutModal"
+          class="btn btn-link"
+          value="About"
+          style="color: white; text-decoration: none;font-weight: bold;"
+        />
+        
+      </ul> 
+  </div>
+</nav>
+<div class="modal fade" style="visibility:initial;" id="aboutModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">About Us</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <p>i281 CPU Simulator by:</p>
+        <p>&nbsp&nbsp Eric Marcanio: Assembler</p>
+        <p>&nbsp&nbsp Aiman Priester: Verilog Conversion </p>
+        <p>&nbsp&nbsp Bryce Snell: JS CPU</p>
+        <p>&nbsp&nbsp Colby McKinley: CPU Visualizer </p>
+        <p>&nbsp&nbsp Brady Kolosik: CPU Visualizer</p>
+        <p>&nbsp&nbsp Jacob Betsworth: FPGA GUI</p>
+        <p>i281 CPU design by: </p>
+        <p>&nbsp&nbsp Kyung-Tae J. Kim</p>
+        <p>&nbsp&nbsp Alexander Stoytchev</p>
+        <p></p>
+        <p>Project supervisor: </p>
+        <p>&nbsp&nbsp Alexander Stoytchev</p>
+        <p></p>
+        <p>Iowa State University</p>
+        <p>Ames, IA 50011</p>
+        <p>U.S.A.</p>
+        <input
+            type="button"
+            class="btn btn-primary mb-3"
+            onclick="downloadLicense()"
+            id="licenseButton"
+            value="Download License"
+          />
+      </div>
+
+   
+
+    </div>
+  </div>
+</div>
+
+  <body >
+    
+    
+   
+    <div id="modal" class="modal">
+      <div id="modal_content" class="modal-content">
+      </div>
+    </div>
+    
+
+    <svg id="canvas" viewbox="0 0 3250 1550">
+             <!-- Display 1 x -->
+             <line id="topT1" x1="2445" y1="20" x2="2475" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL1" x1="2435" y1="25" x2="2435" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR1" x1="2485" y1="25" x2="2485" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM1" x1="2445" y1="70" x2="2475" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB1" x1="2445" y1="120" x2="2475" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL1" x1="2435" y1="75" x2="2435" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR1" x1="2485" y1="75" x2="2485" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT1L" points="2445,25 2440,20 2445,15" style="fill: lightgrey;"/>
+             <polygon id="topT1R" points="2475,25 2480,20 2475,15" style="fill: lightgrey;"/>
+             <polygon id="topL1T" points="2430,25 2435,20 2440,25" style="fill: lightgrey;" />
+             <polygon id="topL1B" points="2430,65 2435,70 2440,65" style="fill: lightgrey;" />
+             <polygon id="midM1L" points="2445,75 2440,70 2445,65" style="fill: lightgrey;" />  
+             <polygon id="midM1R" points="2475,75 2480,70 2475,65" style="fill: lightgrey;" />
+             <polygon id="botL1T" points="2430,75 2435,70 2440,75" style="fill: lightgrey;" /> 
+             <polygon id="botL1B" points="2430,115 2435,120 2440,115" style="fill: lightgrey;" />
+             <polygon id="botR1T" points="2480,75 2485,70 2490,75" style="fill: lightgrey;" />
+             <polygon id="botR1B" points="2480,115 2485,120 2490,115" style="fill: lightgrey;" />
+             <polygon id="botB1R" points="2475,115 2480,120 2475,125" style="fill: lightgrey;" />
+             <polygon id="botB1L" points="2445,125 2440,120 2445,115" style="fill: lightgrey;" />
+             <polygon id="topR1T" points="2480,25 2485,20 2490,25" style="fill: lightgrey;" />
+             <polygon id="topR1B" points="2480,65 2485,70 2490,65" style="fill: lightgrey;" />
+
+             <!-- Display 2 x+70 -->
+             <line id="topT2" x1="2515" y1="20" x2="2545" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL2" x1="2505" y1="25" x2="2505" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR2" x1="2555" y1="25" x2="2555" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM2" x1="2515" y1="70" x2="2545" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB2" x1="2515" y1="120" x2="2545" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL2" x1="2505" y1="75" x2="2505" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR2" x1="2555" y1="75" x2="2555" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT2L" points="2515,25 2510,20 2515,15" style="fill: lightgrey;"/>
+             <polygon id="topT2R" points="2545,25 2550,20 2545,15" style="fill: lightgrey;"/>
+             <polygon id="topL2T" points="2500,25 2505,20 2510,25" style="fill: lightgrey;" />
+             <polygon id="topL2B" points="2500,65 2505,70 2510,65" style="fill: lightgrey;" />
+             <polygon id="midM2L" points="2515,75 2510,70 2515,65" style="fill: lightgrey;" />  
+             <polygon id="midM2R" points="2545,75 2550,70 2545,65" style="fill: lightgrey;" />
+             <polygon id="botL2T" points="2500,75 2505,70 2510,75" style="fill: lightgrey;" /> 
+             <polygon id="botL2B" points="2500,115 2505,120 2510,115" style="fill: lightgrey;" />
+             <polygon id="botR2T" points="2550,75 2555,70 2560,75" style="fill: lightgrey;" />
+             <polygon id="botR2B" points="2550,115 2555,120 2560,115" style="fill: lightgrey;" />
+             <polygon id="botB2R" points="2545,115 2550,120 2545,125" style="fill: lightgrey;" />
+             <polygon id="botB2L" points="2515,125 2510,120 2515,115" style="fill: lightgrey;" />
+             <polygon id="topR2T" points="2550,25 2555,20 2560,25" style="fill: lightgrey;" />
+             <polygon id="topR2B" points="2550,65 2555,70 2560,65" style="fill: lightgrey;" />
+     
+             <!-- Display 3 x+210 -->
+             <line id="topT3" x1="2655" y1="20" x2="2685" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL3" x1="2645" y1="25" x2="2645" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR3" x1="2695" y1="25" x2="2695" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM3" x1="2655" y1="70" x2="2685" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB3" x1="2655" y1="120" x2="2685" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL3" x1="2645" y1="75" x2="2645" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR3" x1="2695" y1="75" x2="2695" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT3L" points="2655,25 2650,20 2655,15" style="fill: lightgrey;"/>
+             <polygon id="topT3R" points="2685,25 2690,20 2685,15" style="fill: lightgrey;"/>
+             <polygon id="topL3T" points="2640,25 2645,20 2650,25" style="fill: lightgrey;" />
+             <polygon id="topL3B" points="2640,65 2645,70 2650,65" style="fill: lightgrey;" />
+             <polygon id="midM3L" points="2655,75 2650,70 2655,65" style="fill: lightgrey;" />  
+             <polygon id="midM3R" points="2685,75 2690,70 2685,65" style="fill: lightgrey;" />
+             <polygon id="botL3T" points="2640,75 2645,70 2650,75" style="fill: lightgrey;" /> 
+             <polygon id="botL3B" points="2640,115 2645,120 2650,115" style="fill: lightgrey;" />
+             <polygon id="botR3T" points="2690,75 2695,70 2700,75" style="fill: lightgrey;" />
+             <polygon id="botR3B" points="2690,115 2695,120 2700,115" style="fill: lightgrey;" />
+             <polygon id="botB3R" points="2685,115 2690,120 2685,125" style="fill: lightgrey;" />
+             <polygon id="botB3L" points="2655,125 2650,120 2655,115" style="fill: lightgrey;" />
+             <polygon id="topR3T" points="2690,25 2695,20 2700,25" style="fill: lightgrey;" />
+             <polygon id="topR3B" points="2690,65 2695,70 2700,65" style="fill: lightgrey;" />
+     
+             <!-- Display 4 x+280 -->
+             <line id="topT4" x1="2725" y1="20" x2="2755" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL4" x1="2715" y1="25" x2="2715" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR4" x1="2765" y1="25" x2="2765" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM4" x1="2725" y1="70" x2="2755" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB4" x1="2725" y1="120" x2="2755" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL4" x1="2715" y1="75" x2="2715" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR4" x1="2765" y1="75" x2="2765" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT4L" points="2725,25 2720,20 2725,15" style="fill: lightgrey;"/>
+             <polygon id="topT4R" points="2755,25 2760,20 2755,15" style="fill: lightgrey;"/>
+             <polygon id="topL4T" points="2710,25 2715,20 2720,25" style="fill: lightgrey;" />
+             <polygon id="topL4B" points="2710,65 2715,70 2720,65" style="fill: lightgrey;" />
+             <polygon id="midM4L" points="2725,75 2720,70 2725,65" style="fill: lightgrey;" />  
+             <polygon id="midM4R" points="2755,75 2760,70 2755,65" style="fill: lightgrey;" />
+             <polygon id="botL4T" points="2710,75 2715,70 2720,75" style="fill: lightgrey;" /> 
+             <polygon id="botL4B" points="2710,115 2715,120 2720,115" style="fill: lightgrey;" />
+             <polygon id="botR4T" points="2760,75 2765,70 2770,75" style="fill: lightgrey;" />
+             <polygon id="botR4B" points="2760,115 2765,120 2770,115" style="fill: lightgrey;" />
+             <polygon id="botB4R" points="2755,115 2760,120 2755,125" style="fill: lightgrey;" />
+             <polygon id="botB4L" points="2725,125 2720,120 2725,115" style="fill: lightgrey;" />
+             <polygon id="topR4T" points="2760,25 2765,20 2770,25" style="fill: lightgrey;" />
+             <polygon id="topR4B" points="2760,65 2765,70 2770,65" style="fill: lightgrey;" />
+     
+             <!-- Display 5 x+420 -->
+             <line id="topT5" x1="2865" y1="20" x2="2895" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL5" x1="2855" y1="25" x2="2855" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR5" x1="2905" y1="25" x2="2905" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM5" x1="2865" y1="70" x2="2895" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB5" x1="2865" y1="120" x2="2895" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL5" x1="2855" y1="75" x2="2855" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR5" x1="2905" y1="75" x2="2905" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT5L" points="2865,25 2860,20 2865,15" style="fill: lightgrey;"/>
+             <polygon id="topT5R" points="2895,25 2900,20 2895,15" style="fill: lightgrey;"/>
+             <polygon id="topL5T" points="2850,25 2855,20 2860,25" style="fill: lightgrey;" />
+             <polygon id="topL5B" points="2850,65 2855,70 2860,65" style="fill: lightgrey;" />
+             <polygon id="midM5L" points="2865,75 2860,70 2865,65" style="fill: lightgrey;" />  
+             <polygon id="midM5R" points="2895,75 2900,70 2895,65" style="fill: lightgrey;" />
+             <polygon id="botL5T" points="2850,75 2855,70 2860,75" style="fill: lightgrey;" /> 
+             <polygon id="botL5B" points="2850,115 2855,120 2860,115" style="fill: lightgrey;" />
+             <polygon id="botR5T" points="2900,75 2905,70 2910,75" style="fill: lightgrey;" />
+             <polygon id="botR5B" points="2900,115 2905,120 2910,115" style="fill: lightgrey;" />
+             <polygon id="botB5R" points="2895,115 2900,120 2895,125" style="fill: lightgrey;" />
+             <polygon id="botB5L" points="2865,125 2860,120 2865,115" style="fill: lightgrey;" />
+             <polygon id="topR5T" points="2900,25 2905,20 2910,25" style="fill: lightgrey;" />
+             <polygon id="topR5B" points="2900,65 2905,70 2910,65" style="fill: lightgrey;" />
+             
+             <!-- Display 6 x+490 -->
+             <line id="topT6" x1="2935" y1="20" x2="2965" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL6" x1="2925" y1="25" x2="2925" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR6" x1="2975" y1="25" x2="2975" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM6" x1="2935" y1="70" x2="2965" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB6" x1="2935" y1="120" x2="2965" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL6" x1="2925" y1="75" x2="2925" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR6" x1="2975" y1="75" x2="2975" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT6L" points="2935,25 2930,20 2935,15" style="fill: lightgrey;"/>
+             <polygon id="topT6R" points="2965,25 2970,20 2965,15" style="fill: lightgrey;"/>
+             <polygon id="topL6T" points="2920,25 2925,20 2930,25" style="fill: lightgrey;" />
+             <polygon id="topL6B" points="2920,65 2925,70 2930,65" style="fill: lightgrey;" />
+             <polygon id="midM6L" points="2935,75 2930,70 2935,65" style="fill: lightgrey;" />  
+             <polygon id="midM6R" points="2965,75 2970,70 2965,65" style="fill: lightgrey;" />
+             <polygon id="botL6T" points="2920,75 2925,70 2930,75" style="fill: lightgrey;" /> 
+             <polygon id="botL6B" points="2920,115 2925,120 2930,115" style="fill: lightgrey;" />
+             <polygon id="botR6T" points="2970,75 2975,70 2980,75" style="fill: lightgrey;" />
+             <polygon id="botR6B" points="2970,115 2975,120 2980,115" style="fill: lightgrey;" />
+             <polygon id="botB6R" points="2965,115 2970,120 2965,125" style="fill: lightgrey;" />
+             <polygon id="botB6L" points="2935,125 2930,120 2935,115" style="fill: lightgrey;" />
+             <polygon id="topR6T" points="2970,25 2975,20 2980,25" style="fill: lightgrey;" />
+             <polygon id="topR6B" points="2970,65 2975,70 2980,65" style="fill: lightgrey;" />
+             
+             <!-- Display 7 x+560 -->
+             <line id="topT7" x1="3005" y1="20" x2="3035" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL7" x1="2995" y1="25" x2="2995" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR7" x1="3045" y1="25" x2="3045" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM7" x1="3005" y1="70" x2="3035" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB7" x1="3005" y1="120" x2="3035" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL7" x1="2995" y1="75" x2="2995" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR7" x1="3045" y1="75" x2="3045" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT7L" points="3005,25 3000,20 3005,15" style="fill: lightgrey;"/>
+             <polygon id="topT7R" points="3035,25 3040,20 3035,15" style="fill: lightgrey;"/>
+             <polygon id="topL7T" points="2990,25 2995,20 3000,25" style="fill: lightgrey;" />
+             <polygon id="topL7B" points="2990,65 2995,70 3000,65" style="fill: lightgrey;" />
+             <polygon id="midM7L" points="3005,75 3000,70 3005,65" style="fill: lightgrey;" />  
+             <polygon id="midM7R" points="3035,75 3040,70 3035,65" style="fill: lightgrey;" />
+             <polygon id="botL7T" points="2990,75 2995,70 3000,75" style="fill: lightgrey;" /> 
+             <polygon id="botL7B" points="2990,115 2995,120 3000,115" style="fill: lightgrey;" />
+             <polygon id="botR7T" points="3040,75 3045,70 3050,75" style="fill: lightgrey;" />
+             <polygon id="botR7B" points="3040,115 3045,120 3050,115" style="fill: lightgrey;" />
+             <polygon id="botB7R" points="3035,115 3040,120 3035,125" style="fill: lightgrey;" />
+             <polygon id="botB7L" points="3005,125 3000,120 3005,115" style="fill: lightgrey;" />
+             <polygon id="topR7T" points="3040,25 3045,20 3050,25" style="fill: lightgrey;" />
+             <polygon id="topR7B" points="3040,65 3045,70 3050,65" style="fill: lightgrey;" />
+     
+             <!-- Display 8 x+630 -->
+             <line id="topT8" x1="3075" y1="20" x2="3105" y2="20" style="stroke:lightgrey;stroke-width: 8;"/>
+             <line id="topL8" x1="3065" y1="25" x2="3065" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="topR8" x1="3115" y1="25" x2="3115" y2="65" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="midM8" x1="3075" y1="70" x2="3105" y2="70" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botB8" x1="3075" y1="120" x2="3105" y2="120" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botL8" x1="3065" y1="75" x2="3065" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <line id="botR8" x1="3115" y1="75" x2="3115" y2="115" style="stroke: lightgrey;stroke-width: 8;"/>
+             <polygon id="topT8L" points="3075,25 3070,20 3075,15" style="fill: lightgrey;"/>
+             <polygon id="topT8R" points="3105,25 3110,20 3105,15" style="fill: lightgrey;"/>
+             <polygon id="topL8T" points="3060,25 3065,20 3070,25" style="fill: lightgrey;" />
+             <polygon id="topL8B" points="3060,65 3065,70 3070,65" style="fill: lightgrey;" />
+             <polygon id="midM8L" points="3075,75 3070,70 3075,65" style="fill: lightgrey;" />  
+             <polygon id="midM8R" points="3105,75 3110,70 3105,65" style="fill: lightgrey;" />
+             <polygon id="botL8T" points="3060,75 3065,70 3070,75" style="fill: lightgrey;" /> 
+             <polygon id="botL8B" points="3060,115 3065,120 3070,115" style="fill: lightgrey;" />
+             <polygon id="botR8T" points="3110,75 3115,70 3120,75" style="fill: lightgrey;" />
+             <polygon id="botR8B" points="3110,115 3115,120 3120,115" style="fill: lightgrey;" />
+             <polygon id="botB8R" points="3105,115 3110,120 3105,125" style="fill: lightgrey;" />
+             <polygon id="botB8L" points="3075,125 3070,120 3075,115" style="fill: lightgrey;" />
+             <polygon id="topR8T" points="3110,25 3115,20 3120,25" style="fill: lightgrey;" />
+             <polygon id="topR8B" points="3110,65 3115,70 3120,65" style="fill: lightgrey;" />
+
+     <foreignObject x="2420" y="130" width="900px" height="200px" id = "switchCanv">
+       <div>
+           <element id="switchGroup">
+               <label class="switch">
+                   <input type="checkbox" id="bit00" onchange="switchChange('bit00','bit0In')">
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 17</span>
+                   </label>
+               
+                   <label class="switch">
+                   <input type="checkbox" id="bit01" onchange="switchChange('bit01','bit1In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 16</span>
+                   </label>
+               </el>
+           <element id="switchGroup">
+               <label class="switch">
+                   <input type="checkbox" id="bit02" onchange="switchChange('bit02','bit2In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 15</span>
+                   </label>
+               
+                   <label class="switch">
+                   <input type="checkbox" id="bit03" onchange="switchChange('bit03','bit3In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 14</span>
+                   </label>
+                   
+                   <label class="switch">
+                   <input type="checkbox" id="bit04" onchange="switchChange('bit04','bit4In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 13</span>
+                   </label>
+                   
+                   <label class="switch">
+                   <input type="checkbox" id="bit05" onchange="switchChange('bit05','bit5In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 12</span>
+                   </label>
+                
+                   <label class="switch">
+                   <input type="checkbox" id="bit06" onchange="switchChange('bit06','bit6In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 11</span>
+                   </label>
+                   
+                   <label class="switch">
+                   <input type="checkbox" id="bit07" onchange="switchChange('bit07','bit7In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 10</span>
+                   </label>
+   
+                   <label class="switch">
+                   <input type="checkbox" id="bit08" onchange="switchChange('bit08','bit8In')">> 
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 9</span>
+                   </label>
+               
+                   <label class="switch">
+                   <input type="checkbox" id="bit09" onchange="switchChange('bit09','bit9In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext">Switch 8</span>
+                   </label>
+               </el>
+           <element id="switchGroup">
+               <label class="switch">
+                   <input type="checkbox" id="bit10" onchange="switchChange('bit10','bit10In')">> 
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 7</span>
+                   </label>
+                   
+                  <label class="switch">
+                   <input type="checkbox" id="bit11" onchange="switchChange('bit11','bit11In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 6</span>
+                   </label>
+               
+                   <label class="switch">
+                   <input type="checkbox" id="bit12" onchange="switchChange('bit12','bit12In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 5</span>
+                   </label>
+                       
+                   <label class="switch">
+                   <input type="checkbox" id="bit13" onchange="switchChange('bit13','bit13In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 4</span>
+                   </label>
+                       
+                   <label class="switch">
+                   <input type="checkbox" id="bit14" onchange="switchChange('bit14','bit14In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 3</span>
+                   </label>
+                       
+                   <label class="switch">
+                   <input type="checkbox" id="bit15" onchange="switchChange('bit15','bit15In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 2</span>
+                   </label>
+                           
+                   <label class="switch">
+                   <input type="checkbox" id="bit16" onchange="switchChange('bit16','bit16In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 1</span>
+                   </label>  
+                       
+                   <label class="switch">
+                   <input type="checkbox" id="bit17" onchange="switchChange('bit17','bit17In')">>
+                   <span class="slider"></span>
+                   <span class="tooltiptext" style="right: 50%;">Switch 0</span>
+                   </label>
+               </el>
+       </div>
+
+       <ul id="wrapper">
+         <element id="wrapper">
+             <input type="text" maxlength = "1" id="bit0In" oninput="switchKeystroke('bit0In','bit00')" name="0In" value="0">
+             <input type="text" maxlength = "1" id="bit1In" oninput="switchKeystroke('bit1In','bit01')" name="1In" value="0">
+         </element>
+         <element id="wrapper">
+             <input type="text" maxlength = "1" id="bit2In" oninput="switchKeystroke('bit2In','bit02')" name="2In" value="0">
+             <input type="text" maxlength = "1" id="bit3In" oninput="switchKeystroke('bit3In','bit03')" name="3In" value="0">
+             <input type="text" maxlength = "1" id="bit4In" oninput="switchKeystroke('bit4In','bit04')" name="4In" value="0">
+             <input type="text" maxlength = "1" id="bit5In" oninput="switchKeystroke('bit5In','bit05')" name="5In" value="0">
+             <input type="text" maxlength = "1" id="bit6In" oninput="switchKeystroke('bit6In','bit06')" name="6In" value="0">
+             <input type="text" maxlength = "1" id="bit7In" oninput="switchKeystroke('bit7In','bit07')" name="7In" value="0">
+             <input type="text" maxlength = "1" id="bit8In" oninput="switchKeystroke('bit8In','bit08')" name="8In" value="0">
+             <input type="text" maxlength = "1" id="bit9In" oninput="switchKeystroke('bit9In','bit09')" name="9In" value="0">
+         </element>
+         <element id="wrapper">
+             <input type="text" maxlength = "1" id="bit10In" oninput="switchKeystroke('bit10In','bit10')" name="10In" value="0">
+             <input type="text" maxlength = "1" id="bit11In" oninput="switchKeystroke('bit11In','bit11')" name="11In" value="0">
+             <input type="text" maxlength = "1" id="bit12In" oninput="switchKeystroke('bit12In','bit12')" name="12In" value="0">
+             <input type="text" maxlength = "1" id="bit13In" oninput="switchKeystroke('bit13In','bit13')" name="13In" value="0">
+             <input type="text" maxlength = "1" id="bit14In" oninput="switchKeystroke('bit14In','bit14')" name="14In" value="0">
+             <input type="text" maxlength = "1" id="bit15In" oninput="switchKeystroke('bit15In','bit15')" name="15In" value="0">
+             <input type="text" maxlength = "1" id="bit16In" oninput="switchKeystroke('bit16In','bit16')" name="16In" value="0">
+             <input type="text" maxlength = "1" id="bit17In" oninput="switchKeystroke('bit17In','bit17')" name="17In" value="0">
+         </element>
+     </ul>
+   </foreignObject>
+
+   <foreignObject x="2480" y="350" width="700px" height="100px" id = "switchCanvSpeed">
+       <input type="range" min="1" max="100" value="50" class="speed" id="speedSld" onchange="autoMode()">
+         <p style="font-family:'Arial';font-size:xx-large;font-weight:bold">Speed:<span id="SimSpeed"></span></p>
+   </foreignObject>
+
+   <foreignObject x="2830" y="450" width="370px" height="300px" id = "Menu">
+    <br>
+    <div style="float: left;">
+      <input type="checkbox" id="show_description" style="height: 30px;width: 30px;">
+      <label for="show_description" style="font-size: xx-large;font-family:'Arial';"> Show Description</label>
+      <br>
+      <input type="checkbox" id="show_bus_info" style="height: 30px;width: 30px;">
+      <label for="show_bus_info" style="font-size: xx-large;font-family:'Arial';"> Show Bus Width</label>
+  </div>
+  <div style="float: left;">
+    <input type="checkbox" id="sHighlight" style="height: 30px;width: 30px;" checked="chkd" onchange="unhighlightSyntax()">
+    <label for="sHighlight" style="font-size: xx-large;font-family:'Arial';"> Syntax Highlighting</label>
+    <br>
+    <input type="checkbox" id="bHighlight" style="height: 30px;width: 30px;" checked="chkd" onchange="unhighlightBusses()">
+    <label for="bHighlight" style="font-size: xx-large;font-family:'Arial';"> Show Data Path</label>
+    <br>
+    <input type="checkbox" id="show_control_path" style="height: 30px; width: 30px;" checked="chkd" onchange="unhighlightControlPath()">
+    <label for="show_control_path" style="font-size: xx-large; font-family:'Arial';"> Show Control Path</label>
+    <br>
+  </div>
+ 
+    </div>
+   </foreignObject>
+
+   <foreignObject x="2480" y="450" width="350px" height="300px" id = "Menu2">
+     <br>
+      <div style:"float: left;">
+        <input type="checkbox" id="auto_on" style="height: 30px;width: 30px;" onchange="autoMode()"> 
+        <label for="auto_on" style="font-size: xx-large;font-family:'Arial';"> Auto Mode on</label>
+        <br>
+        <input type="checkbox" id="game_on" style="height: 30px;width: 30px;" onchange="autoMode()"> 
+        <label for="game_on" style="font-size: xx-large;font-family:'Arial';"> Game Mode on</label>
+        <br>
+        <input type="checkbox" id="regCheck" style="height: 30px;width: 30px;" onchange="regSwitch()"> 
+        <label for="regCheck" style="font-size: xx-large;font-family:'Arial';"> Register View</label>
+        <br>
+        <input type="checkbox" id="codeStart" style="height: 30px;width: 30px;" checked="chkd" onchange="PCstart()"> 
+        <label for="codeStart" style="font-size: xx-large;font-family:'Arial';"> Start PC @ 32</label>
+        <br>
+        <input type="checkbox" id="stop_at_end" style="height: 30px; width: 30px;" checked="chkd">
+        <label for="stop_at_end" style="font-size: xx-large;font-family:'Arial';"> Stop At End</label>
+      </div>
+   </foreignObject>
+
+
+   <foreignObject x="2480" y="770" width="700px" height="200px" id="btnMenu">
+    <input type="button" class="btn btn-primary" id="RunBtn" 
+    value="RUN" style="background-color: darkgray; font-family:Arial, Helvetica, sans-serif; 
+    padding: 20px 35px; font-size:xx-large; border-color:white; margin: 10px;border-radius: 15px;"
+    onclick="Run()">
+
+    <input type="button" class="btn btn-primary" id="StepBtn" 
+    value="STEP" style="background-color: darkgray; font-family:Arial, Helvetica, sans-serif; 
+    padding: 20px 30px; font-size:xx-large; border-color:white; margin: 10px;border-radius: 15px;"
+    onclick="Step()">
+
+    <input type="button" class="btn btn-primary" id="ResetBtn" 
+    value="RESET" style="background-color: darkgray; font-family:Arial, Helvetica, sans-serif; 
+    padding: 20px 20px; font-size:xx-large; border-color:white; margin: 10px;border-radius: 15px;"
+    onclick="location.href='index.html'" >
+
+    <input type="button" class="btn btn-primary" id="LoadBtn" 
+    value="LOAD" style="background-color: darkgray; font-family:Arial, Helvetica, sans-serif; 
+    padding: 20px 30px; font-size:xx-large;border-color:white; margin: 10px; border-radius: 15px;"
+    onclick="location.href='./assembler/ImportFile.html'">
+  </foreignObject> 
+
+    </svg> 
+    
+    <script src="./GUI/UIFunc.js" type="module"></script> 
+
+
+    <script>
+          window.setTimeout(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+          }, 500);
+
+          function downloadLicense() {
+  let element = document.createElement("a");
+  let fileName = "license.txt";
+
+  let output = `MIT License
+
+  Copyright (c) 2021 sd
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  `;
+
+  element.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(output)
+  );
+  element.setAttribute("download", fileName);
+  element.style.display = "none";
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+      function test(){
+        if(started==0){
+          started=1;
+          document.getElementById("codeStart").disabled="true";
+        }
+        var cur = cpu.pc.getPC();
+        var prev = cpu.pc.getPreviousPC();
+        document.getElementById("pc_val_id").innerHTML = pad((cur).toString(2), 6);
+        cpu.singleCycle();
+
+
+        let controls = cpu.control.c;
+        let registers = cpu.registers.registers;
+        let dmem = cpu.dMem.registers;
+        let curAsm = cpu.instructions[cur]
+
+        highlightSyntax(cur, prev);
+        highlightTest(controls, cur);
+
+        if(curAsm==null && cpu.progName!="biosSwitches"){ 
+          if(document.getElementById("stop_at_end").checked==true){
+            window.alert("Program finished.");
+          }
+          document.getElementById("auto_on").checked=false;
+          document.getElementById("assembly_inst").innerHTML="NOOP"
+          clearInterval(currTime);
+          return;
+        }
+        if(curAsm[0]=="INPUTCF"){
+          var val = parseInt(cpu.alu.result,2);
+          cpu.instructions[val]=null;
+          document.getElementById("imem_val"+val+"_opcode").innerHTML=cpu.iMem.registers[val].substring(0,4);
+          document.getElementById("imem_val"+val+"_reg1").innerHTML=cpu.iMem.registers[val].substring(4,6);
+          document.getElementById("imem_val"+val+"_reg2").innerHTML=cpu.iMem.registers[val].substring(6,8);
+          document.getElementById("imem_val"+val+"_imm").innerHTML=cpu.iMem.registers[val].substring(8,16);
+        }
+        if(curAsm!=null){
+          let build = "";
+          for(var i=0; i<curAsm.length; i++){
+            if(curAsm.length==3 && i==1){
+              build+=curAsm[i]+", ";
+            }
+            else{ 
+              build+=curAsm[i]+" ";
+            }
+          }
+          
+          document.getElementById("assembly_inst").innerHTML= (build.substring(0, build.length-1));
+          }
+        if(cur<32){
+          code_mem.switchToBios();
+        }
+        if (cur>31){
+          switchToUser();
+          document.getElementById("codeStart").disabled="true";
+        }
+
+        if(controls[12] == 1)
+        {
+          if(controls[13] == 1){
+            document.getElementById("ALUTextid").setAttribute('data-original-title', "SUB/CMP");
+          }
+          else{
+            document.getElementById("ALUTextid").setAttribute('data-original-title', "ADD");
+          }
+        }
+        else
+        {
+          if(controls[13] == 1){
+            document.getElementById("ALUTextid").setAttribute('data-original-title', "SHIFTR");
+          }
+          else{
+            document.getElementById("ALUTextid").setAttribute('data-original-title', "SHIFTL");
+          }
+        }
+
+        for(var i=1; i<controls.length; i++){
+          if(controls[i]==1 && document.getElementById("show_control_path").checked==true){
+          document.getElementById("c"+i+"val").innerHTML = controls[i];
+          document.getElementById("c"+i+"val").style.fill="red";
+          document.getElementById("c"+i+"val").setAttribute("font-weight", "bold");
+
+          document.getElementById("control_c"+i).style.fill = "red";
+          document.getElementById("control_c"+i).style.stroke = "red";
+
+          document.getElementById("c"+i).style.fill="red"
+          document.getElementById("c"+i).style.stroke="red"
+        }
+        else{
+          document.getElementById("c"+i+"val").innerHTML = controls[i];
+          document.getElementById("c"+i+"val").style.fill="black";
+          document.getElementById("c"+i+"val").setAttribute("font-weight", "normal");
+
+          document.getElementById("control_c"+i).style.fill = "black";
+          document.getElementById("control_c"+i).style.stroke = "black";
+
+          document.getElementById("c"+i).style.fill="black"
+          document.getElementById("c"+i).style.stroke="black"
+        }
+      }
+        for(var i=0; i<registers.length; i++){
+          document.getElementById("reg_"+i).innerHTML = registers[i];
+        }
+
+        for(var i=0; i<dmem.length; i++){
+          document.getElementById("dmem_val"+i).innerHTML = dmem[i];
+        }
+
+
+        var curFlags = [];
+        curFlags.push("carry "+cpu.alu.carry)
+        curFlags.push(cpu.alu.zero)
+        curFlags.push(cpu.alu.overflow)
+        curFlags.push(cpu.alu.negative)
+
+        read_a_mux.select(addHelper(controls[4], controls[5]))
+        read_b_mux.select(addHelper(controls[6], controls[7]));
+        mux0.select(controls[11]);
+        mux1.select(controls[15]);
+        mux2.select(controls[16]);
+        mux3.select(controls[18]);
+        mux4.select(controls[2]);
+
+        if(controls[14]==1){
+          document.getElementById("carry_flag").innerHTML = cpu.alu.carry;
+          document.getElementById("zero_flag").innerHTML = cpu.alu.zero;
+          document.getElementById("overflow_flag").innerHTML = cpu.alu.overflow;
+          document.getElementById("negative_flag").innerHTML = cpu.alu.negative;
+          document.getElementById("alu_flag_wire").style.stroke="red";
+          if(prevCarry!=cpu.alu.carry){
+            document.getElementById("carry_flag").style.fill="red";
+            document.getElementById("carry_flag").setAttribute("font-weight", "bold");
+          }
+          if(prevZero!=cpu.alu.zero){
+            document.getElementById("zero_flag").style.fill="red";
+            document.getElementById("zero_flag").setAttribute("font-weight", "bold");
+          }
+          if(prevOverflow!=cpu.alu.overflow){
+            document.getElementById("overflow_flag").style.fill="red";
+            document.getElementById("overflow_flag").setAttribute("font-weight", "bold");
+          }
+          if(prevNegative!=cpu.alu.negative){
+            document.getElementById("negative_flag").style.fill="red";
+            document.getElementById("negative_flag").setAttribute("font-weight", "bold");
+          }
+          prevCarry=cpu.alu.carry;
+          prevZero=cpu.alu.zero;
+          prevOverflow=cpu.alu.overflow;
+          prevNegative=cpu.alu.negative;
+        }
+        else{
+          document.getElementById("carry_flag").style.fill="black";
+          document.getElementById("carry_flag").setAttribute("font-weight", "normal");
+
+          document.getElementById("zero_flag").style.fill="black";
+          document.getElementById("zero_flag").setAttribute("font-weight", "normal");
+
+          document.getElementById("negative_flag").style.fill="black";
+          document.getElementById("negative_flag").setAttribute("font-weight", "normal");
+
+          document.getElementById("zero_flag").style.fill="black";
+          document.getElementById("zero_flag").setAttribute("font-weight", "normal");
+        }
+      }
+
+      function highlightSyntax(cur, prev){
+        var asm = cpu.instructions[cur];
+        var prevasm = cpu.instructions[prev];
+
+        
+        if(prev!=-1){
+          if(prevasm!=null&&prevasm[0].includes("SHIFT")){
+            document.getElementById("imem_val"+prev+"_opcode").style.fill = "black";
+            document.getElementById("imem_val"+prev+"_opcode").setAttribute("font-weight", "normal");
+
+            document.getElementById("imem_val"+prev+"_reg1").style.fill = "black";
+            document.getElementById("imem_val"+prev+"_shift1").style.fill = "black";
+            document.getElementById("imem_val"+prev+"_shift2").style.fill = "black";
+            document.getElementById("imem_val"+prev+"_imm").style.fill = "black";
+
+            document.getElementById("imem_val"+prev+"_reg1").setAttribute("font-weight", "normal");
+            document.getElementById("imem_val"+prev+"_shift1").setAttribute("font-weight", "normal");
+            document.getElementById("imem_val"+prev+"_shift2").setAttribute("font-weight", "normal");
+            document.getElementById("imem_val"+prev+"_imm").setAttribute("font-weight", "normal");
+
+          }
+          else {
+            document.getElementById("imem_val"+prev+"_opcode").style.fill = "black";
+            document.getElementById("imem_val"+prev+"_opcode").setAttribute("font-weight", "normal");
+
+            document.getElementById("imem_val"+prev+"_reg1").style.fill = "black";
+            document.getElementById("imem_val"+prev+"_reg2").style.fill = "black";
+            document.getElementById("imem_val"+prev+"_imm").style.fill = "black";
+
+            document.getElementById("imem_val"+prev+"_reg1").setAttribute("font-weight", "normal");
+            document.getElementById("imem_val"+prev+"_reg2").setAttribute("font-weight", "normal");
+            document.getElementById("imem_val"+prev+"_imm").setAttribute("font-weight", "normal");
+          }
+      }
+      if(cur==-1) return;
+        if(document.getElementById("sHighlight").checked==false){
+          document.getElementById("imem_val"+cur+"_opcode").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "red";
+
+          document.getElementById("imem_val"+cur+"_opcode").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+          return;
+      }
+
+        document.getElementById("imem_val"+cur+"_opcode").style.fill = "red";
+        document.getElementById("imem_val"+cur+"_opcode").setAttribute("font-weight", "bold");
+
+        if(asm==null&&cpu.progName=="BiosSwitches"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "red";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "red");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "red");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "red");
+        }
+
+        if(asm==null){
+          return;
+        }
+           
+        else if(asm[0]=="ADD" || asm[0]=="SUB" || asm[0]=="CMP"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "blue";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "green";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "black";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="LOADI" || asm[0]=="SUBI" || asm[0]=="ADDI" || asm[0]=="LOAD"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "blue";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "black";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "purple";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="STOREF"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "blue";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "green";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "purple";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="STORE"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "blue";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "black";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "purple";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="MOVE"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "blue";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "green";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "purple";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="JUMP"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "black";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "purple";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="BRE" || asm[0]=="BRNE" || asm[0]=="BRG" || asm[0]=="BRGE" || asm[0]=="INPUTD"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "black";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "purple";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="LOADF"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "blue";
+          document.getElementById("imem_val"+cur+"_reg2").style.fill = "green";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "purple";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_reg2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="SHIFTR" || asm[0]=="SHIFTL"){
+          document.getElementById("imem_val"+cur+"_reg1").style.fill = "blue";
+            document.getElementById("imem_val"+cur+"_shift2").style.fill = "red";
+          document.getElementById("imem_val"+cur+"_imm").style.fill = "black";
+
+          document.getElementById("imem_val"+cur+"_reg1").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_shift1").setAttribute("font-weight", "bold")
+          document.getElementById("imem_val"+cur+"_shift2").setAttribute("font-weight", "bold");
+          document.getElementById("imem_val"+cur+"_imm").setAttribute("font-weight", "bold");
+        }
+        else if(asm[0]=="NOOP"){
+          return;
+        }
+        else {
+          return;
+        }
+    }
+      function pad(n, width, z) {
+		    z = z || '0';
+		    n = n + '';
+		    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+	    }
+      function addHelper(x, y){
+        let bin = x.toString()+y.toString()
+        if(bin=="00") return 0
+        else if(bin=="01") return 1;
+        else if(bin=="10") return 2;
+        else if(bin=="11") return 3;
+        else return -1
+      }
+
+      function highlightTest(controls, cur){
+      if(true){
+        var jumpPath = ["imem_out","imem_to_junction", "to_update_logic", "pc_update_false_wire", "mux4_false_wire"]
+
+        var loadiPath = ["imem_out", "imem_to_junction", "to_mux_junction", "to_mux_1", "mux1_true_wire", "mux_reg_file_wire", "mux1_output_wire", "mux1_out_to_mux3", "junction_to_mux3", "mux3_false_wire"];
+
+        var loadPath = ["imem_out", "imem_to_junction", "to_mux_junction", "to_mux_1", "mux1_true_wire", "mux1_output_wire", "mux1_out_to_dmem_junction", "junction_to_dmem_a"]
+
+        var loadFImmPath = ["imem_out", "imem_to_junction", "to_mux_junction", "to_mux_0", "mux0_true_wire", "mux_alu_wire"]
+
+        var loadFALUOutPath = ["alu_result_wire", "mux1_false_wire", "mux1_output_wire", "mux1_out_to_dmem_junction", "junction_to_dmem_a"];
+
+        var storefReadPath = ["alu_result_wire", "mux1_false_wire", "mux1_output_wire", "mux1_out_to_dmem_junction", "junction_to_dmem_b"]
+
+        var storePath = ["imem_out", "imem_to_junction", "to_mux_junction", "to_mux_1", "mux1_true_wire", "mux1_output_wire", "mux1_out_to_dmem_junction", "junction_to_dmem_b"]
+
+        var storeALUPath = ["read_b_out", "b_to_mux2", "mux2_false_wire", "mux2_dmem_wire"]
+        
+        var loadWritePath = ["dmem_mux3_wire", "mux3_true_wire", "mux_reg_file_wire"]
+        
+        var pcOutWires = ["junction_to_pc", "imem_pc_val_mux_wire"];
+
+        var readBPath = ["read_b_out", "b_to_mux0", "mux0_false_wire", "mux_alu_wire"]
+
+        var aluWritebackPath = ["alu_result_wire", "mux1_false_wire", "mux1_output_wire", "mux1_out_to_mux3", "junction_to_mux3", "mux3_false_wire", "mux_reg_file_wire"];
+
+        var addiPath = ["imem_out", "imem_to_junction", "to_mux_junction", "to_mux_0", "mux0_true_wire", "mux_alu_wire"]
+
+        var codeMemWritebackPath = ["alu_result_wire", "mux1_false_wire", "mux1_output_wire", "mux1_out_to_mux3", "junction_to_imem"];
+
+        for(var i=0; i<jumpPath.length; i++){
+            document.getElementById(jumpPath[i]).style.stroke="black";
+          }
+          document.getElementById("mux_pc_val_wire").style.stroke="black";
+        for(var i=0; i<pcOutWires.length; i++){
+            document.getElementById(pcOutWires[i]).style.stroke="black";
+        }
+        for (var i=0; i<loadiPath.length; i++){
+          document.getElementById(loadiPath[i]).style.stroke="black";
+        }
+        for (var i=0; i<loadPath.length; i++){
+          document.getElementById(loadPath[i]).style.stroke="black";
+        }
+        for (var i=0; i<loadWritePath.length; i++){
+          document.getElementById(loadWritePath[i]).style.stroke="black";
+        }
+        for (var i=0; i<readBPath.length; i++){
+          document.getElementById(readBPath[i]).style.stroke="black";
+        }
+        for (var i=0; i<aluWritebackPath.length; i++){
+          document.getElementById(aluWritebackPath[i]).style.stroke="black";
+        }
+        for (var i=0; i<addiPath.length; i++){
+          document.getElementById(addiPath[i]).style.stroke="black";
+        }
+        for (var i=0; i<storePath.length; i++){
+          document.getElementById(storePath[i]).style.stroke="black";
+        }
+        for (var i=0; i<storeALUPath.length; i++){
+          document.getElementById(storeALUPath[i]).style.stroke="black";
+        }
+        for (var i=0; i<loadFALUOutPath.length; i++){
+          document.getElementById(loadFALUOutPath[i]).style.stroke="black";
+        }
+        for (var i=0; i<loadFImmPath.length; i++){
+          document.getElementById(loadFImmPath[i]).style.stroke="black";
+        }
+        for(var i=0; i<storefReadPath.length; i++){
+            document.getElementById(storefReadPath[i]).style.stroke="black";
+          }
+        document.getElementById("alu_flag_wire").style.stroke="black";
+        document.getElementById("read_a_out").style.stroke="black";
+        document.getElementById("negative_flag").style.fill="black";
+        document.getElementById("negative_flag").setAttribute("font-weight", "normal");
+        document.getElementById("switches_mux1_wire").style.stroke="black";
+        document.getElementById("imem_mux2_junction").style.stroke="black";
+        document.getElementById("mux4_true_wire").style.stroke="black";
+            document.getElementById("mux4_out").style.stroke="black";
+        for(var i=0; i<4; i++){
+          document.getElementById("reg_"+i).style.fill="black";
+          document.getElementById("reg_"+i).setAttribute("font-weight", "normal");
+          document.getElementById("reg_"+i+"_box").style.stroke="black";
+
+          document.getElementById(i+"_out").style.stroke="black";
+          document.getElementById("read_a_mux_sel"+i).style.stroke="black";
+          document.getElementById("read_b_mux_sel"+i).style.stroke="black";
+          document.getElementById(i+"_out_to_read_a").style.stroke="black";
+          document.getElementById(i+"_out_to_read_b").style.stroke="black"; 
+        }
+        for(var i=0; i<16; i++){
+          document.getElementById("dmem_val"+i).style.fill="black";
+          document.getElementById("dmem_val"+i).setAttribute("font-weight", "normal");
+
+          document.getElementById("dmem_box"+i).style.stroke="black";
+        }
+        if(document.getElementById("bHighlight").checked==false) return;
+        if(document.getElementById("game_on").checked==true) return;
+          
+        asm=cpu.instructions[cur];
+
+        if(asm==null){
+          return;
+        }
+
+        if(asm[0]=="JUMP"|| asm[0]=="BRG"|| asm[0]=="BRZ" || asm[0]=="BRNE" || asm[0]=="BRNZ" || asm[0]=="BRGE"){
+          for(var i=0; i<jumpPath.length; i++){
+            document.getElementById(jumpPath[i]).style.stroke="purple";
+          }
+          if(controls[2]==1){
+            document.getElementById("mux_pc_val_wire").style.stroke="red";
+            document.getElementById("mux4_out").style.stroke="purple";
+            for(var i=0; i<pcOutWires.length; i++){
+              document.getElementById(pcOutWires[i]).style.stroke="purple";
+            }
+          }
+          else{
+            document.getElementById("mux_pc_val_wire").style.stroke="red";
+            document.getElementById("mux4_true_wire").style.stroke="red";
+            document.getElementById("mux4_out").style.stroke="red";
+            for(var i=0; i<pcOutWires.length; i++){
+              document.getElementById(pcOutWires[i]).style.stroke="red";
+            }
+          }
+        }
+        if(asm[0]=="LOADI" || asm[0]=="LOADP"){
+          for(var i=0; i<loadiPath.length; i++){
+            document.getElementById(loadiPath[i]).style.stroke="purple";
+          }
+          var writeReg = addHelper(controls[8], controls[9])
+          document.getElementById("reg_"+writeReg).style.fill="purple";
+          document.getElementById("reg_"+writeReg+"_box").style.stroke="blue";
+          document.getElementById("reg_"+writeReg).setAttribute("font-weight", "bold");
+        }
+        if(asm[0]=="LOAD"){
+          for(var i=0; i<loadPath.length; i++){
+            document.getElementById(loadPath[i]).style.stroke="purple";
+          }
+          for(var i=0; i<loadWritePath.length; i++){
+            document.getElementById(loadWritePath[i]).style.stroke="orange";
+          }
+          var writeReg = addHelper(controls[8], controls[9]);
+          document.getElementById("reg_"+writeReg).style.fill="orange";
+          document.getElementById("reg_"+writeReg).setAttribute("font-weight", "bold");
+          document.getElementById("reg_"+writeReg+"_box").style.stroke="blue";
+          var readAddr = parseInt(document.getElementById("imem_val"+cur+"_imm").innerHTML, 2);
+          document.getElementById("dmem_box"+readAddr).style.stroke="purple";
+        }
+        if(asm[0]=="LOADF"){
+          var readReg = addHelper(controls[4], controls[5]);
+          var writeReg = addHelper(controls[8], controls[9]);
+          document.getElementById("reg_"+readReg+"_box").style.stroke = "green";
+          document.getElementById("read_a_out").style.stroke="green";
+
+          document.getElementById(readReg+"_out").style.stroke="green";
+          document.getElementById(readReg+"_out_to_read_a").style.stroke="green";
+          document.getElementById("read_a_mux_sel"+readReg).style.stroke="green";
+
+          document.getElementById("reg_"+writeReg).style.fill="orange";
+          document.getElementById("reg_"+writeReg).setAttribute("font-weight", "bold");
+          document.getElementById("reg_"+writeReg+"_box").style.stroke="blue";
+          for(var i=0; i<loadFImmPath.length; i++){
+            document.getElementById(loadFImmPath[i]).style.stroke="purple";
+          }
+          for(var i=0; i<loadFALUOutPath.length; i++){
+            document.getElementById(loadFALUOutPath[i]).style.stroke="cyan"
+          }
+          for(var i=0; i<loadWritePath.length; i++){
+            document.getElementById(loadWritePath[i]).style.stroke="orange";
+          }
+          var test=parseInt(cpu.alu.result,2);
+          document.getElementById("dmem_val"+test).style.fill="orange";
+          document.getElementById("dmem_box"+test).style.stroke="cyan";
+          document.getElementById("dmem_val"+test).setAttribute("font-weight", "bold");
+        }
+
+        if(asm[0]=="STORE"){
+          var readReg = addHelper(controls[6], controls[7]);
+
+          document.getElementById(readReg+"_out").style.stroke="blue";
+          document.getElementById(readReg+"_out_to_read_b").style.stroke="blue";
+          document.getElementById("read_b_mux_sel"+readReg).style.stroke="blue";
+
+          document.getElementById("reg_"+readReg+"_box").style.stroke="blue";
+          for(var i=0; i<storeALUPath.length; i++){
+            document.getElementById(storeALUPath[i]).style.stroke="blue";
+          }
+          for(var i=0; i<storePath.length; i++){
+            document.getElementById(storePath[i]).style.stroke="purple";
+          }
+          var addr = parseInt(document.getElementById("imem_val"+cur+"_imm").innerHTML,2);
+          document.getElementById("dmem_box"+addr).style.stroke="purple"
+          document.getElementById("dmem_val"+addr).style.fill="blue";
+          document.getElementById("dmem_val"+addr).setAttribute("font-weight", "bold");
+        }
+
+        if(asm[0]=="STOREF"){
+          var valueReg = addHelper(controls[6], controls[7]);
+          var offsetReg = addHelper(controls[4], controls[5]);
+
+          document.getElementById(offsetReg+"_out").style.stroke="green";
+          document.getElementById(offsetReg+"_out_to_read_a").style.stroke="green";
+          document.getElementById("read_a_mux_sel"+offsetReg).style.stroke="green";
+
+          document.getElementById(valueReg+"_out").style.stroke="blue";
+          document.getElementById(valueReg+"_out_to_read_b").style.stroke="blue";
+          document.getElementById("read_b_mux_sel"+valueReg).style.stroke="blue";
+
+          for(var i=0; i<loadFImmPath.length; i++){
+            document.getElementById(loadFImmPath[i]).style.stroke="purple";
+          }
+          document.getElementById("reg_"+offsetReg+"_box").style.stroke="green";
+          document.getElementById("read_a_out").style.stroke="green";
+          for(var i=0; i<storefReadPath.length; i++){
+            document.getElementById(storefReadPath[i]).style.stroke="cyan";
+          }
+          document.getElementById("reg_"+valueReg+"_box").style.stroke="blue";
+          for(var i=0; i<storeALUPath.length; i++){
+            document.getElementById(storeALUPath[i]).style.stroke="blue";
+          }
+          var test=parseInt(cpu.alu.result,2);
+          document.getElementById("dmem_box"+test).style.stroke="cyan";
+          document.getElementById("dmem_val"+test).style.fill="blue";
+          document.getElementById("dmem_val"+test).setAttribute("font-weight", "bold"); 
+        }
+
+        if(asm[0]=="CMP"){
+          var reg1=addHelper(controls[4], controls[5])
+          var reg2=addHelper(controls[6], controls[7])
+          document.getElementById("reg_"+reg1+"_box").style.stroke="blue";
+          document.getElementById("reg_"+reg2+"_box").style.stroke="green";
+          
+          document.getElementById("read_a_out").style.stroke="blue";
+          document.getElementById(reg1+"_out").style.stroke="blue";
+          document.getElementById(reg1+"_out_to_read_a").style.stroke="blue";
+          document.getElementById("read_a_mux_sel"+reg1).style.stroke="blue";
+
+          document.getElementById(reg2+"_out").style.stroke="green";
+          document.getElementById(reg2+"_out_to_read_b").style.stroke="green";
+          document.getElementById("read_b_mux_sel"+reg2).style.stroke="green";
+
+
+          for(var i = 0; i<readBPath.length; i++){
+            document.getElementById(readBPath[i]).style.stroke="green";
+          }
+        }
+
+        if(asm[0]=="ADD" || asm[0]=="SUB"){
+          var reg1=addHelper(controls[4], controls[5])
+          var reg2=addHelper(controls[6], controls[7])
+          document.getElementById("reg_"+reg1+"_box").style.stroke="blue";
+          document.getElementById("reg_"+reg2+"_box").style.stroke="green";
+          document.getElementById("read_a_out").style.stroke="blue";
+
+          document.getElementById("read_a_out").style.stroke="blue";
+          document.getElementById(reg1+"_out").style.stroke="blue";
+          document.getElementById(reg1+"_out_to_read_a").style.stroke="blue";
+          document.getElementById("read_a_mux_sel"+reg1).style.stroke="blue";
+
+          document.getElementById(reg2+"_out").style.stroke="green";
+          document.getElementById(reg2+"_out_to_read_b").style.stroke="green";
+          document.getElementById("read_b_mux_sel"+reg2).style.stroke="green";
+
+          for(var i = 0; i<readBPath.length; i++){
+            document.getElementById(readBPath[i]).style.stroke="green";
+          }
+          for(var i=0; i<aluWritebackPath.length; i++){
+            document.getElementById(aluWritebackPath[i]).style.stroke="orange";
+          }
+          var writeReg = addHelper(controls[8], controls[9]);
+          document.getElementById("reg_"+writeReg).style.fill="orange";
+          document.getElementById("reg_"+writeReg).setAttribute("font-weight", "bold");
+        }
+        if(asm[0]=="ADDI" || asm[0]=="SUBI"){
+          for(var i=0; i<addiPath.length; i++){
+            document.getElementById(addiPath[i]).style.stroke="purple";
+          }
+          for(var i=0; i<aluWritebackPath.length; i++){
+            document.getElementById(aluWritebackPath[i]).style.stroke="orange";
+          }
+          var reg1 = addHelper(controls[4], controls[5]);
+          var writeReg = addHelper(controls[8], controls[9]);
+          document.getElementById("reg_"+writeReg).style.fill="orange";
+          document.getElementById("reg_"+writeReg).setAttribute("font-weight", "bold");
+          document.getElementById("reg_"+reg1+"_box").style.stroke="blue";
+          document.getElementById("read_a_out").style.stroke="blue";
+
+          document.getElementById(reg1+"_out").style.stroke="blue";
+          document.getElementById(reg1+"_out_to_read_a").style.stroke="blue";
+          document.getElementById("read_a_mux_sel"+reg1).style.stroke="blue";
+        }
+
+        if(asm[0]=="MOVE"){
+          var writeReg = addHelper(controls[8], controls[9]);
+          var reg1 = addHelper(controls[4], controls[5]);
+          document.getElementById("reg_"+writeReg).style.fill="orange";
+          document.getElementById("reg_"+writeReg).setAttribute("font-weight", "bold");
+          document.getElementById("reg_"+writeReg+"_box").style.stroke="blue";
+          document.getElementById("reg_"+reg1+"_box").style.stroke="green";
+          document.getElementById("read_a_out").style.stroke="green";
+          document.getElementById(reg1+"_out").style.stroke="green";
+          document.getElementById(reg1+"_out_to_read_a").style.stroke="green";
+          document.getElementById("read_a_mux_sel"+reg1).style.stroke="green";
+
+          for(var i=0; i<aluWritebackPath.length; i++){
+            document.getElementById(aluWritebackPath[i]).style.stroke="orange";
+          }
+
+          for(var i=0; i<addiPath.length; i++){
+            document.getElementById(addiPath[i]).style.stroke="purple"
+          }
+        }
+        if(asm[0]=="SHIFTL"||asm[0]=="SHIFTR"){
+          var writeReg = addHelper(controls[8], controls[9]);
+          var reg1 = addHelper(controls[4], controls[5]);
+
+          document.getElementById(reg1+"_out").style.stroke="blue";
+          document.getElementById(reg1+"_out_to_read_a").style.stroke="blue";
+          document.getElementById("read_a_mux_sel"+reg1).style.stroke="blue";
+
+          document.getElementById("reg_"+writeReg).style.fill="orange";
+          document.getElementById("reg_"+writeReg).setAttribute("font-weight", "bold");
+          document.getElementById("reg_"+reg1+"_box").style.stroke="blue";
+          document.getElementById("read_a_out").style.stroke="blue";
+          for(var i=0; i<aluWritebackPath.length; i++){
+            document.getElementById(aluWritebackPath[i]).style.stroke="orange";
+          }
+        }
+
+        if(asm[0]=="INPUTD"){
+          for(var i=0; i<loadPath.length; i++){
+            document.getElementById(loadPath[i]).style.stroke="purple";
+          }
+          document.getElementById("switches_mux1_wire").style.stroke="cyan"
+          document.getElementById("mux2_true_wire").style.stroke="cyan";
+          document.getElementById("mux2_dmem_wire").style.stroke="cyan";
+        }
+        if(asm[0]=="INPUTCF"){
+          for(var i=0; i<addiPath.length; i++){
+            document.getElementById(addiPath[i]).style.stroke="purple";
+          }
+          for(var i=0; i<codeMemWritebackPath.length; i++){
+            document.getElementById(codeMemWritebackPath[i]).style.stroke="cyan"
+          }
+          var reg1 = addHelper(controls[4], controls[5]);
+
+          document.getElementById(reg1+"_out").style.stroke="blue";
+          var aSelected = read_a_mux.get_selected();
+          document.getElementById(reg1+"_out_to_read_a").style.stroke="blue";
+          document.getElementById("read_a_mux_sel"+reg1).style.stroke="blue";
+
+          document.getElementById("reg_"+reg1+"_box").style.stroke="blue";
+          document.getElementById("read_a_out").style.stroke="blue";
+          document.getElementById("switches_mux1_wire").style.stroke="orange";
+          document.getElementById("imem_mux2_junction").style.stroke="orange";
+        }
+
+        if(asm[0]=="NOOP") return;
+      }
+    }
+
+
+    function PCstart(){
+      if (cpu.pc.currentPC==0 || cpu.pc.currentPC==32){
+        if(document.getElementById("codeStart").checked)
+        {
+          code_mem.switchToUser();
+          cpu.pc.currentPC=32;
+        }
+        else
+        {
+          code_mem.switchToBios();
+          //document.getElementById("pc_val_id").innerHTML
+          cpu.pc.currentPC=0;
+        }
+      }
+    }
+
+
+  function switchToUser(){
+    code_mem.switchToUser();
+  }
+
+  function unhighlightSyntax(){
+    var cur = cpu.pc.getPC();
+    var prev = cpu.pc.getPreviousPC();
+    if(document.getElementById("sHighlight").checked==false)
+      highlightSyntax(prev, -1);
+    else
+    highlightSyntax(prev,0);
+  }
+
+  function unhighlightBusses(){
+    var cur = cpu.pc.getPC();
+    var prev = cpu.pc.getPreviousPC();
+    highlightTest(cpu.control.c, prev);
+  }
+
+  function unhighlightControlPath(){
+    var controls = cpu.control.c;
+    for(var i=1; i<controls.length; i++){
+      if(document.getElementById("show_control_path").checked==false){
+        document.getElementById("c"+i+"val").style.fill="black";
+        document.getElementById("c"+i+"val").setAttribute("font-weight", "normal");
+
+        document.getElementById("control_c"+i).style.fill = "black";
+        document.getElementById("control_c"+i).style.stroke = "black";
+
+        document.getElementById("c"+i).style.fill="black"
+        document.getElementById("c"+i).style.stroke="black"
+      }
+      else if(document.getElementById("show_control_path").checked==true && controls[i]==1){
+        document.getElementById("c"+i+"val").style.fill="red";
+        document.getElementById("c"+i+"val").setAttribute("font-weight", "bold");
+
+        document.getElementById("control_c"+i).style.fill = "red";
+        document.getElementById("control_c"+i).style.stroke = "red";
+
+        document.getElementById("c"+i).style.fill="red"
+        document.getElementById("c"+i).style.stroke="red"
+      }
+    }
+  }
+      
+function getRelevantBox(swNum)
+{
+    switch(swNum)
+    {
+        case "bit00":
+            return "bit0In";
+            break;
+        case "bit01":
+            return "bit1In";
+            break;
+        case "bit02":
+            return "bit2In";
+            break;
+        case "bit03":
+            return "bit3In";
+            break; 
+        case "bit04":
+            return "bit4In";
+            break;
+        case "bit05":
+            return "bit5In";
+            break;
+        case "bit06":
+            return "bit6In";
+            break;
+        case "bit07":
+            return "bit7In";
+            break;
+        case "bit08":
+            return "bit8In";
+            break; 
+        case "bit09":
+            return "bit9In";
+            break;    
+        case "bit10":
+            return "bit10In";
+            break;
+        case "bit11":
+            return "bit11In";
+            break;
+        case "bit12":
+            return "bit12In";
+            break;
+        case "bit13":
+            return "bit13In";
+            break; 
+        case "bit14":
+            return "bit14In";
+            break;        
+        case "bit15":
+            return "bit15In";
+            break;
+        case "bit16":
+            return "bit16In";
+            break; 
+        case "bit17":
+            return "bit17In";
+            break;     
+        default:
+            break;          
+    }    
+}    
+
+function switchChange(actSw,swNum){
+    var ch = document.getElementById(actSw).checked;
+    
+    if(ch)
+    {
+        document.getElementById(swNum).value = '1';
+        if(actSw == "bit01")
+        {
+          document.getElementById("game_on").checked = true;
+          autoMode();
+        }
+        if(actSw == "bit00")
+        {
+          document.getElementById("regCheck").checked = true;
+        }
+    }
+    else
+    {
+        document.getElementById(swNum).value = '0';
+        if(actSw == "bit01")
+        {
+          document.getElementById("game_on").checked = false;
+          autoMode();
+        }
+        if(actSw == "bit00")
+        {
+          document.getElementById("regCheck").checked = false;
+        }
+    }
+}
+
+document.getElementById("game_on").addEventListener("change", gameSwitch);
+
+function gameSwitch() {
+  if(document.getElementById("game_on").checked)
+  {
+    document.getElementById("bit01").checked = true;
+    document.getElementById("bit1In").value = '1';
+  }
+  else{
+    document.getElementById("bit01").checked = false;
+    document.getElementById("bit1In").value = '0';
+  }
+}
+
+function regSwitch() {
+   if(document.getElementById("regCheck").checked)
+   {
+    document.getElementById("bit00").checked = true;
+    document.getElementById("bit0In").value = '1';
+   }
+   else{
+    document.getElementById("bit00").checked = false;
+    document.getElementById("bit0In").value = '0';
+   }
+}
+
+function switchKeystroke(swNum, actSw){
+    var text = document.getElementById(swNum).value;
+    if(text == "1")
+    {
+        document.getElementById(actSw).checked = true;
+    }
+    else
+    {
+        document.getElementById(actSw).checked = false;
+    }
+}
+
+var currTime = 0;
+
+function Run(){
+  auto_on.checked = true;
+  autoMode();
+}
+
+function Step(){
+  if(auto_on.checked)
+  {
+    auto_on.checked = false;
+    autoMode();
+  }
+  test();
+}
+
+function autoMode()
+{
+  var mode = auto_on.checked;
+  if(mode)
+  {
+    if(currTime == 0)
+    {
+      currTime = setInterval(test, (101 - document.getElementById("speedSld").value) * 15);
+    }
+    else
+    {
+      clearInterval(currTime);
+      currTime = setInterval(test, (101 - document.getElementById("speedSld").value) * 15);//1-10 seconds
+    }
+  }
+  else
+  {
+    if(currTime != 0)
+    {
+      clearInterval(currTime);
+    }
+  }
+}
+
+    </script>
+  <script
+   src="./lib/jquery-3.3.1.slim.min.js"
+   ></script>
+   <script
+   src="./lib/popper.min.js"
+   ></script>
+   <script
+   src="./lib/bootstrap.min.js"
+   ></script>
+
+  </body>
+</html>

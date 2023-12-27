@@ -35,6 +35,11 @@ function init() {
 }
 
 window.addEventListener("load", function() {
+	
+	// So it looks like none of the shit actually runs
+	// wtf??? why is it still here?
+	console.log("???");
+	
 	init();
 
 	// Set up cpu simulation
@@ -395,7 +400,7 @@ window.addEventListener("load", function() {
 	svg.appendChild(junction_to_pc_update.node)
 	svg.appendChild(junction_to_pc.node)
 
-	code_mem.switchToUser();
+	code_mem.resetScrollState();
 
 	svg.appendChild(imem_red_write_enable_text.get_node());
 	svg.appendChild(imem_red_write_select_text.get_node());

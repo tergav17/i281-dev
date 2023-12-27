@@ -26,8 +26,8 @@ export default class IMEM_SVG {
 		var code = cpu.iMem.registers;
 
 		for(var i=0; i<32; i++){
-			var bios = new TextSVG(ADDR[0], ADDR[1] + (BETWEEN_DIST * (i+1)), "imem_addr"+(i), this.pad((i).toString(2), 6), Constants.BLUE_TEXT_STYLE, Constants.CODE_MEM_OFFSET)
-			var user = new TextSVG(ADDR[0], ADDR[1] + (BETWEEN_DIST * (i+1)), "imem_addr"+(i+32), (i+32).toString(2), Constants.BLUE_TEXT_STYLE, Constants.CODE_MEM_OFFSET)
+			var bios = new TextSVG(ADDR[0], ADDR[1] + (BETWEEN_DIST * (i+1)), "imem_addr"+(i), "0x" + this.pad((i).toString(16), 2).toUpperCase(), Constants.BLUE_TEXT_STYLE, Constants.CODE_MEM_OFFSET)
+			var user = new TextSVG(ADDR[0], ADDR[1] + (BETWEEN_DIST * (i+1)), "imem_addr"+(i+32), "0x" + this.pad((i+32).toString(16), 2).toUpperCase(), Constants.BLUE_TEXT_STYLE, Constants.CODE_MEM_OFFSET)
 			addr.push(bios)
 			addr.push(user)
 		}
@@ -120,8 +120,18 @@ export default class IMEM_SVG {
 		res.push(this.down_arrow.get_node());
 		return res;
 	}
+	
+	/*
+	 * Used to reset the scroll state during page initalization
+	 */
+	resetScrollState(){
+		this.switchToBios();
+	}
 
 	switchToUser(){
+		
+		console.log("Switch to user");
+
 		for(var i=0; i<32; i++){
 			document.getElementById("imem_addr"+(i)).style.visibility = "hidden";
 			document.getElementById("imem_addr"+(i+32)).style.visibility = "visible";
@@ -142,6 +152,9 @@ export default class IMEM_SVG {
 	}
 
 	switchToBios(){
+		
+		console.log("Switch to bios");
+		
 		for(var i=0; i<32; i++){
 			let ele = document.getElementById("imem_addr"+(i));
 			if (ele != null) ele.style.visibility = "visible";

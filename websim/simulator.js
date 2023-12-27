@@ -84,6 +84,16 @@ function drawFlow() {
 	flow_ctx.roundRect(x, y, 100, 150, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("Data Memory", x + 20, y + 10);
+	
+	// Draw C? Multiplexer
+	x = 470; y = 300;
+	flow_ctx.strokeStyle = "black"
+	flow_ctx.moveTo(x, y);
+	flow_ctx.lineTo(x, y+60);
+	flow_ctx.lineTo(x+20, y+40);
+	flow_ctx.lineTo(x+20, y+20);
+	flow_ctx.lineTo(x, y);
+	flow_ctx.stroke();
 }
 
 function updateFlow(doResize) {
