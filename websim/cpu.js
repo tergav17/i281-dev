@@ -7,11 +7,22 @@
 cpu_state = {
 	imem: [],				// Instruction Memory
 	dmem: [],				// Data Memory
+	
+	
+	isr: 0,					// Current Instruction
+	isr_mnem: "NOOP",		// Instruction Mnemonic
+	
+	select: 0,				// Write Select Address
+	write_out: 0,			// Writeback Output
+	write_cache: 0,			// Writeback Cache
+	
 	pc:	0,					// Program Counter
-	 
+ 	pc_next: 0,				// Next Program Counter Value
+	
+	reg_next: 0,			// Register Input Value
 	regs: [0, 0, 0, 0],		// Registers
-	port0: 0,
-	port1: 0,
+	port0: 0,				// Register Port 0
+	port1: 0,				// Regiter Port 1
 	
 	
 	
