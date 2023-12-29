@@ -54,7 +54,7 @@ function drawFlow(cpu) {
 	let x, y;
 	
 	// Draw Code Memory Section
-	x = 30; y = 20;
+	x = 30; y = 30;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 100, 150, 5);
 	flow_ctx.stroke();
@@ -64,7 +64,7 @@ function drawFlow(cpu) {
 	flow_ctx.fillText("BANK: " + cpu.ctrl[0] + " [C0]", x + 5, y + 125);
 	flow_ctx.fillText("WRITE: " + cpu.ctrl[1] + " [C1]", x + 5, y + 140);
 	
-	// Draw Code Memory Section
+	// Draw Code Writeback Section
 	x = 30; y = 200;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 100, 75, 5);
@@ -76,14 +76,20 @@ function drawFlow(cpu) {
 	
 	
 	// Draw Instruction Decoder
-	x = 180; y = 20;
+	x = 180; y = 30;
 	flow_ctx.strokeStyle = "black";
-	flow_ctx.roundRect(x, y, 250, 50, 5);
+	flow_ctx.roundRect(x, y, 460, 50, 5);
 	flow_ctx.stroke();
-	flow_ctx.fillText("Instruction Decoder", x + 26, y + 10);
+	flow_ctx.fillText("Instruction Decoder - " + cpu.isr_mnem, x + 130, y + 10);
+	flow_ctx.fillText("C0  C1  C2  C3  C4  C5  C6  C7  C8  C9  C10 C11 C12 C13 C14 C15 C16 C17 C18", x + 5, y + 30);
+	let ctrl_bits = "";
+	for (let i = 0; i <= 18; i++) {
+		ctrl_bits += " " + cpu.ctrl[i] + "  ";
+	}
+	flow_ctx.fillText(ctrl_bits, x + 5, y + 40);
 	
 	// Draw Register File Section
-	x = 180; y = 100;
+	x = 180; y = 120;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 120, 150, 5);
 	flow_ctx.stroke();
@@ -101,17 +107,20 @@ function drawFlow(cpu) {
 	flow_ctx.fillText("WP: " + cpu.ctrl[8] + "" + cpu.ctrl[9] + " [C8, C9]", x + 5, y + 125);
 	flow_ctx.fillText("WRITE: " + cpu.ctrl[10] + " [C10]", x + 5, y + 140);
 	
-	
 	// Draw ALU Section
-	x = 350; y = 120;
+	x = 400; y = 120;
 	flow_ctx.strokeStyle = "black";
-	flow_ctx.roundRect(x, y, 100, 160, 5);
+	flow_ctx.roundRect(x, y, 120, 100, 5);
 	flow_ctx.stroke();
-	flow_ctx.fillText("ALU", x + 20, y + 10);
-	
+	flow_ctx.fillText("ALU", x + 40, y + 10);
+	flow_ctx.fillText("RESULT: 0x" + (cpu.alu_res).toString(16).padStart(2, '0').toUpperCase(), x + 5, y + 30);
+	flow_ctx.fillText("FLAGS: " + cpu.alu_flags[3] + "" + cpu.alu_flags[2] + "" + cpu.alu_flags[1] + "" + cpu.alu_flags[0], x + 5, y + 45);
+	flow_ctx.fillText("      (CONZ)", x + 5, y + 55);
+	flow_ctx.fillText("OPR: " + cpu.ctrl[12] + "" + cpu.ctrl[13] + " [C12, C13]", x + 5, y + 75);
+	flow_ctx.fillText("WFLAGS: " + cpu.ctrl[14] + " [C14]", x + 5, y + 90);
 
 	// Draw Program Counter Section
-	x = 180; y = 300;
+	x = 180; y = 320;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 100, 75, 5);
 	flow_ctx.stroke();
@@ -121,14 +130,53 @@ function drawFlow(cpu) {
 	flow_ctx.fillText("BRANCH: " + cpu.ctrl[2] + " [C2]", x + 5, y + 65);
 	
 	// Draw Data Memory Section
-	x = 470; y = 100;
+	x = 650; y = 100;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 100, 150, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("Data Memory", x + 20, y + 10);
 	
 	// Draw C11 Multiplexer
-	drawMux(cpu, 470, 300, 11);
+	drawMux(cpu, 350, 170, 11);
+	
+	// Draw Conencting Lines
+	// Code Writeback -> Code Memory
+	flow_ctx.moveTo(80, 200);
+	flow_ctx.lineTo(80, 180);
+	
+	// Program Counter -> Code Memory
+	flow_ctx.moveTo(280, 357);
+	flow_ctx.lineTo(300, 357);
+	flow_ctx.lineTo(300, 410);
+	flow_ctx.lineTo(15, 410);
+	flow_ctx.lineTo(15, 130);
+	flow_ctx.lineTo(30, 130);
+	
+	
+	// Code Memory -> Instruction Decoder
+	flow_ctx.moveTo(130, 55);
+	flow_ctx.lineTo(180, 55);
+	
+	// Code Memory -> Mux C11
+	flow_ctx.moveTo(145, 55);
+	flow_ctx.lineTo(145, 285);
+	flow_ctx.lineTo(335, 285);
+	flow_ctx.lineTo(335, 215);
+	flow_ctx.lineTo(350, 215);
+	
+	// Port 0 -> ALU
+	flow_ctx.moveTo(300, 155);
+	flow_ctx.lineTo(400, 155);
+	
+	// Port 1 -> Mux C11
+	flow_ctx.moveTo(300, 185);
+	flow_ctx.lineTo(350, 185);
+	
+	// Mux C11 -> ALU
+	flow_ctx.moveTo(370, 200);
+	flow_ctx.lineTo(400, 200);
+	
+	flow_ctx.stroke();
 }
 
 /*

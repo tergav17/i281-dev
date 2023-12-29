@@ -24,6 +24,9 @@ cpu_state = {
 	port0: 0,				// Register Port 0
 	port1: 0,				// Regiter Port 1
 	
+	alu_res: 0,				// ALU Result
+	alu_flags: [0, 0, 0, 0],// ALU Flags
+	alu_opr: "ADD",			// ALU Operation Hint
 	
 	
 	ctrl: []				// Control Lines
