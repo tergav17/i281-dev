@@ -112,7 +112,7 @@ function drawFlow(cpu) {
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 120, 100, 5);
 	flow_ctx.stroke();
-	flow_ctx.fillText("ALU", x + 40, y + 10);
+	flow_ctx.fillText("ALU", x + 50, y + 10);
 	flow_ctx.fillText("RESULT: 0x" + (cpu.alu_res).toString(16).padStart(2, '0').toUpperCase(), x + 5, y + 30);
 	flow_ctx.fillText("FLAGS: " + cpu.alu_flags[3] + "" + cpu.alu_flags[2] + "" + cpu.alu_flags[1] + "" + cpu.alu_flags[0], x + 5, y + 45);
 	flow_ctx.fillText("      (CONZ)", x + 5, y + 55);
@@ -130,7 +130,7 @@ function drawFlow(cpu) {
 	flow_ctx.fillText("BRANCH: " + cpu.ctrl[2] + " [C2]", x + 5, y + 65);
 	
 	// Draw Data Memory Section
-	x = 650; y = 100;
+	x = 650; y = 250;
 	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 100, 150, 5);
 	flow_ctx.stroke();
@@ -138,6 +138,12 @@ function drawFlow(cpu) {
 	
 	// Draw C11 Multiplexer
 	drawMux(cpu, 350, 170, 11);
+	
+	// Draw C15 Multiplexer
+	drawMux(cpu, 550, 150, 15);
+	
+	// Draw C18 Multiplexer
+	drawMux(cpu, 720, 165, 18);
 	
 	// Draw Conencting Lines
 	// Code Writeback -> Code Memory
@@ -152,17 +158,20 @@ function drawFlow(cpu) {
 	flow_ctx.lineTo(15, 130);
 	flow_ctx.lineTo(30, 130);
 	
-	
 	// Code Memory -> Instruction Decoder
 	flow_ctx.moveTo(130, 55);
 	flow_ctx.lineTo(180, 55);
 	
-	// Code Memory -> Mux C11
+	// Code Memory -> Mux C11 -> Mux C15
 	flow_ctx.moveTo(145, 55);
 	flow_ctx.lineTo(145, 285);
 	flow_ctx.lineTo(335, 285);
 	flow_ctx.lineTo(335, 215);
 	flow_ctx.lineTo(350, 215);
+	flow_ctx.moveTo(335, 285);
+	flow_ctx.lineTo(535, 285);
+	flow_ctx.lineTo(535, 195);
+	flow_ctx.lineTo(550, 195);
 	
 	// Port 0 -> ALU
 	flow_ctx.moveTo(300, 155);
@@ -172,11 +181,57 @@ function drawFlow(cpu) {
 	flow_ctx.moveTo(300, 185);
 	flow_ctx.lineTo(350, 185);
 	
+	// Port 1 -> Code Writeback
+	flow_ctx.moveTo(315, 185);
+	flow_ctx.lineTo(315, 300);
+	flow_ctx.lineTo(95, 300);
+	flow_ctx.lineTo(95, 275);
+	
 	// Mux C11 -> ALU
 	flow_ctx.moveTo(370, 200);
 	flow_ctx.lineTo(400, 200);
 	
+	// ALU -> Mux C15
+	flow_ctx.moveTo(520, 165);
+	flow_ctx.lineTo(550, 165);
+	
+	// Mux C15 -> Mux C18
+	flow_ctx.moveTo(570, 180);
+	flow_ctx.lineTo(720, 180);
+	
+	// Mux C15 -> Code Memory
+	flow_ctx.moveTo(655, 180);
+	flow_ctx.lineTo(655, 15);
+	flow_ctx.lineTo(15, 15);
+	flow_ctx.lineTo(15, 80);
+	flow_ctx.lineTo(30, 80);
+	
+	// Mux C18 -> Register File
+	flow_ctx.moveTo(740, 195);
+	flow_ctx.lineTo(755, 195);
+	flow_ctx.lineTo(755, 105);
+	flow_ctx.lineTo(165, 105);
+	flow_ctx.lineTo(165, 155);
+	flow_ctx.lineTo(180, 155);
+	
+	// Mux C18 -> Program Counter
+	flow_ctx.moveTo(165, 155);
+	flow_ctx.lineTo(165, 357);
+	flow_ctx.lineTo(180, 357);
+	
+	// Draw all of the lines
 	flow_ctx.stroke();
+	
+	// Draw circles
+	flow_ctx.beginPath();
+	flow_ctx.arc(315, 185, 3, 0, 2 * Math.PI);
+	flow_ctx.fill();
+	flow_ctx.beginPath();
+	flow_ctx.arc(655, 180, 3, 0, 2 * Math.PI);
+	flow_ctx.fill();
+	flow_ctx.beginPath();
+	flow_ctx.arc(165, 155, 3, 0, 2 * Math.PI);
+	flow_ctx.fill();
 }
 
 /*
