@@ -136,10 +136,18 @@ function drawFlow(cpu) {
 	flow_ctx.roundRect(x, y, 100, 120, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("Data Memory", x + 20, y + 10);
-	flow_ctx.fillText("0x00: 00000000", x + 5, y + 30);
-	flow_ctx.fillText("0x04: 00000000", x + 5, y + 45);
-	flow_ctx.fillText("0x08: 00000000", x + 5, y + 60);
-	flow_ctx.fillText("0x0C: 00000000", x + 5, y + 75);
+	let a, b, c, d;
+	a = b = c = d = "";
+	for (let i = 0; i < 4; i++) {
+		a += (data_fetch(cpu, i)).toString(16).padStart(2, '0').toUpperCase();
+		b += (data_fetch(cpu, i+4)).toString(16).padStart(2, '0').toUpperCase();
+		c += (data_fetch(cpu, i+8)).toString(16).padStart(2, '0').toUpperCase();
+		d += (data_fetch(cpu, i+12)).toString(16).padStart(2, '0').toUpperCase();
+	} 
+	flow_ctx.fillText("0x00: " + a, x + 5, y + 30);
+	flow_ctx.fillText("0x04: " + b, x + 5, y + 45);
+	flow_ctx.fillText("0x08: " + c, x + 5, y + 60);
+	flow_ctx.fillText("0x0C: " + d, x + 5, y + 75);
 	flow_ctx.fillText("WRITE: " + cpu.ctrl[17] + " [C17]", x + 5, y + 95);
 	flow_ctx.fillText("READ: " + cpu.ctrl[18] + " [C18]", x + 5, y + 110);
 	

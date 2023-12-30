@@ -37,3 +37,10 @@ cpu_state = {
 cpu_state.imem = new Array(128 + 128 * 256).fill(0); // Allocation space for bios and user banks
 cpu_state.dmem = new Array(128 * 256).fill(0); // Same thing for data memory banks
 cpu_state.ctrl = new Array(24).fill(0); // Init control lines
+
+/*
+ * Fetch a byte from data memory
+ */
+function data_fetch(cpu, addr) {
+	return cpu.dmem[128 * cpu.data_bank];
+}
