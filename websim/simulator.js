@@ -61,6 +61,7 @@ function drawFlow(cpu) {
 	flow_ctx.fillText("Code Memory", x + 17, y + 10);
 	flow_ctx.fillText("ISR: 0x" + (cpu.isr).toString(16).padStart(4, '0').toUpperCase(), x + 5, y + 30);
 	flow_ctx.fillText("SELECT: 0x" + (cpu.select).toString(16).padStart(2, '0').toUpperCase(), x + 5, y + 45);
+	flow_ctx.fillText("BANK: 0x" + (cpu.isr_bank).toString(16).padStart(2, '0').toUpperCase(), x + 5, y + 60);
 	flow_ctx.fillText("BANK: " + cpu.ctrl[0] + " [C0]", x + 5, y + 125);
 	flow_ctx.fillText("WRITE: " + cpu.ctrl[1] + " [C1]", x + 5, y + 140);
 	
@@ -72,7 +73,7 @@ function drawFlow(cpu) {
 	flow_ctx.fillText("Code Writeback", x + 6, y + 10);
 	flow_ctx.fillText("OUT: 0x" + (cpu.write_out).toString(16).padStart(4, '0').toUpperCase(), x + 5, y + 30);
 	flow_ctx.fillText("CACHE: 0x" + (cpu.write_cache).toString(16).padStart(2, '0').toUpperCase(), x + 5, y + 45);
-	flow_ctx.fillText("WRITE: " + cpu.ctrl[3] + " [C3]", x + 5, y + 65);
+	flow_ctx.fillText("PRGM: " + cpu.ctrl[3] + " [C3]", x + 5, y + 65);
 	
 	
 	// Draw Instruction Decoder
@@ -130,17 +131,26 @@ function drawFlow(cpu) {
 	flow_ctx.fillText("BRANCH: " + cpu.ctrl[2] + " [C2]", x + 5, y + 65);
 	
 	// Draw Data Memory Section
-	x = 650; y = 250;
+	x = 590; y = 200;
 	flow_ctx.strokeStyle = "black";
-	flow_ctx.roundRect(x, y, 100, 150, 5);
+	flow_ctx.roundRect(x, y, 100, 120, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("Data Memory", x + 20, y + 10);
+	flow_ctx.fillText("0x00: 00000000", x + 5, y + 30);
+	flow_ctx.fillText("0x04: 00000000", x + 5, y + 45);
+	flow_ctx.fillText("0x08: 00000000", x + 5, y + 60);
+	flow_ctx.fillText("0x0C: 00000000", x + 5, y + 75);
+	flow_ctx.fillText("WRITE: " + cpu.ctrl[17] + " [C17]", x + 5, y + 95);
+	flow_ctx.fillText("READ: " + cpu.ctrl[18] + " [C18]", x + 5, y + 110);
 	
 	// Draw C11 Multiplexer
 	drawMux(cpu, 350, 170, 11);
 	
 	// Draw C15 Multiplexer
 	drawMux(cpu, 550, 150, 15);
+	
+	// Draw C16 Multiplexer
+	drawMux(cpu, 500, 300, 16);
 	
 	// Draw C18 Multiplexer
 	drawMux(cpu, 720, 165, 18);
@@ -187,6 +197,11 @@ function drawFlow(cpu) {
 	flow_ctx.lineTo(95, 300);
 	flow_ctx.lineTo(95, 275);
 	
+	// Port 1 -> C16 Mux
+	flow_ctx.moveTo(315, 300);
+	flow_ctx.lineTo(315, 315);
+	flow_ctx.lineTo(500, 315);
+	
 	// Mux C11 -> ALU
 	flow_ctx.moveTo(370, 200);
 	flow_ctx.lineTo(400, 200);
@@ -206,6 +221,23 @@ function drawFlow(cpu) {
 	flow_ctx.lineTo(15, 80);
 	flow_ctx.lineTo(30, 80);
 	
+	// Mux C15 -> Data Memory
+	flow_ctx.moveTo(580, 180);
+	flow_ctx.lineTo(580, 235);
+	flow_ctx.lineTo(590, 235);
+	
+	// Mux C16 -> Data memory
+	flow_ctx.moveTo(520, 330);
+	flow_ctx.lineTo(535, 330);
+	flow_ctx.lineTo(535, 300);
+	flow_ctx.lineTo(590, 300);
+	
+	// Data Memory -> Mux C18
+	flow_ctx.moveTo(690, 235);
+	flow_ctx.lineTo(702, 235);
+	flow_ctx.lineTo(702, 210);
+	flow_ctx.lineTo(720, 210);
+	
 	// Mux C18 -> Register File
 	flow_ctx.moveTo(740, 195);
 	flow_ctx.lineTo(755, 195);
@@ -223,6 +255,15 @@ function drawFlow(cpu) {
 	flow_ctx.stroke();
 	
 	// Draw circles
+	flow_ctx.beginPath();
+	flow_ctx.arc(335, 285, 3, 0, 2 * Math.PI);
+	flow_ctx.fill();
+	flow_ctx.beginPath();
+	flow_ctx.arc(580, 180, 3, 0, 2 * Math.PI);
+	flow_ctx.fill();
+	flow_ctx.beginPath();
+	flow_ctx.arc(315, 300, 3, 0, 2 * Math.PI);
+	flow_ctx.fill();
 	flow_ctx.beginPath();
 	flow_ctx.arc(315, 185, 3, 0, 2 * Math.PI);
 	flow_ctx.fill();

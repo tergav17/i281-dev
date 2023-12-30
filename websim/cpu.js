@@ -18,6 +18,8 @@ cpu_state = {
 	
 	pc:	0,					// Program Counter
  	pc_next: 0,				// Next Program Counter Value
+	isr_bank: 0,			// Instruction Bank
+	data_bank: 0,			// Data Bank
 	
 	reg_next: 0,			// Register Input Value
 	regs: [0, 0, 0, 0],		// Registers
@@ -26,7 +28,6 @@ cpu_state = {
 	
 	alu_res: 0,				// ALU Result
 	alu_flags: [0, 0, 0, 0],// ALU Flags
-	alu_opr: "ADD",			// ALU Operation Hint
 	
 	
 	ctrl: []				// Control Lines
