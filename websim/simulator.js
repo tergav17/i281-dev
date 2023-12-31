@@ -37,10 +37,39 @@ if (diag_flow.getContext) {
 window.addEventListener('keyup',keyUpListener,false);
 window.addEventListener('keydown',keyDownListener,false); 
 window.addEventListener('resize', resizeCanvas, false);
+diag_flow.addEventListener('mousedown', mouseDown);
+
+// Keep track of scaling for mouse events
+var scaleX = 1.0;
+var scaleY = 1.0;
 
 // Do initial drawing of canvas
 updateFlow(true);
 
+// event farm!!!! :)
+
+function mouseDown(e) {
+	canvasRect = diag_flow.getBoundingClientRect()
+	let mx = (e.clientX - canvasRect.left) / scaleX;
+	let my = (e.clientY - canvasRect.top) / scaleY;
+	
+	// I really should have some proper button handling code
+	// but I don't wanna so we are going to hardcode one instead
+	//
+	// cry about it
+	x = 385; y = 390; // Switch block position
+	for (let i = 0; i < 16; i++) {
+		bx = x + 5 + (22 * i) + (i >= 8 ? 10 : 0)
+		by = y + 5
+		
+		if (mx >= bx && mx < bx + 15 && my >= by && my < by + 30) {
+			cpu_state.switches ^= 0x8000>>i;
+		}
+		
+		updateFlow(false);
+	}
+	
+}
 
 function keyUpListener(e) {
 	let k = e.key.toLowerCase();
@@ -66,6 +95,13 @@ function resizeCanvas() {
  * Redraws the CPU flow chart to the current state
  */
 function drawFlow(cpu) {
+	
+	// Clear
+	flow_ctx.reset();
+	flow_ctx.setTransform(1, 0, 0, 1, 0, 0);
+	flow_ctx.scale(scaleX, scaleY);
+	flow_ctx.clearRect(0, 0, diag_flow.width, diag_flow.height);
+	
 	
 	// Set up style commons
 	flow_ctx.font = "10px courier";
@@ -183,6 +219,9 @@ function drawFlow(cpu) {
 	// Draw C18 Multiplexer
 	drawMux(cpu, 720, 165, 18);
 	
+	// Line Time!
+	flow_ctx.beginPath();
+	
 	// Draw Conencting Lines
 	// Code Writeback -> Code Memory
 	flow_ctx.moveTo(80, 200);
@@ -191,8 +230,8 @@ function drawFlow(cpu) {
 	// Program Counter -> Code Memory
 	flow_ctx.moveTo(280, 357);
 	flow_ctx.lineTo(300, 357);
-	flow_ctx.lineTo(300, 410);
-	flow_ctx.lineTo(15, 410);
+	flow_ctx.lineTo(300, 425);
+	flow_ctx.lineTo(15, 425);
 	flow_ctx.lineTo(15, 130);
 	flow_ctx.lineTo(30, 130);
 	
@@ -281,7 +320,17 @@ function drawFlow(cpu) {
 	
 	// Data Memory -> 7-Segment Displays
 	flow_ctx.moveTo(640, 320);
-	flow_ctx.lineTo(640, 340);
+	flow_ctx.lineTo(640, 345);
+	
+	// Switches -> Code Writeback
+	flow_ctx.moveTo(385, 410);
+	flow_ctx.lineTo(65, 410)
+	flow_ctx.lineTo(65, 275);
+	
+	// Switches -> Mux C16
+	flow_ctx.moveTo(340, 410);
+	flow_ctx.lineTo(340, 345)
+	flow_ctx.lineTo(500, 345);
 	
 	// Draw all of the lines
 	flow_ctx.stroke();
@@ -305,28 +354,52 @@ function drawFlow(cpu) {
 	flow_ctx.beginPath();
 	flow_ctx.arc(165, 155, 3, 0, 2 * Math.PI);
 	flow_ctx.fill();
+	flow_ctx.beginPath();
+	flow_ctx.arc(340, 410, 3, 0, 2 * Math.PI);
+	flow_ctx.fill();
+	
+	// Draw Switches
+	x = 385; y = 390;
+	flow_ctx.beginPath();
+	flow_ctx.strokeStyle = "black";
+	flow_ctx.roundRect(x, y, 365, 40, 5);
+	flow_ctx.stroke();
+	for (let i = 0; i < 16; i++) {
+		drawSwitch(x + 5 + (22 * i) + (i >= 8 ? 10 : 0), y + 5, cpu.switches & (0x8000>>i));
+	}
 	
 	// Draw 7-segment display
-	x = 550; y = 340;
+	x = 550; y = 345;
+	flow_ctx.beginPath();
+	flow_ctx.strokeStyle = "black";
 	flow_ctx.roundRect(x, y, 200, 40, 5);
 	flow_ctx.stroke();
-	drawDisplay(x + 5, y + 5, cpu.segments[0], cpu.game);
-	drawDisplay(x + 25 + 5, y + 5, cpu.segments[1], cpu.game);
-	drawDisplay(x + 50 + 5, y + 5, cpu.segments[2], cpu.game);
-	drawDisplay(x + 75 + 5, y + 5, cpu.segments[3], cpu.game);
-	drawDisplay(x + 100 + 5, y + 5, cpu.segments[4], cpu.game);
-	drawDisplay(x + 125 + 5, y  + 5, cpu.segments[5], cpu.game);
-	drawDisplay(x + 150 + 5, y + 5, cpu.segments[6], cpu.game);
-	drawDisplay(x + 175 + 5, y + 5, cpu.segments[7], cpu.game);
+	for (let i = 0; i < 8; i++) {
+		drawDisplay(x + 5 + (25 * i), y + 5, cpu.segments[i], cpu.game);
+	}
+}
+
+function drawSwitch(x, y, position) {
+	flow_ctx.beginPath();
+	flow_ctx.strokeStyle = "grey";
+	flow_ctx.fillStyle = "grey";
+	flow_ctx.rect(x, y, 15, 30);
+	flow_ctx.fill();
+	
+	flow_ctx.beginPath();
+	flow_ctx.strokeStyle = "white";
+	flow_ctx.fillStyle = "white";
+	flow_ctx.rect(x + 2, y + 2 + (position == 0 ? 15 : 0), 11, 11);
+	flow_ctx.fill();
 }
 
 /*
  * Helper function to draw 7-segment displays
  */
 function drawDisplay(x, y, contents, game) {
+	flow_ctx.beginPath();
 	flow_ctx.strokeStyle = "red"
 	flow_ctx.lineWidth = 2.5;
-	flow_ctx.beginPath();
 	
 	// Convert content if in game mode
 	if (!game) {
@@ -383,6 +456,7 @@ function drawDisplay(x, y, contents, game) {
  * Helper function to draw multiplexers
  */
 function drawMux(cpu, x, y, signal) {
+	flow_ctx.beginPath();
 	flow_ctx.strokeStyle = "black"
 	flow_ctx.moveTo(x, y);
 	flow_ctx.lineTo(x, y+60);
@@ -438,9 +512,8 @@ function updateFlow(doResize) {
 		flow_ctx.canvas.height = ratioY * flow_ctx.canvas.width / ratioX;
 		
 		// Set the graphical scale
-		flow_ctx.setTransform(1, 0, 0, 1, 0, 0);
-		flow_ctx.scale(flow_ctx.canvas.width / vWidth, flow_ctx.canvas.height / vHeight);
-		
+		scaleX = flow_ctx.canvas.width / vWidth;
+		scaleY = flow_ctx.canvas.height / vHeight;
 	}
 	
 	// Redraw the flow

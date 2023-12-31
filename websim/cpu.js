@@ -31,6 +31,7 @@ cpu_state = {
 	
 	segments: [],			// 7-Segment Display Contents
 	game: false,			// Game Mode
+	switches: 0x0000,		// Switch Registers
 	
 	ctrl: []				// Control Lines
 };
