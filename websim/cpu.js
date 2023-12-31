@@ -29,6 +29,8 @@ cpu_state = {
 	alu_res: 0,				// ALU Result
 	alu_flags: [0, 0, 0, 0],// ALU Flags
 	
+	segments: [],			// 7-Segment Display Contents
+	game: false,			// Game Mode
 	
 	ctrl: []				// Control Lines
 };
@@ -37,6 +39,7 @@ cpu_state = {
 cpu_state.imem = new Array(128 + 128 * 256).fill(0); // Allocation space for bios and user banks
 cpu_state.dmem = new Array(128 * 256).fill(0); // Same thing for data memory banks
 cpu_state.ctrl = new Array(24).fill(0); // Init control lines
+cpu_state.segments = new Array(8).fill(0); // Init 7-segment displays
 
 /*
  * Fetch a byte from data memory

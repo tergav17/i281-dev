@@ -4,6 +4,25 @@
  * Handles the user-facing functions of the simulator
  */
 
+// Lookup table to draw 7-segment display numbers
+const bin_to_hex = [
+	0b00111111,	// 0
+	0b00000110,	// 1
+	0b01011011,	// 2
+	0b01001111,	// 3
+	0b01100110,	// 4
+	0b01101101,	// 5
+	0b01111101,	// 6
+	0b00000111,	// 7
+	0b01111111,	// 8
+	0b01101111,	// 9
+	0b01110111,	// A
+	0b01111100,	// b
+	0b00111001,	// C
+	0b01011110,	// d
+	0b01111001,	// E
+	0b01110001	// F
+];
 
 const diag_flow = document.getElementById("diagflow");
 
@@ -51,6 +70,7 @@ function drawFlow(cpu) {
 	// Set up style commons
 	flow_ctx.font = "10px courier";
 	flow_ctx.lineCap = "round";
+	flow_ctx.lineWidth = 1;
 	let x, y;
 	
 	// Draw Code Memory Section
@@ -259,6 +279,10 @@ function drawFlow(cpu) {
 	flow_ctx.lineTo(165, 357);
 	flow_ctx.lineTo(180, 357);
 	
+	// Data Memory -> 7-Segment Displays
+	flow_ctx.moveTo(640, 320);
+	flow_ctx.lineTo(640, 340);
+	
 	// Draw all of the lines
 	flow_ctx.stroke();
 	
@@ -281,6 +305,78 @@ function drawFlow(cpu) {
 	flow_ctx.beginPath();
 	flow_ctx.arc(165, 155, 3, 0, 2 * Math.PI);
 	flow_ctx.fill();
+	
+	// Draw 7-segment display
+	x = 550; y = 340;
+	flow_ctx.roundRect(x, y, 200, 40, 5);
+	flow_ctx.stroke();
+	drawDisplay(x + 5, y + 5, cpu.segments[0], cpu.game);
+	drawDisplay(x + 25 + 5, y + 5, cpu.segments[1], cpu.game);
+	drawDisplay(x + 50 + 5, y + 5, cpu.segments[2], cpu.game);
+	drawDisplay(x + 75 + 5, y + 5, cpu.segments[3], cpu.game);
+	drawDisplay(x + 100 + 5, y + 5, cpu.segments[4], cpu.game);
+	drawDisplay(x + 125 + 5, y  + 5, cpu.segments[5], cpu.game);
+	drawDisplay(x + 150 + 5, y + 5, cpu.segments[6], cpu.game);
+	drawDisplay(x + 175 + 5, y + 5, cpu.segments[7], cpu.game);
+}
+
+/*
+ * Helper function to draw 7-segment displays
+ */
+function drawDisplay(x, y, contents, game) {
+	flow_ctx.strokeStyle = "red"
+	flow_ctx.lineWidth = 2.5;
+	flow_ctx.beginPath();
+	
+	// Convert content if in game mode
+	if (!game) {
+		contents = bin_to_hex[contents & 0x0F];
+	}
+	
+	// Top Mid
+	if (contents & 0x01) {
+		flow_ctx.moveTo(x + 3, y);
+		flow_ctx.lineTo(x + 12, y);
+	}
+	
+	// Top Left
+	if (contents & 0x20) {
+		flow_ctx.moveTo(x, y + 3);
+		flow_ctx.lineTo(x, y + 12);
+	}
+	
+	// Top Right
+	if (contents & 0x02) {
+		flow_ctx.moveTo(x + 15, y + 3);
+		flow_ctx.lineTo(x + 15, y + 12);
+	}
+	
+	// Mid Mid
+	if (contents & 0x40) {
+		flow_ctx.moveTo(x + 3, y + 15);
+		flow_ctx.lineTo(x + 12, y + 15);
+	}
+	
+	// Bottom Left
+	if (contents & 0x10) {
+		flow_ctx.moveTo(x, y + 18);
+		flow_ctx.lineTo(x, y + 27);
+	}
+	
+	// Bottom Right
+	if (contents & 0x04) {
+		flow_ctx.moveTo(x + 15, y + 18);
+		flow_ctx.lineTo(x + 15, y + 27);
+	}
+	
+	// Bottom Mid
+	if (contents & 0x08) {
+		flow_ctx.moveTo(x + 3, y + 30);
+		flow_ctx.lineTo(x + 12, y + 30);
+	}
+	
+	flow_ctx.stroke();
+
 }
 
 /*
@@ -311,8 +407,8 @@ function drawMux(cpu, x, y, signal) {
  */
 function updateFlow(doResize) {
 	
-	let vWidth = Math.floor(640 * 1.2);
-	let vHeight = Math.floor(360 * 1.2);
+	let vWidth = Math.floor(768);
+	let vHeight = Math.floor(432);
 	
 	// Handle resizing
 	if (doResize) {
