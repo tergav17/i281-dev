@@ -65,9 +65,10 @@ function mouseDown(e) {
 		if (mx >= bx && mx < bx + 15 && my >= by && my < by + 30) {
 			cpu_state.switches ^= 0x8000>>i;
 		}
-		
-		updateFlow(false);
 	}
+	
+	propagate(cpu_state, cpu_state.switches);
+	updateFlow(false);
 	
 }
 
@@ -170,8 +171,8 @@ function drawFlow(cpu) {
 	flow_ctx.roundRect(x, y, 120, 100, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("ALU", x + 50, y + 10);
-	flow_ctx.fillText("RESULT: 0x" + (cpu.alu_res).toString(16).padStart(2, '0').toUpperCase(), x + 5, y + 30);
-	flow_ctx.fillText("FLAGS: " + cpu.alu_flags[3] + "" + cpu.alu_flags[2] + "" + cpu.alu_flags[1] + "" + cpu.alu_flags[0], x + 5, y + 45);
+	flow_ctx.fillText("RESULT: 0x" + (cpu.alu_result).toString(16).padStart(2, '0').toUpperCase(), x + 5, y + 30);
+	flow_ctx.fillText("FLAGS: " + cpu.flags[3] + "" + cpu.flags[2] + "" + cpu.flags[1] + "" + cpu.flags[0], x + 5, y + 45);
 	flow_ctx.fillText("      (CONZ)", x + 5, y + 55);
 	flow_ctx.fillText("OPR: " + cpu.ctrl[12] + "" + cpu.ctrl[13] + " [C12, C13]", x + 5, y + 75);
 	flow_ctx.fillText("WFLAGS: " + cpu.ctrl[14] + " [C14]", x + 5, y + 90);
@@ -195,10 +196,10 @@ function drawFlow(cpu) {
 	let a, b, c, d;
 	a = b = c = d = "";
 	for (let i = 0; i < 4; i++) {
-		a += (data_fetch(cpu, i)).toString(16).padStart(2, '0').toUpperCase();
-		b += (data_fetch(cpu, i+4)).toString(16).padStart(2, '0').toUpperCase();
-		c += (data_fetch(cpu, i+8)).toString(16).padStart(2, '0').toUpperCase();
-		d += (data_fetch(cpu, i+12)).toString(16).padStart(2, '0').toUpperCase();
+		a += (dataFetch(cpu, i)).toString(16).padStart(2, '0').toUpperCase();
+		b += (dataFetch(cpu, i+4)).toString(16).padStart(2, '0').toUpperCase();
+		c += (dataFetch(cpu, i+8)).toString(16).padStart(2, '0').toUpperCase();
+		d += (dataFetch(cpu, i+12)).toString(16).padStart(2, '0').toUpperCase();
 	} 
 	flow_ctx.fillText("0x00: " + a, x + 5, y + 30);
 	flow_ctx.fillText("0x04: " + b, x + 5, y + 45);
