@@ -8,7 +8,6 @@ cpu_state = {
 	imem: [],				// Instruction Memory
 	dmem: [],				// Data Memory
 	
-	
 	isr: 0,					// Current Instruction
 	isr_mnem: "NOOP",		// Instruction Mnemonic
 	
@@ -22,9 +21,14 @@ cpu_state = {
 	data_bank: 0,			// Data Bank
 	
 	reg_next: 0,			// Register Input Value
-	regs: [0, 0, 0, 0],		// Registers
+	regs: [0, 1, 2, 3],		// Registers
 	port0: 0,				// Register Port 0
 	port1: 0,				// Regiter Port 1
+	
+	c11_out: 0,				// Mux C11 Output
+	c15_out: 0,				// Mux C15 Output
+	c16_out: 0,				// Mux C16 Output
+	c18_out: 0,				// Mux C18 Output
 	
 	alu_result: 0,			// ALU Result
 	flags: [0, 0, 0, 0],	// ALU Flags
@@ -42,24 +46,7 @@ cpu_state.dmem = new Array(128 * 256).fill(0); // Same thing for data memory ban
 cpu_state.ctrl = new Array(24).fill(0); // Init control lines
 cpu_state.segments = new Array(8).fill(0); // Init 7-segment displays
 
-/*
- * Propagates a new instruction into the processo 
- * All transient values will be updated, but no registers will change
- *
- * Nothing in this function should change the "true" state of the processor
- */
-function propagate(cpu, isr) {
-	
-	// Set the current instruction
-	cpu.isr = isr;
-	
-	// Get control signals
-	cpu.isr_mnem = decode(cpu.ctrl, isr, cpu.flags);
-	
-	// Grab the immediate value
-	let imm = isr & 0xFF;
-}
-
+// Control line values
 const IMEM_BANK = 0
 const IMEM_WRITE_ENABLE = 1
 const PROGRAM_COUNTER_MUX = 2
@@ -81,6 +68,108 @@ const ALU_OP_SHIFTR = 1
 const ALU_OP_ADD = 2
 const ALU_OP_SUB = 3
 
+const FLAG_Z = 0;
+const FLAG_N = 1;
+const FLAG_O = 2;
+const FLAG_C = 3;
+
+/*
+ * Propagates a new instruction into the processor
+ * All transient values will be updated, but no registers will change
+ *
+ * Nothing in this function should change the "true" state of the processor
+ */
+function propagate(cpu, isr) {
+	
+	// Set the current instruction
+	cpu.isr = isr;
+	
+	// Get control signals
+	cpu.isr_mnem = decode(cpu.ctrl, isr, cpu.flags);
+	
+	// Grab the immediate value
+	let imm = isr & 0xFF;
+	
+	// Update ports
+	cpu.port0 = cpu.regs[(cpu.ctrl[PORT_0]<<1) + cpu.ctrl[PORT_0+1]];
+	cpu.port1 = cpu.regs[(cpu.ctrl[PORT_1]<<1) + cpu.ctrl[PORT_1+1]];
+	
+	// Update Mux C11
+	cpu.c11_out = (cpu.ctrl[ALU_SOURCE_MUX] ? imm : cpu.port1);
+	
+	// Start by passing values through the adder
+	// We do this regardless to accurately emulate the overflow flag
+	let alu_a = cpu.port0;
+	let alu_b = cpu.c11_out;
+	let cin = 0;
+	
+	// Twos complement
+	if (cpu.ctrl[ALU_SELECT + 1]) {
+		alu_b = (~alu_b) & 0xFF;
+		cin = 1;
+	}
+	
+	let alu_s = alu_a + alu_b + cin;
+	
+	// Carry?
+	let alu_carry = (alu_s > 255 ? 1 : 0);
+	
+	// Get it back into range
+	alu_s &= 0xFF;
+	
+	// Overflow?
+	cpu.flags[FLAG_O] = ((((~(alu_a ^ alu_b)) & (alu_a ^ alu_s)) & 0x80) ? 1 : 0);
+	
+	// Update ALU
+	if (cpu.ctrl[ALU_SELECT]) {
+		cpu.alu_result = alu_s;
+		cpu.flags[FLAG_C] = alu_carry;
+	} else {
+		// Bit Operations
+		if (cpu.ctrl[ALU_SELECT + 1]) {
+			// Shift Right
+			cpu.flags[FLAG_C] = ((alu_a & 0x01) ? 1 : 0);
+			cpu.alu_result = (alu_a >> 1) & 0xFF;
+		} else {
+			// Shift Left
+			cpu.flags[FLAG_C] = ((alu_a & 0x80) ? 1 : 0);
+			cpu.alu_result = (alu_a << 1) & 0xFF;
+		}
+	}
+	cpu.flags[FLAG_Z] = (cpu.alu_result ? 0 : 1);
+	cpu.flags[FLAG_N] = (cpu.alu_result > 127 ? 1 : 0);
+	
+	// Update Mux C15
+	cpu.c15_out = (cpu.ctrl[ALU_RESULT_MUX] ? imm : cpu.alu_result);
+	cpu.select = cpu.c15_out;
+	
+	// Update Mux C16
+	cpu.c16_out = (cpu.ctrl[DMEM_INPUT_MUX] ?  cpu.switches & 0xFF : cpu.port1);
+	
+	// Update Mux C18
+	// This isn't the actual value, it will need to be refetched during the latch
+	if (cpu.ctrl[REG_WRITEBACK_MUX] && cpu.c15_out >= 128) {
+		cpu.c18_out = 0;
+	} else {
+		cpu.c18_out = (cpu.ctrl[REG_WRITEBACK_MUX] ? dataFetch(cpu, cpu.c15_out) : cpu.c15_out);
+	}
+	
+	// Update next PC
+	if (cpu.ctrl[PROGRAM_COUNTER_MUX]) {
+		cpu.pc_next = (cpu.pc + 1 + cpu.c18_out) & 0xFF;
+	} else {
+		cpu.pc_next = (cpu.pc + 1) & 0xFF;
+	}
+	
+	// Update Code WRITEBACK_ENABLE
+	if (cpu.ctrl[WRITEBACK_ENABLE]) {
+		cpu.write_out = (cpu.write_cache << 8) + cpu.port1; 
+	} else {
+		cpu.write_out = cpu.switches;
+	}
+}
+
+// Used for disassembly
 const REGS = ["A", "B", "C", "D"];
 
 /*
@@ -107,10 +196,10 @@ function decode(out, isr, flags) {
     let opB = (operand & 0x0C) >> 2;
 	
 	// Get flags
-    let flagZ = flags[0];
-    let flagN = flags[1];
-    let flagO = flags[2];
-    let flagC = flags[3];
+    let flagZ = flags[FLAG_Z];
+    let flagN = flags[FLAG_N];
+    let flagO = flags[FLAG_O];
+    let flagC = flags[FLAG_C];
 	
 	let mnem = "?";
 	
@@ -412,12 +501,29 @@ function setPort(out, port, val) {
  * Store a byte into data memory
  */
 function dataStore(cpu, addr, val) {
+	val = val & 0xFF;
 	
+	// Does it go into a segment?
+	if (addr < 8) {
+		cpu.segments[addr] = val;
+	}
+	
+	// Does it go into storage?
+	if (addr < 128) {
+		cpu.dmem[128 * cpu.data_bank + addr];
+	} else {
+		// I/O Space
+	}
 }
 
 /*
  * Fetch a byte from data memory
  */
 function dataFetch(cpu, addr) {
-	return cpu.dmem[128 * cpu.data_bank];
+	if (addr < 128) {
+		return cpu.dmem[128 * cpu.data_bank + addr];
+	} else {
+		// I/O Space
+		return 0xFF;
+	}
 }
