@@ -7,6 +7,7 @@
 cpu_state = {
 	imem: [],				// Instruction Memory
 	dmem: [],				// Data Memory
+	bios: [],				// BIOS Memory
 	
 	isr: 0,					// Current Instruction
 	isr_mnem: "NOOP",		// Instruction Mnemonic
@@ -32,6 +33,7 @@ cpu_state = {
 	
 	alu_result: 0,			// ALU Result
 	flags: [0, 0, 0, 0],	// ALU Flags
+	tflags: [0, 0, 0, 0],	// ALU Transient Flags
 	
 	segments: [],			// 7-Segment Display Contents
 	game: false,			// Game Mode
@@ -41,7 +43,8 @@ cpu_state = {
 };
  
 // CPU memory init
-cpu_state.imem = new Array(128 + 128 * 256).fill(0); // Allocation space for bios and user banks
+cpu_state.imem = new Array(128 * 256).fill(0); // Allocation space for user banks
+cpu_state.bios = new Array(128).fill(0); // Empty BIOS
 cpu_state.dmem = new Array(128 * 256).fill(0); // Same thing for data memory banks
 cpu_state.ctrl = new Array(24).fill(0); // Init control lines
 cpu_state.segments = new Array(8).fill(0); // Init 7-segment displays
@@ -72,6 +75,54 @@ const FLAG_Z = 0;
 const FLAG_N = 1;
 const FLAG_O = 2;
 const FLAG_C = 3;
+
+
+/*
+ * Takes the currently propagated instruction and updates all registers
+ * Data memory will also be polled here
+ * 
+ * Final part of instruction execution
+ */
+function latch(cpu) {
+	// Update C18 output to include a data fetch
+	cpu.c18_out = (cpu.ctrl[REG_WRITEBACK_MUX] ? dataFetch(cpu, cpu.c15_out) : cpu.c15_out);
+	
+	// Write into instruction memory
+	if (cpu.ctrl[IMEM_WRITE_ENABLE] && cpu.pc < 0x80) {
+		isrStore(cpu, cpu.select, cpu.write_out);
+	}
+	
+	// Update next PC (fr this time)
+	if (cpu.ctrl[PROGRAM_COUNTER_MUX]) {
+		cpu.pc_next = (cpu.pc + 1 + cpu.c18_out) & 0xFF;
+	} else {
+		cpu.pc_next = (cpu.pc + 1) & 0xFF;
+	}
+	cpu.pc = cpu.pc_next;
+	
+	// Update writeback module
+	if (cpu.ctrl[IMEM_BANK]) {
+		cpu.write_cache = cpu.port1;
+	}
+	
+	// Update ALU flags
+	if (cpu.ctrl[FLAGS_WRITE_ENABLE]) {
+		cpu.flags[0] = cpu.tflags[0];
+		cpu.flags[1] = cpu.tflags[1];
+		cpu.flags[2] = cpu.tflags[2];
+		cpu.flags[3] = cpu.tflags[3];
+	}
+	
+	// Update registers
+	if (cpu.ctrl[REGISTERS_WRITE_ENABLE]) {
+		cpu.regs[(cpu.ctrl[WRITE_PORT]<<1) + cpu.ctrl[WRITE_PORT+1]] = cpu.c18_out;
+	}
+	
+	// Update data memory
+	if (cpu.ctrl[DMEM_WRITE_ENABLE]) {
+		dataStore(cpu, cpu.c15_out, cpu.c16_out);
+	}
+}
 
 /*
  * Propagates a new instruction into the processor
@@ -118,26 +169,26 @@ function propagate(cpu, isr) {
 	alu_s &= 0xFF;
 	
 	// Overflow?
-	cpu.flags[FLAG_O] = ((((~(alu_a ^ alu_b)) & (alu_a ^ alu_s)) & 0x80) ? 1 : 0);
+	cpu.tflags[FLAG_O] = ((((~(alu_a ^ alu_b)) & (alu_a ^ alu_s)) & 0x80) ? 1 : 0);
 	
 	// Update ALU
 	if (cpu.ctrl[ALU_SELECT]) {
 		cpu.alu_result = alu_s;
-		cpu.flags[FLAG_C] = alu_carry;
+		cpu.tflags[FLAG_C] = alu_carry;
 	} else {
 		// Bit Operations
 		if (cpu.ctrl[ALU_SELECT + 1]) {
 			// Shift Right
-			cpu.flags[FLAG_C] = ((alu_a & 0x01) ? 1 : 0);
+			cpu.tflags[FLAG_C] = ((alu_a & 0x01) ? 1 : 0);
 			cpu.alu_result = (alu_a >> 1) & 0xFF;
 		} else {
 			// Shift Left
-			cpu.flags[FLAG_C] = ((alu_a & 0x80) ? 1 : 0);
+			cpu.tflags[FLAG_C] = ((alu_a & 0x80) ? 1 : 0);
 			cpu.alu_result = (alu_a << 1) & 0xFF;
 		}
 	}
-	cpu.flags[FLAG_Z] = (cpu.alu_result ? 0 : 1);
-	cpu.flags[FLAG_N] = (cpu.alu_result > 127 ? 1 : 0);
+	cpu.tflags[FLAG_Z] = (cpu.alu_result ? 0 : 1);
+	cpu.tflags[FLAG_N] = (cpu.alu_result > 127 ? 1 : 0);
 	
 	// Update Mux C15
 	cpu.c15_out = (cpu.ctrl[ALU_RESULT_MUX] ? imm : cpu.alu_result);
@@ -148,11 +199,8 @@ function propagate(cpu, isr) {
 	
 	// Update Mux C18
 	// This isn't the actual value, it will need to be refetched during the latch
-	if (cpu.ctrl[REG_WRITEBACK_MUX] && cpu.c15_out >= 128) {
-		cpu.c18_out = 0;
-	} else {
-		cpu.c18_out = (cpu.ctrl[REG_WRITEBACK_MUX] ? dataFetch(cpu, cpu.c15_out) : cpu.c15_out);
-	}
+	cpu.c18_out = (cpu.ctrl[REG_WRITEBACK_MUX] ? 0 : cpu.c15_out);
+
 	
 	// Update next PC
 	if (cpu.ctrl[PROGRAM_COUNTER_MUX]) {
@@ -498,6 +546,24 @@ function setPort(out, port, val) {
 }
 
 /*
+ * Store a word into instruction memory
+ */
+ function isrStore(cpu, addr, val) {
+	 cpu.imem[128 * cpu.isr_bank + (addr & 0x7F)] = value;
+ }
+ 
+ /*
+  * Fetch a word from instruction memory
+  */
+function isrFetch(cpu, addr) {
+	if (addr < 128) {
+		return cpu.bios[addr];
+	} else {
+		return cpu.imem[128 * cpu.isr_bank + (addr & 0x7F)];
+	}
+}
+
+/*
  * Store a byte into data memory
  */
 function dataStore(cpu, addr, val) {
@@ -510,7 +576,7 @@ function dataStore(cpu, addr, val) {
 	
 	// Does it go into storage?
 	if (addr < 128) {
-		cpu.dmem[128 * cpu.data_bank + addr];
+		cpu.dmem[128 * cpu.data_bank + addr] = val;
 	} else {
 		// I/O Space
 	}
