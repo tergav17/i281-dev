@@ -4,26 +4,6 @@
  * Handles the user-facing functions of the simulator
  */
 
-// Lookup table to draw 7-segment display numbers
-const bin_to_hex = [
-	0b00111111,	// 0
-	0b00000110,	// 1
-	0b01011011,	// 2
-	0b01001111,	// 3
-	0b01100110,	// 4
-	0b01101101,	// 5
-	0b01111101,	// 6
-	0b00000111,	// 7
-	0b01111111,	// 8
-	0b01101111,	// 9
-	0b01110111,	// A
-	0b01111100,	// b
-	0b00111001,	// C
-	0b01011110,	// d
-	0b01111001,	// E
-	0b01110001	// F
-];
-
 const diag_flow = document.getElementById("diagflow");
 
 // Attempt to get the context for the diag flow
@@ -46,9 +26,63 @@ var scaleY = 1.0;
 // Do initial drawing of canvas
 updateFlow(true);
 
+// Simulation control buttons
+function simRunHalt() {
+	
+}
+
+function simToggleGame() {
+	
+}
+
+/*
+ * Set PC to 0 and re-propagate
+ */
+function simReset() {
+	cpu_state.pc = 0;
+	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
+	
+	updateFlow(false);
+}
+
+/*
+ * Execute a single cycle
+ */
+function simStep() {
+	latch(cpu_state);
+	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
+	updateFlow(false);
+}
+
+/*
+ * Manually change the program counter
+ */
+function simExamine() {
+	propagate(cpu_state, 0xE000 + (cpu_state.switches & 0xFF));
+	latch(cpu_state);
+	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
+	updateFlow(false);
+}
+
+/*
+ * Load values into isr or data memory
+ */
+function simDeposit() {
+	propagate(cpu_state, 0x1000 + (cpu_state.pc & 0xFF));
+	latch(cpu_state);
+	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
+	updateFlow(false);
+}
+
+function simToggleIsrData() {
+	
+}
+
 // event farm!!!! :)
 
 function mouseDown(e) {
+	e.preventDefault();
+	
 	canvasRect = diag_flow.getBoundingClientRect()
 	let mx = (e.clientX - canvasRect.left) / scaleX;
 	let my = (e.clientY - canvasRect.top) / scaleY;
@@ -67,12 +101,12 @@ function mouseDown(e) {
 		}
 	}
 	
-	propagate(cpu_state, cpu_state.switches);
 	updateFlow(false);
 	
 }
 
 function keyUpListener(e) {
+	
 	let k = e.key.toLowerCase();
 	
 	if (k == "a") {
@@ -376,7 +410,7 @@ function drawFlow(cpu) {
 	flow_ctx.roundRect(x, y, 200, 40, 5);
 	flow_ctx.stroke();
 	for (let i = 0; i < 8; i++) {
-		drawDisplay(x + 5 + (25 * i), y + 5, cpu.segments[i], cpu.game);
+		drawDisplay(x + 5 + (25 * i), y + 5, cpu.segments[i]);
 	}
 }
 
@@ -397,15 +431,10 @@ function drawSwitch(x, y, position) {
 /*
  * Helper function to draw 7-segment displays
  */
-function drawDisplay(x, y, contents, game) {
+function drawDisplay(x, y, contents,) {
 	flow_ctx.beginPath();
 	flow_ctx.strokeStyle = "red"
 	flow_ctx.lineWidth = 2.5;
-	
-	// Convert content if in game mode
-	if (!game) {
-		contents = bin_to_hex[contents & 0x0F];
-	}
 	
 	// Top Mid
 	if (contents & 0x01) {

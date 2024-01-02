@@ -47,7 +47,32 @@ cpu_state.imem = new Array(128 * 256).fill(0); // Allocation space for user bank
 cpu_state.bios = new Array(128).fill(0); // Empty BIOS
 cpu_state.dmem = new Array(128 * 256).fill(0); // Same thing for data memory banks
 cpu_state.ctrl = new Array(24).fill(0); // Init control lines
-cpu_state.segments = new Array(8).fill(0); // Init 7-segment displays
+cpu_state.segments = new Array(8).fill(0xFF); // Init 7-segment displays
+
+// Lookup table to draw 7-segment display numbers
+const BIN_TO_HEX = [
+	0b00111111,	// 0
+	0b00000110,	// 1
+	0b01011011,	// 2
+	0b01001111,	// 3
+	0b01100110,	// 4
+	0b01101101,	// 5
+	0b01111101,	// 6
+	0b00000111,	// 7
+	0b01111111,	// 8
+	0b01101111,	// 9
+	0b01110111,	// A
+	0b01111100,	// b
+	0b00111001,	// C
+	0b01011110,	// d
+	0b01111001,	// E
+	0b01110001	// F
+];
+
+function binToHex(bin) {
+	return BIN_TO_HEX[bin];
+}
+
 
 // Control line values
 const IMEM_BANK = 0
@@ -571,7 +596,11 @@ function dataStore(cpu, addr, val) {
 	
 	// Does it go into a segment?
 	if (addr < 8) {
-		cpu.segments[addr] = val;
+		if (cpu.game) {
+			cpu.segments[addr] = val;
+		} else {
+			cpu.segments[addr] = binToHex(val & 0xF);
+		}
 	}
 	
 	// Does it go into storage?
@@ -593,3 +622,6 @@ function dataFetch(cpu, addr) {
 		return 0xFF;
 	}
 }
+
+// Initalize CPU
+propagate(cpu_state, cpu_state.bios[0]);

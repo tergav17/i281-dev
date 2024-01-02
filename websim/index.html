@@ -13,6 +13,11 @@
 				font: normal 17px Courier, Verdana, Arial, sans-serif;
 			}
 			
+			button {
+				text-align: center;
+				font: normal 17px Courier, Verdana, Arial, sans-serif;
+			}
+			
 			.termtext {
 				resize: none;
 				box-sizing: border-box
@@ -26,12 +31,35 @@
 	
 	<body>
 	<h1>i281/e Development Simulator</h1>
+	<canvas id="diagflow" width="640" height="360"></canvas>
 	
 	<table>
 	<tr>
 		<td>
-			<canvas id="diagflow" width="640" height="360"></canvas>
+			<button type="button" onclick="simRunHalt()">RUN</button>
 		</td>
+		<td>
+			<button type="button" onclick="simToggleGame()">GAME</button>
+		</td>
+		<td>
+			<button type="button" onclick="simReset()">RESET</button>
+		</td>
+		<td>
+			<h1>&nbsp; &nbsp;</h1>
+		</td>
+		<td>
+			<button type="button" onclick="simStep()">STEP</button>
+		</td>
+		<td>
+			<button type="button" onclick="simExamine()">EXAMINE</button>
+		</td>
+		<td>
+			<button type="button" onclick="simDeposit()">DEPOSIT</button>
+		</td>
+		<td>
+			<button type="button" onclick="simToggleIsrData()">[ISR]/DATA</button>
+		</td>
+		
 	</tr>
 	</table>
 	
