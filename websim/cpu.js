@@ -108,12 +108,12 @@ const FLAG_C = 3;
  * 
  * Final part of instruction execution
  */
-function latch(cpu) {
+function latch(cpu, extern) {
 	// Update C18 output to include a data fetch
 	cpu.c18_out = (cpu.ctrl[REG_WRITEBACK_MUX] ? dataFetch(cpu, cpu.c15_out) : cpu.c15_out);
 	
 	// Write into instruction memory
-	if (cpu.ctrl[IMEM_WRITE_ENABLE] && cpu.pc < 0x80) {
+	if (cpu.ctrl[IMEM_WRITE_ENABLE] && (cpu.pc < 0x80 || extern)) {
 		isrStore(cpu, cpu.select, cpu.write_out);
 	}
 	
@@ -574,7 +574,7 @@ function setPort(out, port, val) {
  * Store a word into instruction memory
  */
  function isrStore(cpu, addr, val) {
-	 cpu.imem[128 * cpu.isr_bank + (addr & 0x7F)] = value;
+	 cpu.imem[128 * cpu.isr_bank + (addr & 0x7F)] = val;
  }
  
  /*

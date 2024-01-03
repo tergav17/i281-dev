@@ -5,6 +5,9 @@
  */
 
 const diag_flow = document.getElementById("diagflow");
+const button_run = document.getElementById("button-run");
+const button_game = document.getElementById("button-game");
+const button_mem = document.getElementById("button-mem");
 
 // Attempt to get the context for the diag flow
 if (diag_flow.getContext) {
@@ -27,12 +30,25 @@ var scaleY = 1.0;
 updateFlow(true);
 
 // Simulation control buttons
+var runClock = 0;
 function simRunHalt() {
+	runClock = (!runClock ? 1 : 0);
 	
+	if (runClock) {
+		button_run.innerHTML = "HALT";
+	} else {
+		button_run.innerHTML = "RUN";
+	}
 }
 
 function simToggleGame() {
+	cpu_state.game = (!cpu_state.game ? 1 : 0);
 	
+	if (cpu_state.game) {
+		button_game.innerHTML = "[GAME]";
+	} else {
+		button_game.innerHTML = "GAME";
+	}
 }
 
 /*
@@ -49,7 +65,7 @@ function simReset() {
  * Execute a single cycle
  */
 function simStep() {
-	latch(cpu_state);
+	latch(cpu_state, false);
 	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
 	updateFlow(false);
 }
@@ -59,7 +75,7 @@ function simStep() {
  */
 function simExamine() {
 	propagate(cpu_state, 0xE000 + (cpu_state.switches & 0xFF));
-	latch(cpu_state);
+	latch(cpu_state, true);
 	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
 	updateFlow(false);
 }
@@ -67,15 +83,23 @@ function simExamine() {
 /*
  * Load values into isr or data memory
  */
+var depDestination = 0;
 function simDeposit() {
-	propagate(cpu_state, 0x1000 + (cpu_state.pc & 0xFF));
-	latch(cpu_state);
+	propagate(cpu_state, 0x1000 + (cpu_state.pc & 0xFF) + (depDestination << 9));
+	console.log(cpu_state.isr_mnem);
+	latch(cpu_state, true);
 	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
 	updateFlow(false);
 }
 
 function simToggleIsrData() {
+	depDestination = (!depDestination ? 1 : 0);
 	
+	if (depDestination) {
+		button_mem.innerHTML = "ISR/[DATA]";
+	} else {
+		button_mem.innerHTML = "[ISR]/DATA";
+	}
 }
 
 // event farm!!!! :)
@@ -101,6 +125,7 @@ function mouseDown(e) {
 		}
 	}
 	
+	propagate(cpu_state, cpu_state.isr);
 	updateFlow(false);
 	
 }
