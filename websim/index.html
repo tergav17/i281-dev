@@ -5,6 +5,11 @@
 	<head>
 	<title>i281/e Development Simulator</title>
 	<style>
+	
+			@font-face {
+				font-family: "consoleFont";
+				src: url("Web437_IBM_BIOS-2y.woff");
+			}
 			canvas {
 				border: none;
 			}
@@ -18,13 +23,20 @@
 				font: normal 17px Courier, Verdana, Arial, sans-serif;
 			}
 			
-			.termtext {
+			textarea {
+				caret-shape: block;
+				font-family: "consoleFont";
+				font-size: 16px;
 				resize: none;
 				box-sizing: border-box
 			}
 			
 			td {
 				vertical-align: top;
+			}
+			
+			.hidden {
+				display: none;
 			}
 	</style>
 	</head>
@@ -33,6 +45,7 @@
 	<h1>i281/e Development Simulator</h1>
 	<canvas id="diagflow" width="640" height="360"></canvas>
 	
+	<!-- Control Bar --->
 	<table>
 	<tr>
 		<td>
@@ -45,7 +58,7 @@
 			<button type="button" onclick="simReset()">RESET</button>
 		</td>
 		<td>
-			<h1>&nbsp; &nbsp;</h1>
+			&nbsp; &nbsp; &nbsp; &nbsp;
 		</td>
 		<td>
 			<button type="button" onclick="simStep()">STEP</button>
@@ -67,9 +80,54 @@
 	</tr>
 	</table>
 	
+	<!-- Memory Control --->
+	<table>
+	<tr>
+		<td>
+			<textarea id="terminal" rows="14" cols="50">TERMINAL</textarea>
+		</td>
+		<td>
+			<textarea id="readout" rows="14" cols="50">READOUT</textarea>
+		</td>
+	</tr>
+	<tr>
+		<!-- Sub Tables... i am bad at html :3 --->
+		<td>
+		<table>
+			<tr>
+				<td>
+					<button type="button">OPEN ASM</button>
+				</td>
+				<td>
+					<button type="button" id="button-load-sav">LOAD .SAV</button>
+				</td>
+				<td>
+					<button type="button">MOUNT .IMG</button>
+				</td>
+			</tr>
+		</table>
+		</td>
+		<td>
+		<table>
+			<tr>
+				<td>
+					<button type="button">DUMP ISR</button>
+				</td>
+				<td>
+					<button type="button">DUMP DATA</button>
+				</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+	</table>
 	
+	<!-- file input endpoints -->
+	<input type="file" class="hidden" id="upload-sav" accept=".sav"></input>
+	
+	<!-- scriptville -->
 	<script src="cpu.js"></script>
 	<script src="simulator.js"></script>
-	</body>
+	<script src="io.js"></script>
 	</body>
 </html>

@@ -169,7 +169,7 @@ function clockSlide() {
 		text_clock.innerHTML = "CLK: " +  setting + "00 kHz";
 		clockCyclesPerTick = 2000.0 * setting;
 	} else {
-		text_clock.innerHTML = "CLK: 1.0 MHz";
+		text_clock.innerHTML = "CLK: 1 MHz";
 		clockCyclesPerTick = 20000.0 * setting;
 	}
 		

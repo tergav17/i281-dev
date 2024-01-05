@@ -24,7 +24,7 @@ cpu_state = {
 	reg_next: 0,			// Register Input Value
 	regs: [0, 0, 0, 0],		// Registers
 	port0: 0,				// Register Port 0
-	port1: 0,				// Regiter Port 1
+	port1: 0,				// Register Port 1
 	
 	c11_out: 0,				// Mux C11 Output
 	c15_out: 0,				// Mux C15 Output
