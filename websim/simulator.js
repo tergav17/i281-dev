@@ -8,6 +8,8 @@ const diag_flow = document.getElementById("diagflow");
 const button_run = document.getElementById("button-run");
 const button_game = document.getElementById("button-game");
 const button_mem = document.getElementById("button-mem");
+const slider_clock = document.getElementById("slider-clock");
+const text_clock = document.getElementById("text-clock");
 
 // Attempt to get the context for the diag flow
 if (diag_flow.getContext) {
@@ -21,6 +23,7 @@ window.addEventListener('keyup',keyUpListener,false);
 window.addEventListener('keydown',keyDownListener,false); 
 window.addEventListener('resize', resizeCanvas, false);
 diag_flow.addEventListener('mousedown', mouseDown);
+slider_clock.oninput = clockSlide;
 
 // Keep track of scaling for mouse events
 var scaleX = 1.0;
@@ -103,6 +106,40 @@ function simToggleIsrData() {
 }
 
 // event farm!!!! :)
+
+
+function clockSlide() {
+	// Update the speed of the clock
+	let setting = Math.ceil(this.value);
+	
+	if (setting < 10) {
+		text_clock.innerHTML = "CLK: 0." + setting + " Hz";
+	} else if (setting < 19) {
+		setting -= 9;
+		text_clock.innerHTML = "CLK: " +  setting + " Hz";
+	} else if (setting < 28) {
+		setting -= 18;
+		text_clock.innerHTML = "CLK: " +  setting + "0 Hz";
+	} else if (setting < 37) {
+		setting -= 27;
+		text_clock.innerHTML = "CLK: " +  setting + "00 Hz";
+	} else if (setting < 46) {
+		setting -= 36;
+		text_clock.innerHTML = "CLK: " +  setting + " kHz";
+	} else if (setting < 55) {
+		setting -= 45;
+		text_clock.innerHTML = "CLK: " +  setting + "0 kHz";
+	} else if (setting < 64) {
+		setting -= 54;
+		text_clock.innerHTML = "CLK: " +  setting + "00 kHz";
+	} else {
+		text_clock.innerHTML = "CLK: 1.0 MHz";
+	}
+		
+	
+	
+}
+
 
 function mouseDown(e) {
 	e.preventDefault();
