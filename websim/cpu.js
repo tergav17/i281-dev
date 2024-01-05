@@ -22,7 +22,7 @@ cpu_state = {
 	data_bank: 0,			// Data Bank
 	
 	reg_next: 0,			// Register Input Value
-	regs: [0, 1, 2, 3],		// Registers
+	regs: [0, 0, 0, 0],		// Registers
 	port0: 0,				// Register Port 0
 	port1: 0,				// Regiter Port 1
 	

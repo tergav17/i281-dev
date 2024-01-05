@@ -25,6 +25,9 @@ window.addEventListener('resize', resizeCanvas, false);
 diag_flow.addEventListener('mousedown', mouseDown);
 slider_clock.oninput = clockSlide;
 
+// Set up interval that drives the CPU execution
+setInterval(updateClock, 20);
+
 // Keep track of scaling for mouse events
 var scaleX = 1.0;
 var scaleY = 1.0;
@@ -89,7 +92,6 @@ function simExamine() {
 var depDestination = 0;
 function simDeposit() {
 	propagate(cpu_state, 0x1000 + (cpu_state.pc & 0xFF) + (depDestination << 9));
-	console.log(cpu_state.isr_mnem);
 	latch(cpu_state, true);
 	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
 	updateFlow(false);
@@ -106,34 +108,69 @@ function simToggleIsrData() {
 }
 
 // event farm!!!! :)
-
+var clockSlack = 0.0;
+var clockCyclesPerTick = 0.04;
+function updateClock() {
+	if (runClock) {
+		// Add the desired cycles per tick to the slack
+		clockSlack += clockCyclesPerTick;
+		
+		// See if we are going to actually do anything this tick
+		let hasUpdated = false;
+		while (clockSlack >= 1.0) {
+			// Do a CPU cycle
+			latch(cpu_state, true);
+			propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
+			
+			clockSlack -= 1.0;
+			hasUpdated = true;
+		}
+		
+		// Redraw the screen if we have updated
+		if (hasUpdated) {
+			updateFlow(false);
+		}
+	} else {
+		clockSlack = 0.0;
+	}
+}
 
 function clockSlide() {
 	// Update the speed of the clock
 	let setting = Math.ceil(this.value);
 	
+	// There is probably a cleaner way of doing this, but I am lazy
+	// and I don't feel like doing math
 	if (setting < 10) {
 		text_clock.innerHTML = "CLK: 0." + setting + " Hz";
+		clockCyclesPerTick = 0.002 * setting;
 	} else if (setting < 19) {
 		setting -= 9;
 		text_clock.innerHTML = "CLK: " +  setting + " Hz";
+		clockCyclesPerTick = 0.02 * setting;
 	} else if (setting < 28) {
 		setting -= 18;
 		text_clock.innerHTML = "CLK: " +  setting + "0 Hz";
+		clockCyclesPerTick = 0.2 * setting;
 	} else if (setting < 37) {
 		setting -= 27;
 		text_clock.innerHTML = "CLK: " +  setting + "00 Hz";
+		clockCyclesPerTick = 2.0 * setting;
 	} else if (setting < 46) {
 		setting -= 36;
 		text_clock.innerHTML = "CLK: " +  setting + " kHz";
+		clockCyclesPerTick = 20.0 * setting;
 	} else if (setting < 55) {
 		setting -= 45;
 		text_clock.innerHTML = "CLK: " +  setting + "0 kHz";
+		clockCyclesPerTick = 200.0 * setting;
 	} else if (setting < 64) {
 		setting -= 54;
 		text_clock.innerHTML = "CLK: " +  setting + "00 kHz";
+		clockCyclesPerTick = 2000.0 * setting;
 	} else {
 		text_clock.innerHTML = "CLK: 1.0 MHz";
+		clockCyclesPerTick = 20000.0 * setting;
 	}
 		
 	
