@@ -16,6 +16,7 @@
 #define STOREF 9 // storef style instruction
 #define SINGLE 10 // single register instruction
 #define BRANCH 11 // branch instruction
+#define PSEUDO 12 // "fake" instructions R = (R, R)
 
 /* structs */
 struct instruct {
@@ -65,7 +66,7 @@ struct instruct isr_table[] = {
 	{ LOADF, "loadf", 0x90, 0 },
 	{ STORE, "store", 0xA0, 0 },
 	{ STOREF, "storef", 0xB0, 0 },
-	{ SINGLE, "shiftl", 0xC0, 0 },
+	{ PSEUDO, "shiftl", 0x40, 0 },
 	{ SINGLE, "shiftr", 0xC1, 0 },
 	{ PNTO, "bootcf", 0xC2, 0 },
 	{ PNTO, "bootdf", 0xC3, 0 },

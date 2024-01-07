@@ -882,9 +882,9 @@ uint8_t asm_evaluate(uint16_t *result, char itok)
 			if (tok == '@') {
 				// current asm pointer
 				num = asm_address;
-			} else if (asm_num(token_buf[0]) && (token_buf[1] == 'f' || token_buf[1] == 'b') && token_buf[2] == 0) {
+			} else if (asm_num(token_buf[0]) && (token_buf[1] == 'f' || token_buf[1] == 'b' || token_buf[1] == 'F' || token_buf[1] == 'B') && token_buf[2] == 0) {
 				// nope, actually a local label
-				type = asm_local_fetch(&num, loc_cnt, asm_char_parse(token_buf[0]), token_buf[1] == 'f');
+				type = asm_local_fetch(&num, loc_cnt, asm_char_parse(token_buf[0]), token_buf[1] == 'f' || token_buf[1] == 'F');
 			} else {
 				// its a numeric (for realz)
 				num = asm_num_parse(token_buf);
@@ -1634,6 +1634,18 @@ char asm_doisr(struct instruct *isr) {
 		
 		// generate instruction
 		asm_emit_isr(isr->opcode, dst);
+	}
+	
+	// single register pseudo-operation
+	else if (isr-> type == PSEUDO) {
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// generate instruction
+		asm_emit_isr(isr->opcode + (dst<<2) + dst, 0x00);
 	}
 	
 	return 0;
