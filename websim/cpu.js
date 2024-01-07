@@ -494,13 +494,8 @@ function decode(out, isr, flags) {
 		return "CMP " + REGS[opB] + "," + REGS[opA];
 	}
 	
-	if (opcode == 0xE) { // JUMP
-	
-		// Set control path
-		out[PROGRAM_COUNTER_MUX] = 1;
-		out[ALU_RESULT_MUX] = 1;
-		
-		return "JUMP @+" + ((imm+1)&0xFF); 
+	if (opcode == 0xE) { // NOOP
+		return "NOOP";
 	}
 	
 	if (opcode == 0xF) { // BRANCH GROUP
@@ -510,54 +505,106 @@ function decode(out, isr, flags) {
     
         // Get sub-instruction
 		mnem = "? ";
-        if (operand == 0) { // BRE (BRZ)
-			mnem = "BRZ ";
-            if (flagZ == 1)
-                out[PROGRAM_COUNTER_MUX] = 1
-		}
-                
-        if (operand == 1) { // BRNE (BRNZ)
-			mnem = "BRNZ ";
-            if (flagZ == 0)
-                out[PROGRAM_COUNTER_MUX] = 1
-        }
-				
-        if (operand == 2) { // BRG
-			mnem = "BRG ";
-            if (flagZ == 0 && flagO == flagN)
-                out[PROGRAM_COUNTER_MUX] = 1
-        }
-			
-        if (operand == 3) { // BRGE
-			mnem = "BRGE ";
-            if (flagO == flagN)
-                out[PROGRAM_COUNTER_MUX] = 1
-		}
-                
-        if (operand == 4) { // BRC
+		
+		if (operand == 0x0) { // BRC (BRAE)
 			mnem = "BRC ";
             if (flagC == 1)
-                out[PROGRAM_COUNTER_MUX] = 1
+                out[PROGRAM_COUNTER_MUX] = 1;
 		}
-                
-        if (operand == 5) { // BRNC
+		
+		else if (operand == 0x1) { // BRNC (BRB)
 			mnem = "BRNC ";
             if (flagC == 0)
-                out[PROGRAM_COUNTER_MUX] = 1
+                out[PROGRAM_COUNTER_MUX] = 1;
 		}
-               
-        if (operand == 6) { // BRN
+		
+		else if (operand == 0x2) { // BRO
+			mnem = "BRO ";
+            if (flagO == 1)
+                out[PROGRAM_COUNTER_MUX] = 1;
+		}
+		
+		else if (operand == 0x3) { // BRNO
+			mnem = "BRNO ";
+            if (flagO == 0)
+                out[PROGRAM_COUNTER_MUX] = 1;
+		}
+		
+		else if (operand == 0x4) { // BRN
 			mnem = "BRN ";
             if (flagN == 1)
-                out[PROGRAM_COUNTER_MUX] = 1
+                out[PROGRAM_COUNTER_MUX] = 1;
+		}
+		
+		else if (operand == 0x5) { // BRNN (BRP)
+			mnem = "BRNN ";
+            if (flagN == 0)
+                out[PROGRAM_COUNTER_MUX] = 1;
+		}
+		
+        else if (operand == 0x6) { // BRE (BRZ)
+			mnem = "BRZ ";
+            if (flagZ == 1)
+                out[PROGRAM_COUNTER_MUX] = 1;
 		}
                 
-        if (operand == 7) { // BRP
-			mnem = "BRP ";
-            if (flagN == 0)
-                out[PROGRAM_COUNTER_MUX] = 1
+        else if (operand == 0x7) { // BRNE (BRNZ)
+			mnem = "BRNZ ";
+            if (flagZ == 0)
+                out[PROGRAM_COUNTER_MUX] = 1;
+        }
+		
+		else if (operand == 0x8) { // BRA
+			mnem = "BRA ";
+            if (flagZ == 0 && flagC == 1)
+                out[PROGRAM_COUNTER_MUX] = 1;
 		}
-    
+                
+        else if (operand == 0x9) { // BRBE
+			mnem = "BRBE ";
+            if (flagZ == 1 && flagC == 0)
+                out[PROGRAM_COUNTER_MUX] = 1;
+        }
+				
+        else if (operand == 0xA) { // BRG
+			mnem = "BRG ";
+            if (flagZ == 0 && flagO == flagN)
+                out[PROGRAM_COUNTER_MUX] = 1;
+        }
+			
+        else if (operand == 0xB) { // BRGE
+			mnem = "BRGE ";
+            if (flagO == flagN)
+                out[PROGRAM_COUNTER_MUX] = 1;
+		}
+		
+		else if (operand == 0xC) { // BRL
+			mnem = "BRL ";
+            if (flagO != flagN)
+                out[PROGRAM_COUNTER_MUX] = 1;
+        }
+			
+        else if (operand == 0xD) { // BRLE
+			mnem = "BRLE ";
+            if (flagZ == 1 || flagO != flagN)
+                out[PROGRAM_COUNTER_MUX] = 1;
+		}
+		
+		else if (operand == 0xE) {
+			// Jump register special!
+			out[ALU_RESULT_MUX] = 0;
+			out[ALU_SOURCE_MUX] = 1;
+			out[PROGRAM_COUNTER_MUX] = 1;
+			setPort(out, ALU_SELECT, ALU_OP_ADD);
+			return "JUMPR C";
+		}
+		
+		else if (operand == 0xF) {
+			mnem = "JUMP ";
+			out[PROGRAM_COUNTER_MUX] = 1;
+		}
+                
+ 
         return mnem + "@+" + ((imm+1)&0xFF);
 		
 	}

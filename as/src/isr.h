@@ -17,6 +17,7 @@
 #define SINGLE 10 // single register instruction
 #define BRANCH 11 // branch instruction
 #define PSEUDO 12 // "fake" instructions R = (R, R)
+#define JUMPR 13 // jump register instruction
 
 /* structs */
 struct instruct {
@@ -51,7 +52,7 @@ struct oprnd op_table[] = {
 /* instruction table */
 struct instruct isr_table[] = {
 
-	{ BASIC, "nop", 0x00, 0 },
+	{ BASIC, "noop", 0x20, 0 },
 	{ PNT, "inputc", 0x10, 0 },
 	{ PNT, "inputd", 0x12, 0 },
 	{ PNTO, "inputcf", 0x11, 0 },
@@ -68,22 +69,29 @@ struct instruct isr_table[] = {
 	{ STOREF, "storef", 0xB0, 0 },
 	{ PSEUDO, "shiftl", 0x40, 0 },
 	{ SINGLE, "shiftr", 0xC1, 0 },
-	{ PNTO, "bootcf", 0xC2, 0 },
-	{ PNTO, "bootdf", 0xC3, 0 },
 	{ ARITH, "cmp", 0xD0, 0 },
-	{ BRANCH, "jump", 0xE0, 0 },
-	{ BRANCH, "brz", 0xF0, 0 },
-	{ BRANCH, "bre", 0xF0, 0 },
-	{ BRANCH, "brnz", 0xF1, 0 },
-	{ BRANCH, "brne", 0xF1, 0 },
-	{ BRANCH, "brg", 0xF2, 0 },
-	{ BRANCH, "brge", 0xF3, 0 },
-	{ BRANCH, "brc", 0xF4, 0 },
-	{ BRANCH, "brnc", 0xF5, 0 },
-	{ BRANCH, "brn", 0xF6, 0 },
-	{ BRANCH, "brnn", 0xF7, 0 },
-	{ BRANCH, "bro", 0xF8, 0 },
-	{ BRANCH, "brno", 0xF9, 0 },
+	
+	{ BRANCH, "brc", 0xF0, 0 },
+	{ BRANCH, "brae", 0xF0, 0 },
+	{ BRANCH, "brnc", 0xF1, 0 },
+	{ BRANCH, "brb", 0xF1, 0 },
+	{ BRANCH, "bro", 0xF2, 0 },
+	{ BRANCH, "brno", 0xF3, 0 },
+	{ BRANCH, "brn", 0xF4, 0 },
+	{ BRANCH, "brnn", 0xF5, 0 },
+	{ BRANCH, "brp", 0xF5, 0 },
+	{ BRANCH, "brz", 0xF6, 0 },
+	{ BRANCH, "bre", 0xF6, 0 },
+	{ BRANCH, "brnz", 0xF7, 0 },
+	{ BRANCH, "brne", 0xF7, 0 },
+	{ BRANCH, "bra", 0xF8, 0 },
+	{ BRANCH, "brbe", 0xF9, 0 },
+	{ BRANCH, "brg", 0xFA, 0 },
+	{ BRANCH, "brge", 0xFB, 0 },
+	{ BRANCH, "brl", 0xFC, 0 },
+	{ BRANCH, "brle", 0xFD, 0 },
+	{ JUMPR, "jumpr", 0xFE, 0 },
+	{ BRANCH, "jump", 0xFF, 0 },
 	
 	{ END, "", 0x00, 0x00}
 };
