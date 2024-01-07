@@ -596,6 +596,7 @@ function decode(out, isr, flags) {
 			out[ALU_SOURCE_MUX] = 1;
 			out[PROGRAM_COUNTER_MUX] = 1;
 			setPort(out, ALU_SELECT, ALU_OP_ADD);
+			setPort(out, PORT_0, 0x2);
 			return "JUMPR C";
 		}
 		

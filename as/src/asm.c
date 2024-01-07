@@ -1435,7 +1435,7 @@ char asm_doisr(struct instruct *isr) {
 	} 
 	
 	// arithmetic operation
-	else if (isr-> type == ARITH) {
+	else if (isr->type == ARITH) {
 		dst = asm_arg();
 		
 		// we should get a simple register
@@ -1452,7 +1452,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// immediate operation
-	else if (isr-> type == IMM) {
+	else if (isr->type == IMM) {
 		dst = asm_arg();
 		
 		// we should get a simple register
@@ -1469,7 +1469,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// single pointer operation
-	else if (isr-> type == PNT) {
+	else if (isr->type == PNT) {
 		asm_expect('[');
 		
 		// evaluate expression
@@ -1482,7 +1482,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// single pointer + register operation
-	else if (isr-> type == PNTO) {
+	else if (isr->type == PNTO) {
 		asm_expect('[');
 		src = asm_arg();
 		
@@ -1506,7 +1506,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// load operation
-	else if (isr-> type == LOAD) {
+	else if (isr->type == LOAD) {
 		dst = asm_arg();
 		
 		// we should get a simple register
@@ -1527,7 +1527,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// load offset operation
-	else if (isr-> type == LOADF) {
+	else if (isr->type == LOADF) {
 		dst = asm_arg();
 		
 		// we should get a simple register
@@ -1559,7 +1559,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// store operation
-	else if (isr-> type == STORE) {
+	else if (isr->type == STORE) {
 		// arg should be a backet expression
 		asm_expect('[');
 		
@@ -1579,7 +1579,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// store offset operation
-	else if (isr-> type == STOREF) {
+	else if (isr->type == STOREF) {
 		// arg should be a backet expression
 		asm_expect('[');
 		dst = asm_arg();
@@ -1611,7 +1611,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// single register operation
-	else if (isr-> type == SINGLE) {
+	else if (isr->type == SINGLE) {
 		dst = asm_arg();
 		
 		// we should get a simple register
@@ -1637,7 +1637,7 @@ char asm_doisr(struct instruct *isr) {
 	}
 	
 	// single register pseudo-operation
-	else if (isr-> type == PSEUDO) {
+	else if (isr->type == PSEUDO) {
 		dst = asm_arg();
 		
 		// we should get a simple register
@@ -1646,6 +1646,18 @@ char asm_doisr(struct instruct *isr) {
 		
 		// generate instruction
 		asm_emit_isr(isr->opcode + (dst<<2) + dst, 0x00);
+	}
+	
+	// jump register operation
+	else if (isr->type == JUMPR) {
+		dst = asm_arg();
+		
+		// we should only assemble 'C' for now
+		if (dst != 2)
+			return 1;
+		
+		// generate instruction
+		asm_emit_isr(isr->opcode, (~asm_address) & 0xFF);
 	}
 	
 	return 0;
