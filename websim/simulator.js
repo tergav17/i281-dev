@@ -323,23 +323,27 @@ function drawFlow(cpu) {
 	// Draw Data Memory Section
 	x = 590; y = 200;
 	flow_ctx.strokeStyle = "black";
-	flow_ctx.roundRect(x, y, 100, 120, 5);
+	flow_ctx.roundRect(x, y, 100, 135, 5);
 	flow_ctx.stroke();
 	flow_ctx.fillText("Data Memory", x + 20, y + 10);
-	let a, b, c, d;
-	a = b = c = d = "";
+	let a, b, c, d, e, f;
+	a = b = c = d = e = f = "";
 	for (let i = 0; i < 4; i++) {
 		a += (dataFetch(cpu, i)).toString(16).padStart(2, '0').toUpperCase();
 		b += (dataFetch(cpu, i+4)).toString(16).padStart(2, '0').toUpperCase();
 		c += (dataFetch(cpu, i+8)).toString(16).padStart(2, '0').toUpperCase();
 		d += (dataFetch(cpu, i+12)).toString(16).padStart(2, '0').toUpperCase();
+		e += (dataFetch(cpu, i+16)).toString(16).padStart(2, '0').toUpperCase();
+		f += (dataFetch(cpu, i+20)).toString(16).padStart(2, '0').toUpperCase();
 	} 
-	flow_ctx.fillText("0x00: " + a, x + 5, y + 30);
-	flow_ctx.fillText("0x04: " + b, x + 5, y + 45);
-	flow_ctx.fillText("0x08: " + c, x + 5, y + 60);
-	flow_ctx.fillText("0x0C: " + d, x + 5, y + 75);
-	flow_ctx.fillText("WRITE: " + cpu.ctrl[17] + " [C17]", x + 5, y + 95);
-	flow_ctx.fillText("READ: " + cpu.ctrl[18] + " [C18]", x + 5, y + 110);
+	flow_ctx.fillText("0x00: " + a, x + 5, y + 32);
+	flow_ctx.fillText("0x04: " + b, x + 5, y + 44);
+	flow_ctx.fillText("0x08: " + c, x + 5, y + 56);
+	flow_ctx.fillText("0x0C: " + d, x + 5, y + 68);
+	flow_ctx.fillText("0x10: " + e, x + 5, y + 80);
+	flow_ctx.fillText("0x14: " + f, x + 5, y + 92);
+	flow_ctx.fillText("WRITE: " + cpu.ctrl[17] + " [C17]", x + 5, y + 110);
+	flow_ctx.fillText("READ: " + cpu.ctrl[18] + " [C18]", x + 5, y + 125);
 	
 	// Draw C11 Multiplexer
 	drawMux(cpu, 350, 170, 11);
@@ -453,7 +457,7 @@ function drawFlow(cpu) {
 	flow_ctx.lineTo(180, 357);
 	
 	// Data Memory -> 7-Segment Displays
-	flow_ctx.moveTo(640, 320);
+	flow_ctx.moveTo(640, 335);
 	flow_ctx.lineTo(640, 345);
 	
 	// Switches -> Code Writeback
