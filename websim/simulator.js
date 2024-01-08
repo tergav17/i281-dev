@@ -80,7 +80,7 @@ function simStep() {
  * Manually change the program counter
  */
 function simExamine() {
-	propagate(cpu_state, 0xE000 + (cpu_state.switches & 0xFF));
+	propagate(cpu_state, 0xFF00 + (cpu_state.switches & 0xFF));
 	latch(cpu_state, true);
 	propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
 	updateFlow(false);
