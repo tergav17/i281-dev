@@ -5,7 +5,46 @@
  */
  
 // SAV upload element 
+const dump_isr = document.getElementById("button-dump-isr");
+const dump_data = document.getElementById("button-dump-data");
 const upload_sav = document.getElementById("upload-sav");
+const terminal = document.getElementById("terminal");
+const readout = document.getElementById("readout");
+
+// Instruction dump function
+dump_isr.onclick = function() {
+	let content = "";
+	
+	for (let i = 0x80; i < 0x100; i++) {
+		content += "0x" + (i).toString(16).padStart(2, '0').toUpperCase() + " : ";
+		
+		let isr = cpu_state.imem[128 * cpu_state.isr_bank + (i & 0x7F)];
+		content += (isr).toString(16).padStart(4, '0').toUpperCase() + " "
+		content += decode([], isr, [0, 0, 0, 0]);
+		content += "\n"
+	}
+	
+	
+	readout.value = content;
+}
+
+// Data dump function
+dump_data.onclick = function() {
+	let content = "";
+	
+	for (let i = 0; i < 0x80; i += 8) {
+		content += "0x" + (i).toString(16).padStart(2, '0').toUpperCase() + " : ";
+		
+		for (let o = 0; o < 8; o++) {
+			content += (cpu_state.dmem[cpu_state.data_bank * 128 + i + o]).toString(16).padStart(2, '0').toUpperCase() + " ";
+		}
+		
+		content += "\n"
+	}
+	
+	
+	readout.value = content;
+}
 
 // Link "LOAD .SAV" button to file input
 document.getElementById("button-load-sav").onclick = function() {

@@ -28,7 +28,8 @@
 				font-family: "consoleFont";
 				font-size: 16px;
 				resize: none;
-				box-sizing: border-box
+				box-sizing: border-box;
+				overflow: auto;
 			}
 			
 			td {
@@ -84,10 +85,10 @@
 	<table>
 	<tr>
 		<td>
-			<textarea id="terminal" rows="14" cols="50">TERMINAL</textarea>
+			<textarea id="terminal" rows="14" cols="50" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">TERMINAL</textarea>
 		</td>
 		<td>
-			<textarea id="readout" rows="14" cols="50">READOUT</textarea>
+			<textarea id="readout" rows="14" cols="50" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly>READOUT</textarea>
 		</td>
 	</tr>
 	<tr>
@@ -111,10 +112,10 @@
 		<table>
 			<tr>
 				<td>
-					<button type="button">DUMP ISR</button>
+					<button type="button" id="button-dump-isr">DUMP ISR</button>
 				</td>
 				<td>
-					<button type="button">DUMP DATA</button>
+					<button type="button" id="button-dump-data">DUMP DATA</button>
 				</td>
 			</tr>
 		</table>
