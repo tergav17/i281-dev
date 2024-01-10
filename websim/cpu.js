@@ -44,10 +44,30 @@ cpu_state = {
  
 // CPU memory init
 cpu_state.imem = new Array(128 * 256).fill(0); // Allocation space for user banks
-cpu_state.bios = new Array(128).fill(0); // Empty BIOS
 cpu_state.dmem = new Array(128 * 256).fill(0); // Same thing for data memory banks
 cpu_state.ctrl = new Array(24).fill(0); // Init control lines
 cpu_state.segments = new Array(8).fill(0xFF); // Init 7-segment displays
+
+// Setup BIOS
+cpu_state.bios = [
+//	0x01	0x01	0x02	0x03	0x04	0x05	0x06	0x07
+	0x30FF, 0x3480, 0x1400, 0x1600, 0xFF7B, 0x0000, 0x0000, 0x0000, // 0x00
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x08
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x10
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x18
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x20
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x28
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x30
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x38
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x40
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x48
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x50
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x58
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x60
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x68
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, // 0x70
+	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000	// 0x78
+];
 
 // Lookup table to draw 7-segment display numbers
 const BIN_TO_HEX = [
@@ -146,6 +166,11 @@ function latch(cpu, extern) {
 	// Update data memory
 	if (cpu.ctrl[DMEM_WRITE_ENABLE]) {
 		dataStore(cpu, cpu.c15_out, cpu.c16_out);
+	}
+	
+	// Update write cache
+	if (cpu.ctrl[WRITEBACK_ENABLE]) {
+		cpu.write_cache = cpu.port1;
 	}
 }
 
@@ -281,13 +306,21 @@ function decode(out, isr, flags) {
 		return "NOOP";
 	}
 	
-	if (opcode == 0x1) { //  INPUTC / INPUTCF / INPUTD / INPUTDF
+	if (opcode == 0x1) { //  INPUTC / INPUTCF / INPUTD / INPUTDF / CACHE / WRITE
 
 		// Get sub-instruction
-		if (opA == 0) { // INPUTC
-			out[IMEM_WRITE_ENABLE] = 1;
-			out[ALU_RESULT_MUX] = 1;
-			mnem = "INPUTC [" + imm + "]";
+		if (opA == 0) { 
+			if (opB == 0) { // INPUTC 
+				out[IMEM_WRITE_ENABLE] = 1;
+				out[ALU_RESULT_MUX] = 1;
+				mnem = "INPUTC [" + imm + "]";
+			} else { // CACHE
+				out[WRITEBACK_ENABLE] = 1;
+				out[ALU_SOURCE_MUX] = 1;
+				setPort(out, ALU_SELECT, ALU_OP_ADD);
+				setPort(out, PORT_0, opB);
+				mnem = "CACHE A";
+			}
 		}
 			
 		if (opA == 1) { // INPUTCF
@@ -297,11 +330,20 @@ function decode(out, isr, flags) {
 			mnem = "INPUTCF [" + REGS[opB] + "+" + imm + "]";
 		}
 
-		if (opA == 2) { // INPUTD
-			out[ALU_RESULT_MUX] = 1;
-			out[DMEM_INPUT_MUX] = 1;
-			out[DMEM_WRITE_ENABLE] = 1;
-			mnem = "INPUTD [" + imm + "]";
+		if (opA == 2) { 
+			if (opB == 0) { // INPUTD
+				out[ALU_RESULT_MUX] = 1;
+				out[DMEM_INPUT_MUX] = 1;
+				out[DMEM_WRITE_ENABLE] = 1;
+				mnem = "INPUTD [" + imm + "]";
+			} else { // WRITE
+				out[IMEM_WRITE_ENABLE] = 1;
+				out[WRITEBACK_ENABLE] = 1;
+				out[ALU_SOURCE_MUX] = 1;
+				setPort(out, ALU_SELECT, ALU_OP_ADD);
+				setPort(out, PORT_0, opB);
+				mnem = "WRITE [" + REGS[opB] + "+" + imm + "],A";
+			}
 		}
 
 		if (opA == 3) { // INPUTDF
