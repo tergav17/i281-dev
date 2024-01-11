@@ -1,0 +1,151 @@
+00/00:          ; MERGE.S
+00/80:          ; MERGE SORT WITH RECURSIVE SUBROUTINES AND STACK
+00/80:          
+00/80:          ; DEFINES
+00/80:          ARRSIZE	=	8	; ARRAY SIZE
+00/80:          RETURN	=	0	; RETURN ADDRESS
+00/80:          LEFT	=	1	; LEFT INDEX
+00/80:          MIDDLE	=	2	; MIDDLE INDEX
+00/80:          RIGHT	=	3	; RIGHT INDEX
+00/80:          
+00/80:          
+00/80:          .TEXT
+00/80:          	; START HERE
+00/80:          START:
+00/80:          	; BEGIN BY SETTING "STACK POINTER" (REG D)
+00/80: 3C17     	LOADI	D,0X17
+00/82:          
+00/81:          	; LOAD ARGUMENTS FOR INITIAL MERGE SORT
+00/81:          	; A = LEFT INDEX
+00/81: 3000     	LOADI	A,ARRAY
+00/83:          	; B = RIGHT INDEX
+00/82: 3407     	LOADI	B,ARRAY+(ARRSIZE-1)
+00/84:          	
+00/83:          	; EXECUTE FUNCTION CALL
+00/83:          	; THE RETURN ADDRESS MUST BE PLACED ON THE STACK
+00/83:          	; '@' SYMBOL REPRESENTS THE CURRENT PC
+00/83: 3886     	LOADI	C,@+3
+00/84: BB00     	STOREF	[D+RETURN],C
+00/85: FF01     	JUMP	MERGE
+00/87:          	
+00/86:          	; AND HALT...
+00/86: FFFF     END:	JUMP	END
+00/88:          
+00/87:          	; MERGE FUNCTION CALL
+00/87:          	; A = LEFT INDEX
+00/87:          	; B = RIGHT INDEX
+00/87:          	; RETURNS: NOTHING
+00/87:          MERGE:
+00/87:          	; ALLOCATE SPACE ON THE STACK FOR LOCAL VARIABLES (4 BYTES)
+00/87:          	; D + 0 = FRAME RETURN ADDRESS
+00/87:          	; D + 1 = LEFT INDEX
+00/87:          	; D + 2 = RIGHT INDEX
+00/87:          	; D + 3 = MIDDLE INDEX
+00/87:          	; D + 4 = FRAME RETURN ADDRESS (PREVIOUS FRAME)
+00/87: 7C04     	SUBI	D,4
+00/89:          	
+00/88:          	; START BY COMPARING LEFT INDEX TO RIGHT INDEX
+00/88: D100     	CMP	A,B
+00/8A:          	
+00/89:          	; IF A >= B, JUST RETURN INSTANTLY
+00/89: F030     	BRAE	9F
+00/8B:          	
+00/8A:          	; CALCULATE C = (A + B) / 2
+00/8A: 2800     	MOV	C,A
+00/8B: 4900     	ADD	C,B
+00/8C: C900     	SHIFTR	C
+00/8E:          	
+00/8D:          	; PLACE REGISTERS INTO THE STACK
+00/8D: B301     	STOREF	[D+LEFT],A
+00/8E: B703     	STOREF	[D+RIGHT],B
+00/8F: BB02     	STOREF	[D+MIDDLE],C
+00/91:          	
+00/90:          	; CALL MERGESORT ON LEFT -> MIDDLE
+00/90:          	; A = LEFT INDEX
+00/90:          	; B = MIDDLE INDEX
+00/90: 2600     	MOV	B,C
+00/92:          	
+00/91:          	; EXECUTE FUNCTION CALL
+00/91:          	; THE RETURN ADDRESS MUST BE PLACED ON THE STACK
+00/91: 3894     	LOADI	C,@+3
+00/92: BB00     	STOREF	[D+RETURN],C
+00/93: FFF3     	JUMP	MERGE
+00/95:          	
+00/94:          	; NOW MERGESORT MIDDLE + 1 -> RIGHT
+00/94:          	; A = MIDDLE + 1 INDEX
+00/94:          	; B = RIGHT INDEX
+00/94: 9302     	LOADF	A,[D+MIDDLE]
+00/95: 5001     	ADDI	A,1
+00/96: 9703     	LOADF	B,[D+RIGHT]
+00/98:          	
+00/97:          	; EXECUTE FUNCTION CALL
+00/97:          	; THE RETURN ADDRESS MUST BE PLACED ON THE STACK
+00/97: 389A     	LOADI	C,@+3
+00/98: BB00     	STOREF	[D+RETURN],C
+00/99: FFED     	JUMP	MERGE
+00/9B:          	
+00/9A:          	; NOW THAT'S OUT OF THE WAY
+00/9A:          	; LETS MERGE THE TWO SUB-ARRAYS TOGETHER
+00/9A:          	; FIRST SEE IF THE DIRECT MERGE IS ALREADY SORTED
+00/9A: 9B02     	LOADF	C,[D+MIDDLE]
+00/9B: 9200     	LOADF	A,[C]
+00/9C: 9601     	LOADF	B,[C+1]
+00/9D: D100     	CMP	A,B
+00/9E: FD1B     	BRLE	9F
+00/A0:          
+00/9F:          	; ALRIGHT, MERGE TIME
+00/9F:          	; LEFT <= MID
+00/9F: 9301     0:	LOADF	A,[D+LEFT]
+00/A0: 9702     	LOADF	B,[D+MIDDLE]
+00/A1: D100     	CMP	A,B
+00/A2: FA17     	BRG	9F
+00/A4:          	
+00/A3:          	; MID+1 <= RIGHT
+00/A3: 5401     	ADDI	B,1
+00/A4: 9B03     	LOADF	C,[D+RIGHT]
+00/A5: D600     	CMP	B,C
+00/A6: FA13     	BRG	9F
+00/A8:          	
+00/A7:          	; ARRAY[LEFT] <= ARRAY[MID+1]
+00/A7: 9000     	LOADF	A,[A]
+00/A8: 9900     	LOADF	C,[B]
+00/A9: D200     	CMP	A,C
+00/AB:          	
+00/AA:          	; IF SO, ONLY INCREMENT LEFT
+00/AA: FD0B     	BRLE	3F
+00/AC:          	
+00/AB:          	; MERGE THE VALUE IN C IN BYTE SHIFTING THE ARRAY ELEMENTS OVER
+00/AB:          	; REMEMBER, C = ARRAY[MID+1], B = MID+1
+00/AB: 9301     1:	LOADF	A,[D+LEFT]
+00/AC: D100     	CMP	A,B
+00/AD: F604     	BRE	2F
+00/AE: 7401     	SUBI	B,1
+00/AF: 9100     	LOADF	A,[B]
+00/B0: B101     	STOREF	[B+1],A
+00/B1: FFF9     	JUMP	1B
+00/B3:          
+00/B2:          	; LOOP COMPLETE
+00/B2: B800     2:	STOREF	[A],C
+00/B4:          
+00/B3:          	; MIDDLE++
+00/B3: 9302     	LOADF	A,[D+MIDDLE]
+00/B4: 5001     	ADDI	A,1
+00/B5: B302     	STOREF	[D+MIDDLE],A
+00/B7:          	
+00/B6:          3:	; LEFT++
+00/B6: 9301     	LOADF	A,[D+LEFT]
+00/B7: 5001     	ADDI	A,1
+00/B8: B301     	STOREF	[D+LEFT],A
+00/B9: FFE5     	JUMP	0B
+00/BB:          	
+00/BA:          	; RETURN FUNCTION
+00/BA:          	; POP EVERYTHING OFF THE STACK
+00/BA:          	; AND JUMPR TO THE PREVIOUS FRAME
+00/BA: 5C04     9:	ADDI	D,4
+00/BB: 9B00     	LOADF	C,[D+RETURN]
+00/BC: FE43     	JUMPR	C
+00/BE:          
+00/BD:          ; DATA SEGMENT
+00/BD:          .DATA
+00/00: 07060504
+       03020100 .DEFL BYTE ARRAY	7, 6, 5, 4, 3, 2, 1, 0

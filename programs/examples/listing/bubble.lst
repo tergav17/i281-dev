@@ -1,0 +1,33 @@
+00/00:          ; BUBBLE.S
+00/80:          ; BUBBLE SORT EXAMPLE
+00/80:          .TEXT
+00/80:          
+00/80:          LAST	= 7
+00/80:          
+00/80: 3000     	LOADI  A, 0                  ; I = 0;
+00/81: 3C07     OUTER:  LOADI  D, LAST             ; LOAD LAST INTO D
+00/82: 3400             LOADI  B, 0                  ; J = 0;
+00/83: D300             CMP    A, D                  ; I < LAST
+00/84: FB0E             BRGE   END                   ; IF I >= LAST BREAK OUT OF THE OUTER LOOP
+00/86:          
+00/85: 3C07     LOOP:	LOADI  D, LAST               ; RE-LOAD LAST INTO D (THIS REGISTER IS SHARED)
+00/86: 6C00             SUB    D, A                  ; D = D - A  (I.E., D = LAST - I)
+00/87: D700             CMP    B, D                  ; J < LAST - I
+00/88: FB08             BRGE   IINC                  ; IF J >= LAST-I  BRANCH TO IINC
+00/89: 9900     	LOADF  C, [B+ARRAY]          ; C = ARRAY[J]
+00/8A: 9D01             LOADF  D, [B+ARRAY+1]        ; D = ARRAY[J+1] (COMPILER ADDS 1 TO ADDR. OF ARRAY)
+00/8B: DE00             CMP    D, C                  ; IF ARRAY[J+1] < ARRAY[J]  (SWITCHED DIRECTION)
+00/8C: FB02             BRGE   JINC
+00/8D: BD00     SWAP:   STOREF [B+ARRAY], D
+00/8E: B901             STOREF [B+ARRAY+1], C
+00/8F: 5401     JINC:   ADDI   B, 1                  ; J++
+00/90: FFF4             JUMP   LOOP		     ; JUMP BACK TO LINE 14
+00/91: 5001     IINC:   ADDI   A, 1                  ; I++
+00/92: FFEE             JUMP   OUTER
+00/93: FFFF     END:    JUMP   END                   ; DO NOTHING
+00/95:          
+00/94:          .DATA
+00/94:          
+00/00: 08070605
+       04030201 .DEFL BYTE ARRAY	8, 7, 6, 5, 4, 3, 2, 1
+00/08: 00       .DEFL BYTE TEMP		0

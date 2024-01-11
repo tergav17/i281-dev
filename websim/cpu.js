@@ -698,6 +698,7 @@ function dataStore(cpu, addr, val) {
 		cpu.dmem[128 * cpu.data_bank + addr] = val;
 	} else {
 		// I/O Space
+		ioWrite(addr, val);
 	}
 }
 
@@ -709,7 +710,7 @@ function dataFetch(cpu, addr) {
 		return cpu.dmem[128 * cpu.data_bank + addr];
 	} else {
 		// I/O Space
-		return 0xFF;
+		return ioRead(addr);
 	}
 }
 

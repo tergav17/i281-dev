@@ -22,12 +22,12 @@ function ioWrite(addr, val) {
 	switch (device) {
 		
 		// Set the data banking address
-		case 0x0:
+		case 0x00:
 			cpu_state.data_bank = val;
 			return;
 			
 		// Write to the UART
-		case 0x1:
+		case 0x10:
 			uartWrite(register, val);
 			return;
 			
@@ -46,7 +46,7 @@ function ioRead(addr) {
 	switch (device) {
 		
 		// Read from the UART
-		case 0x1:
+		case 0x10:
 			return uartRead(register);
 		
 		default:
@@ -60,7 +60,14 @@ function ioRead(addr) {
  * Write a byte to the UART
  */
 function uartWrite(register, val) {
-	
+	switch (register) {
+		case 0x00:
+			// Transmit Holding Register
+			uartOutput(val);
+		
+		default:
+			break;
+	}
 }
 
 
@@ -68,7 +75,19 @@ function uartWrite(register, val) {
  * Reads a byte from the UART
  */
 function uartRead(register) {
-	
+	switch (register) {
+		case 0x0:
+			// Receive Holding Register
+			uartHasCharacter = false;
+			return uartChar & 0xFF;
+			
+		case 0x5:
+			// Line Status Register
+			return 0x20 + (uartHasCharacter ? 1 : 0);
+		
+		default:
+			return 0xFF;
+	}
 }
 
 /*
@@ -79,8 +98,6 @@ uartChar = 0;
 function uartInput(ch) {
 	uartHasCharacter = true;
 	uartChar = ch;
-	
-	uartOutput(ch);
 }
 
 /*
@@ -92,7 +109,7 @@ function uartOutput(ch) {
 	switch (ch) {
 		case 0x08:
 			// Backspace
-			terminal.value = terminal.value.substring(0, terminal.value.length - 1);
+			terminal.value = terminal.value.substring(0, terminal.value.length);
 			break;
 			
 		case 0x09:
@@ -108,12 +125,14 @@ function uartOutput(ch) {
 			
 		case 0x0D:
 			// Carriage Return
+			/*
 			let str = terminal.value;
 			
 			// Janky, but kinda emulates the function of carriage return;
 			while (str.length > 0 && str.substr(-1) != '\n')
 				str = str.substring(0, str.length - 1);
 			terminal.value = str;
+			*/
 			break;
 			
 		default: // Normal characters
