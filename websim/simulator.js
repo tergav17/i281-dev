@@ -517,6 +517,9 @@ function drawFlow(cpu) {
 	}
 }
 
+/*
+ * Helper function to draw switches
+ */
 function drawSwitch(x, y, position) {
 	flow_ctx.beginPath();
 	flow_ctx.strokeStyle = "grey";

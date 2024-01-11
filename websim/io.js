@@ -4,12 +4,154 @@
  * assorted input / output routines
  */
  
-// SAV upload element 
+// I/O elements 
 const dump_isr = document.getElementById("button-dump-isr");
 const dump_data = document.getElementById("button-dump-data");
 const upload_sav = document.getElementById("upload-sav");
 const terminal = document.getElementById("terminal");
 const readout = document.getElementById("readout");
+
+
+/*
+ * Writes a byte to I/O space
+ */
+function ioWrite(addr, val) {
+	let register = addr & 0x0F;
+	let device = addr & 0x70;
+	
+	switch (device) {
+		
+		// Set the data banking address
+		case 0x0:
+			cpu_state.data_bank = val;
+			return;
+			
+		// Write to the UART
+		case 0x1:
+			uartWrite(register, val);
+			return;
+			
+		default:
+			return;
+	}
+}
+
+/*
+ * Reads a byte from I/O space
+ */
+function ioRead(addr) {
+	let register = addr & 0x0F;
+	let device = addr & 0x70;
+	
+	switch (device) {
+		
+		// Read from the UART
+		case 0x1:
+			return uartRead(register);
+		
+		default:
+			return 0xFF;
+	}
+}
+
+/* --- TERMINAL STUFF --- */
+
+/*
+ * Write a byte to the UART
+ */
+function uartWrite(register, val) {
+	
+}
+
+
+/*
+ * Reads a byte from the UART
+ */
+function uartRead(register) {
+	
+}
+
+/*
+ * Inputs a value into the UART
+ */
+uartHasCharacter = false;
+uartChar = 0; 
+function uartInput(ch) {
+	uartHasCharacter = true;
+	uartChar = ch;
+	
+	uartOutput(ch);
+}
+
+/*
+ * Ouputs a value to the UART
+ */
+function uartOutput(ch) {
+	console.log(ch);
+	
+	switch (ch) {
+		case 0x08:
+			// Backspace
+			terminal.value = terminal.value.substring(0, terminal.value.length - 1);
+			break;
+			
+		case 0x09:
+			// Tab
+			terminal.value += "\t";
+			break;
+			
+		case 0x0A:
+			// Line Feed
+			terminal.value += "\n";
+			terminal.scrollTop = terminal.scrollHeight;
+			break;
+			
+		case 0x0D:
+			// Carriage Return
+			let str = terminal.value;
+			
+			// Janky, but kinda emulates the function of carriage return;
+			while (str.length > 0 && str.substr(-1) != '\n')
+				str = str.substring(0, str.length - 1);
+			terminal.value = str;
+			break;
+			
+		default: // Normal characters
+			if (ch > 31 && ch < 127)
+				terminal.value += String.fromCharCode(ch);
+			break;
+	}
+}
+
+// On key down event handler
+// only really does special keys
+terminal.onkeydown = function(e) {
+	let ch = (e.keyCode || e.charCode);
+	
+	switch (ch) {
+		case 8:
+			uartInput(8);
+			break;
+		
+		case 46:
+			uartInput(127);
+			break;
+			
+		default:
+			break;
+	}
+}
+
+// On key press event handler
+terminal.onkeypress = function(e) {
+	let ch = (e.keyCode || e.charCode);
+	
+	uartInput(ch);
+	
+	return false;
+}
+
+/* --- DEBUGGING STUFF --- */
 
 // Instruction dump function
 dump_isr.onclick = function() {
