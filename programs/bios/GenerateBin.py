@@ -22,9 +22,10 @@ def main():
     output_txt = open(sys.argv[4], mode="w")
     
     # Output low and high bytes
-    for i in range(128):
-        output_high.write((data[256 + (i * 2)]).to_bytes(1, byteorder='big'));
-        output_low.write((data[256 + (i * 2) + 1]).to_bytes(1, byteorder='big'));
+    for o in range(512):
+        for i in range(128):
+            output_high.write((data[256 + (i * 2)]).to_bytes(1, byteorder='big'));
+            output_low.write((data[256 + (i * 2) + 1]).to_bytes(1, byteorder='big'));
     
     # Output javascript snippet
     output_txt.write("// Setup BIOS\ncpu_state.bios = [\n//	0x01	0x01	0x02	0x03	0x04	0x05	0x06	0x07\n");

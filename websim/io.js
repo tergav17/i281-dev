@@ -64,6 +64,12 @@ function uartWrite(register, val) {
 		case 0x00:
 			// Transmit Holding Register
 			uartOutput(val);
+			break;
+		
+		case 0xF:
+			// Scratchpad Register
+			uartScratchpad = val;
+			break;
 		
 		default:
 			break;
@@ -84,6 +90,10 @@ function uartRead(register) {
 		case 0x5:
 			// Line Status Register
 			return 0x20 + (uartHasCharacter ? 1 : 0);
+			
+		case 0xF:
+			// Scratchpad Register
+			return uartScratchpad;
 		
 		default:
 			return 0xFF;
@@ -94,7 +104,8 @@ function uartRead(register) {
  * Inputs a value into the UART
  */
 uartHasCharacter = false;
-uartChar = 0; 
+uartChar = 0;
+uartScratchpad = 0; 
 function uartInput(ch) {
 	uartHasCharacter = true;
 	uartChar = ch;
