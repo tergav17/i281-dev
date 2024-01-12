@@ -119,7 +119,7 @@ function updateClock() {
 		let hasUpdated = false;
 		while (clockSlack >= 1.0) {
 			// Do a CPU cycle
-			latch(cpu_state, true);
+			latch(cpu_state, false);
 			propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
 			
 			clockSlack -= 1.0;

@@ -1,0 +1,190 @@
+00/00:          ; MONITOR.S
+00/00:          ; MEMORY MONITOR PROGRAM
+00/00:          
+00/00:          ; DEFINES
+00/00:          UART	=	0X90
+00/00:          UART_RH	=	UART+0X00
+00/00:          UART_TH	=	UART+0X00
+00/00:          UART_LS	=	UART+0X05
+00/00:          
+00/00:          SCRATCH	=	0X7F
+00/00:          DBANK	=	0X80
+00/00:          
+00/00:          .BANK 0
+00/00:          .TEXT
+00/00:          	; START HERE
+00/00: 300A     START:	LOADI	A,0X0A
+00/01: 3803     	LOADI	C,@+2
+00/02: FF3E     	JUMP	SCHAR
+00/03: 300D     	LOADI	A,0X0D
+00/04: 3806     	LOADI	C,@+2
+00/05: FF3B     	JUMP	SCHAR
+00/06: 3040     	LOADI	A,'@'
+00/07: 3809     	LOADI	C,@+2
+00/08: FF38     	JUMP	SCHAR
+00/0A:          	
+00/09:          	; GET A HEX NUMBER
+00/09: 380B     	LOADI	C,@+2
+00/0A: FF3D     	JUMP	FROMHEX
+00/0B: 380D     	LOADI	C,@+2
+00/0C: FF3B     	JUMP	FROMHEX
+00/0E:          	
+00/0D:          	; GET COMMAND
+00/0D: 380F     	LOADI	C,@+2
+00/0E: FF29     	JUMP	GCHAR
+00/0F: 702D     	SUBI	A,'-'
+00/10: F618     	BRZ	ISR
+00/11: 7002     	SUBI	A,'/'-'-'
+00/12: F609     	BRZ	DATA
+00/13: 7013     	SUBI	A,'B'-'/'
+00/14: F604     	BRZ	SBANK
+00/15: 7005     	SUBI	A,'G'-'B'
+00/16: F7E9     	BRNZ	START
+00/17: 2B00     	MOV	C,D
+00/18: FEE7     	JUMPR	C
+00/1A:          	
+00/19:          	; SET THE BANK
+00/19: 2000     SBANK:	NOOP	; TODO: BANK D
+00/1A: AC80     	STORE	[DBANK],D
+00/1B: FFE4     	JUMP	START
+00/1D:          
+00/1C:          	; EDIT DATA BYTE
+00/1C: AC7F     DATA:	STORE	[SCRATCH],D
+00/1D: 9F00     	LOADF	D,[D]
+00/1F:          	
+00/1E:          	; PRINT IT OUT
+00/1E: 3820     	LOADI	C,@+2
+00/1F: FF42     	JUMP	TOHEX
+00/20: 3822     	LOADI	C,@+2
+00/21: FF40     	JUMP	TOHEX
+00/23:          	
+00/22:          	; GET A HEX NUMBER
+00/22: 3824     	LOADI	C,@+2
+00/23: FF24     	JUMP	FROMHEX
+00/24: 3826     	LOADI	C,@+2
+00/25: FF22     	JUMP	FROMHEX
+00/27:          	
+00/26:          	; PUT IT INTO MEMORY
+00/26: 807F     	LOAD	A,[SCRATCH]
+00/27: BC00     	STOREF	[A],D
+00/28: FFD7     	JUMP	START
+00/2A:          	
+00/29:          	; EDIT ISR WORD
+00/29: AC7F     ISR:	STORE	[SCRATCH],D
+00/2B:          
+00/2A:          	; GET A HEX NUMBER
+00/2A: 382C     	LOADI	C,@+2
+00/2B: FF1C     	JUMP	FROMHEX
+00/2C: 382E     	LOADI	C,@+2
+00/2D: FF1A     	JUMP	FROMHEX
+00/2F:          	
+00/2E:          	; CACHE IT
+00/2E: 2300     	MOV	A,D
+00/2F: 1400     	CACHE	A
+00/31:          	
+00/30:          	; GET A HEX NUMBER
+00/30: 3832     	LOADI	C,@+2
+00/31: FF16     	JUMP	FROMHEX
+00/32: 3834     	LOADI	C,@+2
+00/33: FF14     	JUMP	FROMHEX
+00/35:          	
+00/34:          	; WRITE IT
+00/34: 2300     	MOV	A,D
+00/35: 8C7F     	LOAD	D,[SCRATCH]
+00/36: 1E00     	WRITE	[D+0],A
+00/37: FFC8     	JUMP	START
+00/39:          	
+00/38:          
+00/38:          
+00/38:          	; GET CHARACTER
+00/38:          	; TYPED CHARACTER RETURNED IN A
+00/38: 8095     GCHAR:	LOAD	A,[UART_LS]
+00/3A:          
+00/39:          	; CHECK 0TH BIT OF LINE STATUS
+00/39: C100     	SHIFTR	A
+00/3A: F1FD     	BRNC	GCHAR
+00/3C:          	
+00/3B:          	; RECIEVE CHARACTER
+00/3B: 8090     	LOAD	A,[UART_RH]
+00/3D:          	
+00/3C:          	; CONVERT TO UPPER CASE
+00/3C: 5020     	ADDI	A,0X20
+00/3D: F501     	BRNN	0F
+00/3E: 7020     	SUBI	A,0X20
+00/3F: 7020     0:	SUBI	A,0X20
+00/41:          	
+00/40:          	; NOW, ECHO CHARACTER
+00/40: FF05     	JUMP COUT
+00/42:          
+00/41:          	; SEND CHARACTER
+00/41:          	; A = CHARACTER TO SEND
+00/41: 8495     SCHAR:	LOAD	B,[UART_LS]
+00/43:          	
+00/42:          	; CHECK 5TH BIT OF LINE STATUS
+00/42: 4500     	SHIFTL	B
+00/43: 4500     	SHIFTL	B
+00/44: 4500     	SHIFTL	B
+00/45: F1FB     	BRNC	SCHAR
+00/47:          	
+00/46:          	; TRANSMIT CHARACTER
+00/46: A090     COUT:	STORE	[UART_TH],A
+00/48:          	
+00/47:          	; RETURN
+00/47: FEB8     	JUMPR	C
+00/49:          	
+00/48:          	; CONVERTS ASCII HEX INTO HALF A BYTE
+00/48:          	; A = BYTE TO CONVERT
+00/48:          	; RETURNS D=D<<4 + HEX(A)
+00/48: 2600     FROMHEX:MOV	B,C
+00/49: 384B     	LOADI	C,@+2
+00/4A: FFED     	JUMP	GCHAR
+00/4B: 2900     	MOV	C,B
+00/4D:          	
+00/4C:          	; D=D<<4
+00/4C: 4F00     	SHIFTL	D
+00/4D: 4F00     	SHIFTL	D
+00/4E: 4F00     	SHIFTL	D
+00/4F: 4F00     	SHIFTL	D
+00/51:          	
+00/50: 3430     	LOADI	B,'0'
+00/51: D100     	CMP	A,B
+00/52: F1AD     	BRB	START
+00/53: 3439     	LOADI	B,'9'
+00/54: D100     	CMP	A,B
+00/55: F803     	BRA	0F
+00/56: 7030     	SUBI	A,'0'
+00/57: 4C00     	ADD	D,A
+00/58: FEA7     	JUMPR	C
+00/5A:          	
+00/59: 3441     0:	LOADI	B,'A'
+00/5A: D100     	CMP	A,B
+00/5B: F1A4     	BRB	START
+00/5C: 3446     	LOADI	B,'F'
+00/5D: D100     	CMP	A,B
+00/5E: F8A1     	BRA	START
+00/5F: 7037     	SUBI	A,'A'-10
+00/60: 4C00     	ADD	D,A
+00/61: FE9E     	JUMPR	C
+00/63:          	
+00/62:          	; CONVERT HALF A BYTE INTO ASCII HEX
+00/62:          	; D[7:4] = NYBBLE TO CONVERT
+00/62:          	; RETURNS D=D<<4 AND ASCII IN A
+00/62: 30F0     TOHEX:	LOADI	A,0XF0
+00/64:          
+00/63:          	; SHIFT LAST 4 BITS OF D INTO FIRST 4 BITS OF A
+00/63: 4F00     0:	SHIFTL	D
+00/64: F003     	BRC	1F
+00/65: 4000     	SHIFTL	A
+00/66: F4FC     	BRN	0B
+00/67: FF03     	JUMP	2F
+00/68: 4000     1:	SHIFTL	A
+00/69: 5001     	ADDI	A,1
+00/6A: F4F8     	BRN	0B
+00/6C:          	
+00/6B:          	; CONVERT TO ASCII 0..9 / A..F
+00/6B: 700A     2:	SUBI	A,10
+00/6C: F402     	BRN	3F
+00/6D: 5041     	ADDI	A,'A'
+00/6E: FFD2     	JUMP	SCHAR
+00/6F: 503A     3:	ADDI	A,'0'+10
+00/70: FFD0     	JUMP	SCHAR

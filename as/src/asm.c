@@ -1660,6 +1660,51 @@ char asm_doisr(struct instruct *isr) {
 		asm_emit_isr(isr->opcode, (~asm_address) & 0xFF);
 	}
 	
+	// cache operation
+	else if (isr->type == CACHE) {
+		dst = asm_arg();
+		
+		// we should only assemble 'A' for now
+		if (dst != 0)
+			return 1;
+		
+		// generate instruction
+		asm_emit_isr(isr->opcode, 0x00);
+	}
+	
+	// write operation
+	else if (isr->type == WRITE) {
+		// arg should be a backet expression
+		asm_expect('[');
+		dst = asm_arg();
+		
+		// we should only assemble 'B, C, D' for now
+		if (dst < 1 || dst > 3)
+			return 1;
+		
+		// do we have an expression to add?
+		value = 0;
+		tok = asm_token_read();
+		if (tok == '+') {
+			// evaluate expression
+			type = asm_evaluate(&value, 0);
+			if (type == 0 && asm_pass)
+				asm_error("undefined expression");
+			asm_expect(']');
+		} else if (tok != ']')
+			return 1;
+		asm_expect(',');
+		
+		src = asm_arg();
+		
+		// we should get 'A' for now
+		if (src != 0)
+			return 1;
+		
+		// generate instruction
+		asm_emit_isr(isr->opcode + (dst<<2), value);
+	}
+	
 	return 0;
 }
 

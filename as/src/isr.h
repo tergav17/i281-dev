@@ -18,6 +18,8 @@
 #define BRANCH 11 // branch instruction
 #define PSEUDO 12 // "fake" instructions R = (R, R)
 #define JUMPR 13 // jump register instruction
+#define CACHE 14 // cache instruction
+#define WRITE 15 // write instruction
 
 /* structs */
 struct instruct {
@@ -70,6 +72,9 @@ struct instruct isr_table[] = {
 	{ PSEUDO, "shiftl", 0x40, 0 },
 	{ SINGLE, "shiftr", 0xC1, 0 },
 	{ ARITH, "cmp", 0xD0, 0 },
+	
+	{ CACHE, "cache", 0x14, 0 },
+	{ WRITE, "write", 0x12, 0 },
 	
 	{ BRANCH, "brc", 0xF0, 0 },
 	{ BRANCH, "brae", 0xF0, 0 },

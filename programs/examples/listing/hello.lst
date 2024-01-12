@@ -34,7 +34,7 @@
 00/8A: 5401     	ADDI	B,1
 00/8C:          	
 00/8B:          	; RETURN TO PRINT LOOP
-00/8B: FFF5     	JUMP PRINT
+00/8B: FFF5     	JUMP	PRINT
 00/8D:          	
 00/8C:          	; AND HALT...
 00/8C: FFFF     END:	JUMP	END
