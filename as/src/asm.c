@@ -1818,7 +1818,7 @@ void asm_assemble(char flagv, char flagl)
 	
 	// reset the segments too
 	asm_seg = 1;
-	curr_bank = 0;
+	curr_bank = 1;
 	
 	// reset local count
 	loc_cnt = 0;
@@ -1862,7 +1862,7 @@ void asm_assemble(char flagv, char flagl)
 				
 				// reset segmenting
 				asm_seg = 1;
-				curr_bank = 0;
+				curr_bank = 1;
 
 				// reset assembly pointer
 				sio_rewind();

@@ -54,19 +54,21 @@ function ioRead(addr) {
 	}
 }
 
+/* --- CF CARD STUFF --- */
+
 /* --- TERMINAL STUFF --- */
 
 /*
  * Write a byte to the UART
  */
 function uartWrite(register, val) {
-	switch (register) {
+	switch (register & 0x7) {
 		case 0x00:
 			// Transmit Holding Register
 			uartOutput(val);
 			break;
 		
-		case 0xF:
+		case 0x7:
 			// Scratchpad Register
 			uartScratchpad = val;
 			break;
@@ -81,7 +83,7 @@ function uartWrite(register, val) {
  * Reads a byte from the UART
  */
 function uartRead(register) {
-	switch (register) {
+	switch (register & 0x7) {
 		case 0x0:
 			// Receive Holding Register
 			uartHasCharacter = false;
@@ -91,7 +93,7 @@ function uartRead(register) {
 			// Line Status Register
 			return 0x20 + (uartHasCharacter ? 1 : 0);
 			
-		case 0xF:
+		case 0x7:
 			// Scratchpad Register
 			return uartScratchpad;
 		
@@ -115,7 +117,6 @@ function uartInput(ch) {
  * Ouputs a value to the UART
  */
 function uartOutput(ch) {
-	console.log(ch);
 	
 	switch (ch) {
 		case 0x08:
@@ -234,11 +235,10 @@ upload_sav.addEventListener('change', function(e) {
 	(async () => {
         const fileContent = new Uint8Array(await savFile.arrayBuffer());
 
-        let block = 0;
-		let bank = 0;
+        let block = 512;
+		let bank = 1;
 		while (block + 512 <= fileContent.length) {
 			if (fileContent[block] != 0x02 || fileContent[block + 1] != 0x81) {
-				console.log(fileContent);
 				alert("Malformed .SAV File!");
 				break;
 			}
@@ -255,8 +255,8 @@ upload_sav.addEventListener('change', function(e) {
 			block += 512;
 		}
 		
-		cpu_state.isr_bank = 0;
-		cpu_state.data_bank = 0;
+		cpu_state.isr_bank = 1;
+		cpu_state.data_bank = 1;
 		cpu_state.pc = 0x80;
 		
 		// Make sure the visual display is updated 

@@ -1,25 +1,25 @@
 00/00:          ; ECHO.S
-00/80:          ; UART CHARACTER ECHO PROGRAM
-00/80:          
-00/80:          ; DEFINES
-00/80:          UART	=	0X90
-00/80:          UART_RH	=	UART+0X00
-00/80:          UART_TH	=	UART+0X00
-00/80:          UART_LS	=	UART+0X05
-00/80:          
-00/80:          .TEXT
-00/80:          	; START HERE
-00/80: 8095     START:	LOAD	A,[UART_LS]
-00/82:          
-00/81:          	; WHEN THE UART RECIEVES A CHARACTER
-00/81:          	; BIT 0 OF THE LINE STATUS REGISTER
-00/81:          	; WILL GO HIGH
-00/81: C100     	SHIFTR	A
-00/82: F1FD     	BRNC	START
-00/84:          	
-00/83:          	; READ VALUE FROM RECIEVE HOLDING
-00/83: 8090     	LOAD	A,[UART_RH]
-00/85:          	
-00/84:          	; AND SEND IT TO TRANSMIT HOLDING
-00/84: A090     	STORE	[UART_TH],A
-00/85: FFFA     	JUMP	START
+01/80:          ; UART CHARACTER ECHO PROGRAM
+01/80:          
+01/80:          ; DEFINES
+01/80:          UART	=	0X90
+01/80:          UART_RH	=	UART+0X00
+01/80:          UART_TH	=	UART+0X00
+01/80:          UART_LS	=	UART+0X05
+01/80:          
+01/80:          .TEXT
+01/80:          	; START HERE
+01/80: 8095     START:	LOAD	A,[UART_LS]
+01/82:          
+01/81:          	; WHEN THE UART RECIEVES A CHARACTER
+01/81:          	; BIT 0 OF THE LINE STATUS REGISTER
+01/81:          	; WILL GO HIGH
+01/81: C100     	SHIFTR	A
+01/82: F1FD     	BRNC	START
+01/84:          	
+01/83:          	; READ VALUE FROM RECIEVE HOLDING
+01/83: 8090     	LOAD	A,[UART_RH]
+01/85:          	
+01/84:          	; AND SEND IT TO TRANSMIT HOLDING
+01/84: A090     	STORE	[UART_TH],A
+01/85: FFFA     	JUMP	START

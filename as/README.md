@@ -3,15 +3,15 @@ Assembler for the i281 toolchain. Takes in a source file and assembles it into a
 
 ## Usage
 ```
-as [-vl] source.s ...
+as [-vl] [-o name] source.s ...
 ```
-| Option | Description |
-| ------ | ----------- |
-| -v     | Verbose output, will display information about the overall assembly |
-| -l     | Assembly in the lower 128 words of instruction address space |
-
+| Option  | Description |
+| ------- | ----------- |
+| -v      | Verbose output, will display information about the overall assembly |
+| -l      | Assembly in the lower 128 words of instruction address space |
+| -o name | Gives a name to the output files, default name is "a" |
 ## Symbols
-Symbol definition follows the syntax used in Version 6 UNIX. Unlike most Z80 assemblers, the `equ` directive is not used. All symbols can also be redefined as many times as needed, thought this isn't recommended for labels as it may make the final product confusing to read. Symbols are limited to 8 characters to save memory. If a symbol is longer than 8 characters, the other characters will be ignored. The following code example will show off some simple symbol definitions:
+Symbol definition follows the syntax used in Version 6 UNIX. Unlike most modern assemblers, the `equ` directive is not used. All symbols can also be redefined as many times as needed, thought this isn't recommended for labels as it may make the final product confusing to read. Symbols are limited to 8 characters to save memory. If a symbol is longer than 8 characters, the other characters will be ignored. The following code example will show off some simple symbol definitions:
 ```
 ; basic symbol definition
 sym_1 = 0
