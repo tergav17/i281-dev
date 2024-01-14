@@ -56,6 +56,62 @@ function ioRead(addr) {
 
 /* --- CF CARD STUFF --- */
 
+cf_state = {
+	
+	// Data
+	data: new Uint8Array(512 * 256 * 256), // 32MB array, boo hoo!
+	
+	// Buffer Information
+	buffer: [], 	// Current operation buffer
+	operation: 0,	// Operation being performed
+	left: 0, 		// Bytes left
+	
+	// Registers
+	error: 0,		// Error Register
+	features: 0,	// Features Register
+	count: 0,		// Sector Count Register
+	lba0: 0,		// LBA 0 Register
+	lba1: 0,		// LBA 1 Register
+	lba2: 0,		// LBA 2 Register
+	lba3: 0,		// LBA 3 Register
+	status: 0		// Status Register
+};
+
+/*
+ * Write a byte to a CF card
+ */
+function cfWrite(cf, register, val) {
+	switch (register & 0x7) {
+		
+		case 0x0:
+			cfCommand(cf, val);
+			break; 
+		
+		
+		default:
+			break;
+	}
+}
+
+/*
+ * Execute a CF command
+ */
+function cfCommand(cf, val) {
+	// Reset the error
+	error = 0x00;
+}
+ 
+/*
+ * Read a byte from a CF card
+ */
+function cfRead(cf, register) {
+	switch (register & 0x7) {
+		
+		default:
+			return 0xFF;
+	}
+}
+
 /* --- TERMINAL STUFF --- */
 
 /*
