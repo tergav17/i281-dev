@@ -31,6 +31,11 @@ function ioWrite(addr, val) {
 			uartWrite(register, val);
 			return;
 			
+		// Write to CF card #1
+		case 0x20:
+			cfWrite(cf_state, register, val);
+			return;
+			
 		default:
 			return;
 	}
@@ -48,6 +53,10 @@ function ioRead(addr) {
 		// Read from the UART
 		case 0x10:
 			return uartRead(register);
+			
+		// Read from CF card #1
+		case 0x20:
+			return cfRead(cf_state, register);
 		
 		default:
 			return 0xFF;
@@ -62,9 +71,9 @@ cf_state = {
 	data: new Uint8Array(512 * 256 * 256), // 32MB array, boo hoo!
 	
 	// Buffer Information
-	buffer: [], 	// Current operation buffer
-	operation: 0,	// Operation being performed
-	left: 0, 		// Bytes left
+	buffer: [], // Current operation buffer
+	rdwri: 0,	// Reading or writing
+	left: 0, 	// Bytes left
 	
 	// Registers
 	error: 0,		// Error Register
@@ -78,12 +87,55 @@ cf_state = {
 };
 
 /*
+ * Execute a CF command
+ */
+function cfCommand(cf, val) {
+	// Reset the error
+	error = 0x00;
+}
+
+/*
  * Write a byte to a CF card
  */
 function cfWrite(cf, register, val) {
 	switch (register & 0x7) {
 		
 		case 0x0:
+			// Data Write
+			break;
+			
+		case 0x1:
+			// Feature Register
+			cf.features = val;
+			break;
+			
+		case 0x2:
+			// Sector Count Register
+			cf.count = val;
+			break;
+			
+		case 0x3:
+			// LBA 0 Register
+			cf.lba0 = val;
+			break;
+			
+		case 0x4:
+			// LBA 1 Register
+			cf.lba1 = val;
+			break;
+			
+		case 0x5:
+			// LBA 2 Register
+			cf.lba2 = val;
+			break;
+			
+		case 0x6:
+			// LBA 3 Register
+			cf.lba3 = val;
+			brea;
+		
+		case 0x7:
+			// Command Register
 			cfCommand(cf, val);
 			break; 
 		
@@ -94,19 +146,43 @@ function cfWrite(cf, register, val) {
 }
 
 /*
- * Execute a CF command
- */
-function cfCommand(cf, val) {
-	// Reset the error
-	error = 0x00;
-}
- 
-/*
  * Read a byte from a CF card
  */
 function cfRead(cf, register) {
 	switch (register & 0x7) {
 		
+		case 0x0:
+			// Data Read
+			return 0xFF;
+			
+		case 0x1:
+			// Error Register
+			return cf.error;
+			
+		case 0x2:
+			// Sector Count Register
+			return cf.count;
+			
+		case 0x3:
+			// LBA 0 Register
+			return cf.lba0;
+			
+		case 0x4:
+			// LBA 1 Register
+			return cf.lba1;
+			
+		case 0x5:
+			// LBA 2 Register
+			return cf.lba2;
+			
+		case 0x6:
+			// LBA 3 Register
+			return cf.lba3;
+		
+		case 0x7:
+			// Status Register
+			return status;
+			
 		default:
 			return 0xFF;
 	}
@@ -288,16 +364,19 @@ document.getElementById("button-load-sav").onclick = function() {
 upload_sav.addEventListener('change', function(e) {
 	let savFile = upload_sav.files[0];
 	
+
 	(async () => {
         const fileContent = new Uint8Array(await savFile.arrayBuffer());
 
-        let block = 512;
-		let bank = 1;
+        let block = 0;
 		while (block + 512 <= fileContent.length) {
 			if (fileContent[block] != 0x02 || fileContent[block + 1] != 0x81) {
 				alert("Malformed .SAV File!");
 				break;
 			}
+			
+			// Get bank to load into
+			bank = fileContent[block + 2];
 			
 			cpu_state.isr_bank = bank;
 			cpu_state.data_bank = bank;
@@ -307,7 +386,6 @@ upload_sav.addEventListener('change', function(e) {
 				isrStore(cpu_state, o + 128, (fileContent[block + (o*2) + 256] << 8) + fileContent[block + (o*2) + 257]);
 			}
 			
-			bank++;
 			block += 512;
 		}
 		

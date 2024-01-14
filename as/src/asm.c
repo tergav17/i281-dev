@@ -40,8 +40,7 @@ uint8_t asm_seg;
 
 /* banking information */
 uint8_t curr_bank;
-
-uint8_t max_bank;
+char visited_banks[256];
 /* the expression evaluator requires some larger data structures, lets define them */
 
 /* value stack */
@@ -1032,9 +1031,8 @@ void asm_emit(uint16_t value, uint8_t size)
 		sio_emit(value & 0xFF);
 		asm_address++;
 		
-		// keep track of maximum bank
-		if (curr_bank > max_bank)
-			max_bank = curr_bank;
+		// keep track of visited banks
+		visited_banks[curr_bank] = 1;
 	}
 	
 	
@@ -1067,9 +1065,8 @@ void asm_emit(uint16_t value, uint8_t size)
 		
 		// check segment stuff
 		if (asm_seg == 2) {
-			// keep track of maximum bank
-			if (curr_bank > max_bank)
-				max_bank = curr_bank;
+			// keep track of visited banks
+			visited_banks[curr_bank] = 1;
 		} else {
 			// no data in bss!!!
 			if (value)
@@ -1771,11 +1768,21 @@ void asm_generate_binary()
 {
 	int i, o;
 	
-	for (o = 0; o <= max_bank; o++) {
+	for (o = 0; o < 256; o++) {
+		
+		// skip if we haven't visited this bank
+		if (!visited_banks[o])
+			continue;
+		
 		// output header
 		sio_out(0x02);
 		sio_out(0x81);
-		for (i = 0; i < 126; i++)
+		
+		// output bank #
+		sio_out(o);
+		
+		// output padding
+		for (i = 0; i < 125; i++)
 			sio_out(0xFF);
 		
 		// output data segment
@@ -1814,6 +1821,7 @@ void asm_assemble(char flagv, char flagl)
 	for (i = 0; i < 256; i++) {
 		data_bank_addr[i] = 0;
 		text_bank_addr[i] = is_lower ? 0 : 128;
+		visited_banks[i] = 0;
 	}
 	
 	// reset the segments too
