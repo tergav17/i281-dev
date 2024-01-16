@@ -109,7 +109,7 @@ function simToggleIsrData() {
 
 // event farm!!!! :)
 var clockSlack = 0.0;
-var clockCyclesPerTick = 0.04;
+var clockCyclesPerTick = 10;
 function updateClock() {
 	if (runClock) {
 		// Add the desired cycles per tick to the slack
@@ -172,8 +172,6 @@ function clockSlide() {
 		text_clock.innerHTML = "CLK: 1 MHz";
 		clockCyclesPerTick = 20000.0 * setting;
 	}
-		
-	
 	
 }
 

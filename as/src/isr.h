@@ -20,6 +20,7 @@
 #define JUMPR 13 // jump register instruction
 #define CACHE 14 // cache instruction
 #define WRITE 15 // write instruction
+#define SINGLEI 16 // single register plus immediate instruction
 
 /* structs */
 struct instruct {
@@ -75,6 +76,7 @@ struct instruct isr_table[] = {
 	
 	{ CACHE, "cache", 0x14, 0 },
 	{ WRITE, "write", 0x12, 0 },
+	{ SINGLEI, "bank", 0x00, 0 },
 	
 	{ BRANCH, "brc", 0xF0, 0 },
 	{ BRANCH, "brae", 0xF0, 0 },

@@ -8,6 +8,7 @@
 const dump_isr = document.getElementById("button-dump-isr");
 const dump_data = document.getElementById("button-dump-data");
 const upload_sav = document.getElementById("upload-sav");
+const upload_img = document.getElementById("upload-img");
 const terminal = document.getElementById("terminal");
 const readout = document.getElementById("readout");
 
@@ -74,6 +75,10 @@ cf_state = {
 	buffer: [], // Current operation buffer
 	rdwri: 0,	// Reading or writing
 	left: 0, 	// Bytes left
+	last: 0,	// Last data byte read
+	
+	// Timing information
+	lastAccessMs: 0,	// Milliseconds since last access
 	
 	// Registers
 	error: 0,		// Error Register
@@ -83,7 +88,6 @@ cf_state = {
 	lba1: 0,		// LBA 1 Register
 	lba2: 0,		// LBA 2 Register
 	lba3: 0,		// LBA 3 Register
-	status: 0		// Status Register
 };
 
 /*
@@ -92,6 +96,41 @@ cf_state = {
 function cfCommand(cf, val) {
 	// Reset the error
 	error = 0x00;
+	
+	// Make sure that another command hasn't happened too soon
+	if (cf.lastAccessMs + 1 >= Date.now())
+		return;
+	
+	// Do command
+	switch (val) {
+		case 0x20:
+			// Read
+			cf.left = cf.count * 512;
+			cf.buffer = [];
+			cf.rdwri = 0;
+			
+			let pointer = (cf.lba0 << 9) + (cf.lba1 << 17);
+			for (let i = 0; i < cf.left; i++) {
+				cf.buffer.push(cf.data[pointer]);
+				
+				pointer = (pointer + 1) & 0x1FFFFFF;
+			}
+			break;
+			
+			
+		case 0x30:
+			// Write
+			cf.left = cf.count * 512;
+			cf.buffer = [];
+			cf.rdwri = 1;
+			break;
+			
+		default:
+			break;
+	}
+	
+	// Set time of last access
+	cf.lastAccessMs = Date.now();
 }
 
 /*
@@ -102,6 +141,23 @@ function cfWrite(cf, register, val) {
 		
 		case 0x0:
 			// Data Write
+			if (cf.left > 0 && cf.rdwri == 1) {
+				// Place byte into buffer
+				buffer.push(val)
+				
+				// Decrement the number of bytes to write
+				cf.left--;
+				
+				// Do we write the buffer out?
+				if (cf.left == 0) {
+					let pointer = (cf.lba0 << 9) + (cf.lba1 << 17);
+					for (let i = 0; i < cf.buffer.length; i++) {
+						cf.data[pointer] = buffer[i];
+						pointer = (pointer + 1) & 0x1FFFFFF;
+					}
+				}
+			}
+			
 			break;
 			
 		case 0x1:
@@ -132,7 +188,7 @@ function cfWrite(cf, register, val) {
 		case 0x6:
 			// LBA 3 Register
 			cf.lba3 = val;
-			brea;
+			break;
 		
 		case 0x7:
 			// Command Register
@@ -153,7 +209,14 @@ function cfRead(cf, register) {
 		
 		case 0x0:
 			// Data Read
-			return 0xFF;
+			if (cf.left > 0 && cf.rdwri == 0) {
+				left--;
+				cf.last = cf.buffer.shift();
+			}
+			
+			// Just return the last byte read
+			return cf.last;
+
 			
 		case 0x1:
 			// Error Register
@@ -181,7 +244,13 @@ function cfRead(cf, register) {
 		
 		case 0x7:
 			// Status Register
-			return status;
+			if (cf.lastAccessMs + 1 >= Date.now()) {
+				// Not ready
+				return 0b10000000;
+			} else {
+				// Ready
+				return 0b01000000;
+			}
 			
 		default:
 			return 0xFF;
@@ -366,7 +435,7 @@ upload_sav.addEventListener('change', function(e) {
 	
 
 	(async () => {
-        const fileContent = new Uint8Array(await savFile.arrayBuffer());
+        let fileContent = new Uint8Array(await savFile.arrayBuffer());
 
         let block = 0;
 		while (block + 512 <= fileContent.length) {
@@ -397,5 +466,28 @@ upload_sav.addEventListener('change', function(e) {
 		propagate(cpu_state, isrFetch(cpu_state, cpu_state.pc));
 		updateFlow(false);
 		upload_sav.value = null;
+	})();
+});
+
+// Link "MOUNT .IMG" button to file input
+document.getElementById("button-mount-img").onclick = function() {
+	upload_img.click();
+}
+
+// Shove the .IMG into an emulated CF card
+upload_img.addEventListener('change', function(e) {
+	let imgFile = upload_img.files[0];
+	
+
+	(async () => {
+        let fileContent = new Uint8Array(await imgFile.arrayBuffer());
+
+		// Load into compact flash image
+        let i = 0;
+		while (i < fileContent.length && i < (512 * 256 * 256)) {
+			cf_state.data[i] = fileContent[i];
+			i++;
+		}
+		
 	})();
 });

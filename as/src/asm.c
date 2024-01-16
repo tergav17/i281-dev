@@ -1702,6 +1702,30 @@ char asm_doisr(struct instruct *isr) {
 		asm_emit_isr(isr->opcode + (dst<<2), value);
 	}
 	
+	// single plus immediate register operation
+	else if (isr->type == SINGLEI) {
+		dst = asm_arg();
+		
+		// we should get a simple register
+		if (dst >= 4)
+			return 1;
+		
+		// peek to see if we need to include an immediate
+		value = 0;
+		if (sio_peek() == '+') {
+			// consume "+" symbol
+			asm_token_read();
+			
+			// evaluate expression
+			type = asm_evaluate(&value, 0);
+			if (type == 0 && asm_pass)
+				asm_error("undefined expression");
+		}
+		
+		// generate instruction
+		asm_emit_isr(isr->opcode + (dst<<2), value);
+	}
+	
 	return 0;
 }
 

@@ -76,8 +76,8 @@
 			<button type="button" id="button-mem" onclick="simToggleIsrData()">[ISR]/DATA</button>
 		</td>
 		<td>
-			<input type="range" min="1" max="64" value="10" id="slider-clock">
-			<b id="text-clock"> CLK: 1 Hz  </b>
+			<input type="range" min="1" max="64" value="32" id="slider-clock">
+			<b id="text-clock"> CLK: 500 Hz  </b>
 		</td>
 		
 	</tr>
@@ -105,7 +105,7 @@
 					<button type="button" id="button-load-sav">LOAD .SAV</button>
 				</td>
 				<td>
-					<button type="button">MOUNT .IMG</button>
+					<button type="button" id="button-mount-img">MOUNT .IMG</button>
 				</td>
 			</tr>
 		</table>
@@ -127,6 +127,7 @@
 	
 	<!-- file input endpoints -->
 	<input type="file" class="hidden" id="upload-sav" accept=".sav"></input>
+	<input type="file" class="hidden" id="upload-img" accept=".img"></input>
 	
 	<!-- scriptville -->
 	<script src="cpu.js"></script>

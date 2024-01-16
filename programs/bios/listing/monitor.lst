@@ -2,13 +2,12 @@
 01/00:          ; PUNY MEMORY MONITOR
 01/00:          
 01/00:          ; DEFINES
-01/00:          UART	=	0X90
-01/00:          UART_RH	=	UART+0X00
-01/00:          UART_TH	=	UART+0X00
-01/00:          UART_LS	=	UART+0X05
-01/00:          SCRATCH	=	UART+0X07
-01/00:          
-01/00:          DBANK	=	0X80
+01/00:          DBANK	=	0X80		; DATA BANK ADDRESS
+01/00:          UART	=	0X90		; UART BASE ADDRESS
+01/00:          UART_RH	=	UART+0X00	; UART READ HOLDING
+01/00:          UART_TH	=	UART+0X00	; UART TRANSMIT HOLDING
+01/00:          UART_LS	=	UART+0X05	; UART LINE STATUS
+01/00:          SCRATCH	=	UART+0X07	; SCRATCH BYTE ADDRESS
 01/00:          
 01/00:          .BANK 0
 00/00:          .TEXT
@@ -44,7 +43,7 @@
 00/18: FEE7     	JUMPR	C
 00/1A:          	
 00/19:          	; SET THE BANK
-00/19: 2000     SBANK:	NOOP	; TODO: BANK D
+00/19: 0C00     SBANK:	BANK	D
 00/1A: AC80     	STORE	[DBANK],D
 00/1B: FFE4     	JUMP	START
 00/1D:          
@@ -98,6 +97,7 @@
 00/38:          
 00/38:          	; GET CHARACTER
 00/38:          	; TYPED CHARACTER RETURNED IN A
+00/38:          	; USES: A
 00/38: 8095     GCHAR:	LOAD	A,[UART_LS]
 00/3A:          
 00/39:          	; CHECK 0TH BIT OF LINE STATUS
@@ -118,6 +118,7 @@
 00/42:          
 00/41:          	; SEND CHARACTER
 00/41:          	; A = CHARACTER TO SEND
+00/41:          	; USES: A, B
 00/41: 8495     SCHAR:	LOAD	B,[UART_LS]
 00/43:          	
 00/42:          	; CHECK 5TH BIT OF LINE STATUS
@@ -135,6 +136,7 @@
 00/48:          	; CONVERTS ASCII HEX INTO HALF A BYTE
 00/48:          	; A = BYTE TO CONVERT
 00/48:          	; RETURNS D=D<<4 + HEX(A)
+00/48:          	; USES: A, B, D
 00/48: 2600     FROMHEX:MOV	B,C
 00/49: 384B     	LOADI	C,@+2
 00/4A: FFED     	JUMP	GCHAR
@@ -169,6 +171,7 @@
 00/62:          	; CONVERT HALF A BYTE INTO ASCII HEX
 00/62:          	; D[7:4] = NYBBLE TO CONVERT
 00/62:          	; RETURNS D=D<<4 AND ASCII IN A
+00/62:          	; USES: A, B, D
 00/62: 30F0     TOHEX:	LOADI	A,0XF0
 00/64:          
 00/63:          	; SHIFT LAST 4 BITS OF D INTO FIRST 4 BITS OF A
