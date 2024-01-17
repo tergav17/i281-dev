@@ -2,52 +2,34 @@
 #
 # GenerateImage.py
 #
-# Turns a .SAV file into ROM images that can be burned
-# Also generates a file that can be hard-coded into the emulator
+# Uses a master boot record and file system characteristics
+# to generate an empty file system image for DOS/281
 
 import sys
 
 def main():
-    print("i281 SAV To Binary Utility V0.1")
+    print("i281 DOS/281 FS Generate V0.1")
     print("SD Group 24-14")
-    print("Updated Jan 11, 2024")
+    print("Updated Jan 16, 2024")
     
-    # Read in the data file
-    input = open(sys.argv[1], mode="rb")
-    data = input.read()
+    # Read in the master boot record
+    mbr_f = open(sys.argv[1], mode="rb")
+    mbr = mbr_f.read()
     
-    # Create output data files
-    output_low = open(sys.argv[2], mode="wb")
-    output_high = open(sys.argv[3], mode="wb")
-    output_txt = open(sys.argv[4], mode="w")
+    # Create image file
+    image = open(sys.argv[2], mode="wb")
     
-    # Output low and high bytes
+    # Output MBR to image file
     for o in range(512):
-        for i in range(128):
-            output_high.write((data[256 + (i * 2)]).to_bytes(1, byteorder='big'));
-            output_low.write((data[256 + (i * 2) + 1]).to_bytes(1, byteorder='big'));
-    
-    # Output javascript snippet
-    output_txt.write("// Setup BIOS\ncpu_state.bios = [\n//	0x01	0x01	0x02	0x03	0x04	0x05	0x06	0x07\n");
-    for i in range(16):
-        for o in range(8):
-            output_txt.write("\t0x%02X" % (data[256 + i * 16 + o * 2]))
-            output_txt.write("%02X" % (data[256 + i * 16 + o * 2 + 1]))
-            
-            if i != 15 or o != 7:
-                output_txt.write(",");
-            else:
-                output_txt.write(" ");
-            
-        output_txt.write(" // 0x%02X\n" % (i*8))
-    
-    output_txt.write("];")
-    
+        image.write((mbr[o]).to_bytes(1, byteorder='big'));
+
+    # Output the rest of the filesystem
+    for o in range((512 * 256 * 256) - 512):
+        image.write((0).to_bytes(1, byteorder='big'));
+
     # Close all files
-    input.close()
-    output_low.close()
-    output_high.close()
-    output_txt.close()
+    mbr_f.close()
+    image.close()
 
 if __name__ == "__main__":
     main()
