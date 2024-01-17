@@ -210,7 +210,7 @@ function cfRead(cf, register) {
 		case 0x0:
 			// Data Read
 			if (cf.left > 0 && cf.rdwri == 0) {
-				left--;
+				cf.left--;
 				cf.last = cf.buffer.shift();
 			}
 			

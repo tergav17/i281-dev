@@ -1,0 +1,52 @@
+00/00:          ; MBR.S
+01/00:          ; MASTER BOOT RECORD (2ND STAGE BOOTLOADER)
+01/00:          
+01/00:          ; DEFINES
+01/00:          INDIR	= 0X01
+01/00:          PRGM	= 0X02
+01/00:          HALT	= 0X7F
+01/00:          
+01/00:          DBANK	=	0X80	; DATA BANK ADDRESS 
+01/00:          CF	=	0XA0	; COMPACT FLASH BASE ADDRESS
+01/00:          CF_DATA	=	CF+0X00	; CF DATA
+01/00:          CF_ERR	=	CF+0X01	; CF ERROR
+01/00:          CF_FEAT	=	CF+0x01	; CF FEATURES
+01/00:          CF_CNT	=	CF+0X02	; CF SECTOR COUNT
+01/00:          CF_LBA0	=	CF+0X03	; CF LBA BITS 0-7
+01/00:          CF_LBA1	=	CF+0X04	; CF LBA BITS 8-15
+01/00:          CF_LBA2	=	CF+0X05	; CF LBA BITS 16-23
+01/00:          CF_LBA3	=	CF+0X06	; CF LBA BITS 24-27
+01/00:          CF_STAT	=	CF+0X07	; CF STATUS
+01/00:          CF_CMD	=	CF+0X07	; CF COMMAND
+01/00:          
+01/00:          .TEXT
+01/00:          
+01/00: FF7E     	JUMP	HALT
+01/02:          
+01/01:          	; WAIT FOR THE CF CARD TO BECOME READY
+01/01:          	; FOR THIS TO HAPPEN, THE BUSY FLAG MUST BE 0
+01/01:          	; AND THE READY FLAG MUST BE 1
+01/01:          	; IF A CF CARD ISN'T PRESENT, THIS ROUTINE HANGS
+01/01:          	; BUT WE DON'T CARE
+01/01:          	; USES: A
+01/01: 80A7     CFWAIT:	LOAD	A,[CF_STAT]
+01/03:          
+01/02:          	; CHECK BIT 7 (BUSY FLAG)
+01/02: 4000     	SHIFTL	A
+01/04:          	
+01/03:          	; GO BACK TO START BUSY
+01/03: F0FD     	BRC	CFWAIT
+01/05:          	
+01/04:          	; CHECK BIT 6 (READY FLAG)
+01/04: 4000     	SHIFTL	A
+01/06:          	
+01/05:          	; GO BACK TO START IF NOT READY
+01/05: F1FB     	BRNC	CFWAIT
+01/07:          	
+01/06:          	; RETURN FROM FUNCTION CALL
+01/06: FEF9     	JUMPR	C
+01/08:          	
+01/07:          
+01/07:          
+01/07:          .DATA
+01/07:          

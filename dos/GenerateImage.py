@@ -4,7 +4,9 @@
 #
 # Uses a master boot record and file system characteristics
 # to generate an empty file system image for DOS/281
-
+#
+# Usage: GenerateImage.py mbr.sav [# blocks total] [# blocks for records]
+# as a rule, each
 import sys
 
 def main():
@@ -17,13 +19,13 @@ def main():
     mbr = mbr_f.read()
     
     # Create image file
-    image = open(sys.argv[2], mode="wb")
+    image = open("dos281.img", mode="wb")
     
     # Output MBR to image file
     for o in range(512):
         image.write((mbr[o]).to_bytes(1, byteorder='big'));
 
-    # Output the rest of the filesystem
+    # Output the rest of the filesystem as empty
     for o in range((512 * 256 * 256) - 512):
         image.write((0).to_bytes(1, byteorder='big'));
 
