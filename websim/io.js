@@ -110,6 +110,7 @@ function cfCommand(cf, val) {
 			cf.rdwri = 0;
 			
 			let pointer = (cf.lba0 << 9) + (cf.lba1 << 17);
+			console.log("Read starting at: " + pointer + " (Block " + (pointer / 512) + ")");
 			for (let i = 0; i < cf.left; i++) {
 				cf.buffer.push(cf.data[pointer]);
 				
@@ -213,6 +214,8 @@ function cfRead(cf, register) {
 				cf.left--;
 				cf.last = cf.buffer.shift();
 			}
+			
+			console.log("Reading value: " + cf.last);
 			
 			// Just return the last byte read
 			return cf.last;

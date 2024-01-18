@@ -1,10 +1,17 @@
 I281_ASM = "../i281as"
 
-all: mbr.sav
+all: dos281.img
 
-%.sav: %.s
-	$(I281_ASM) -l -o $* $*.s
-	python3 GenerateImage.py mbr.sav
-	
+dos281.img: binary/mbr.sav binary/kernel.sav apps/binary/*
+	python3 GenerateImage.py binary/mbr.sav 65536 32
+
+binary/%.sav: source/*.s
+	cd source; ../$(I281_ASM) -o ../mbr mbr.s
+	cd source; ../$(I281_ASM) -o ../kernel low.s
+	cp kernel.sav apps/binary/kernel.sy
+	mv *.sav binary
+	mv *.lst listing
+
 clean:
-	rm *.sav *.lst
+	rm listing/*
+	rm binary/*
