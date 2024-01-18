@@ -1,0 +1,53 @@
+00/00:          ; LOW.S
+01/80:          ; LOW MEMORY OF THE DOS/281 SYSTEM
+01/80:          ; HANDLES SYSCALLS
+01/80:          
+01/80:          ; DEFINES
+01/80:          UART	=	0X90
+01/80:          UART_TH	=	UART+0X00
+01/80:          UART_LS	=	UART+0X05
+01/80:          
+01/80:          .BANK 0
+00/80:          .TEXT
+00/80:          	; START HERE
+00/80:          	; LET B BE OUR STRING POINTER 
+00/80: 3400     START:	LOADI	B,STRING
+00/82:          
+00/81:          	; LOAD STRING CHARACTER
+00/81: 9100     PRINT:	LOADF	A,[B]
+00/83:          
+00/82:          	; MAKE SURE IT ISNT ZERO
+00/82: 5000     	ADDI	A,0
+00/83: F608     	BRZ	END
+00/85:          	
+00/84:          	; GET LINE STATUS REGISTER
+00/84: 8895     WAIT:	LOAD	C,[UART_LS]
+00/86:          	
+00/85:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
+00/85: 4A00     	SHIFTL	C
+00/86: 4A00     	SHIFTL	C
+00/87: 4A00     	SHIFTL	C
+00/88: F1FB     	BRNC	WAIT
+00/8A:          	
+00/89:          	; TRANSMIT BYTE
+00/89: A090     	STORE	[UART_TH],A
+00/8B:          	
+00/8A:          	; INCREMENT POINTER
+00/8A: 5401     	ADDI	B,1
+00/8C:          	
+00/8B:          	; RETURN TO PRINT LOOP
+00/8B: FFF5     	JUMP	PRINT
+00/8D:          	
+00/8C:          	; AND HALT...
+00/8C: FFFF     END:	JUMP	END
+00/8E:          	
+00/8D:          
+00/8D:          
+00/8D:          .DATA
+00/00: 48454C4C
+       4F204652
+       4F4D2054
+       4845204B
+       45524E45
+       4C210A0D
+       00       .DEFL BYTE STRING	"HELLO FROM THE KERNEL!",0X0A,0x0D,0

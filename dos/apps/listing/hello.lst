@@ -1,0 +1,48 @@
+00/00:          ; HELLO.S
+01/80:          ; THE CLASSIC "HELLO WORLD" PROGRAM
+01/80:          
+01/80:          ; DEFINES
+01/80:          UART	=	0X90
+01/80:          UART_TH	=	UART+0X00
+01/80:          UART_LS	=	UART+0X05
+01/80:          
+01/80:          .TEXT
+01/80:          	; START HERE
+01/80:          	; LET B BE OUR STRING POINTER 
+01/80: 3400     START:	LOADI	B,STRING
+01/82:          
+01/81:          	; LOAD STRING CHARACTER
+01/81: 9100     PRINT:	LOADF	A,[B]
+01/83:          
+01/82:          	; MAKE SURE IT ISNT ZERO
+01/82: 5000     	ADDI	A,0
+01/83: F608     	BRZ	END
+01/85:          	
+01/84:          	; GET LINE STATUS REGISTER
+01/84: 8895     WAIT:	LOAD	C,[UART_LS]
+01/86:          	
+01/85:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
+01/85: 4A00     	SHIFTL	C
+01/86: 4A00     	SHIFTL	C
+01/87: 4A00     	SHIFTL	C
+01/88: F1FB     	BRNC	WAIT
+01/8A:          	
+01/89:          	; TRANSMIT BYTE
+01/89: A090     	STORE	[UART_TH],A
+01/8B:          	
+01/8A:          	; INCREMENT POINTER
+01/8A: 5401     	ADDI	B,1
+01/8C:          	
+01/8B:          	; RETURN TO PRINT LOOP
+01/8B: FFF5     	JUMP	PRINT
+01/8D:          	
+01/8C:          	; AND HALT...
+01/8C: FFFF     END:	JUMP	END
+01/8E:          	
+01/8D:          
+01/8D:          
+01/8D:          .DATA
+01/00: 48454C4C
+       4F2C2057
+       4F524C44
+       210A0D00 .DEFL BYTE STRING	"HELLO, WORLD!",0X0A,0x0D,0
