@@ -4,7 +4,7 @@ all: binary/hello.sav
 
 binary/%.sav: source/%.s
 	$(I281_ASM) -o $* source/$*.s
-	mv $*.sav binary
+	mv $*.sav binary/$*.sv
 	mv $*.lst listing
 	
 clean:
