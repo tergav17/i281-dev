@@ -50,6 +50,7 @@ def main():
         image.write((mbr[o]).to_bytes(1, byteorder='big'));
         
     # Output the allocation bitmap
+    
 
     # Output the rest of the filesystem as empty
     # for o in range((512 * 256 * 256) - 512):
