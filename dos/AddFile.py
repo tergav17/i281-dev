@@ -7,6 +7,7 @@
 # Usage: AddFile.py dos281.img [user space] [file 0] [file 1] ...
 import sys
 import os
+import math
 
 def main():
     print("i281 DOS/281 File Add Utility V0.1")
@@ -15,7 +16,8 @@ def main():
     
     # Read in the DOS/281 image file
     image_f = open(sys.argv[1], mode="rb")
-    image = image_f.read()
+    image = list(image_f.read())
+    image_f.close()
     
     # Get user space
     user_space = int(sys.argv[2])
@@ -57,8 +59,8 @@ def main():
                 
         # Insert file extension
         for o in range(2):
-            if o < len(filename[0]):
-                ch = ord(filename[0][o])
+            if o < len(filename[1]):
+                ch = ord(filename[1][o])
                 
                 if (ord('0') <= ch and ch <= ord('9')) or (ord('A') <= ch and ch <= ord('Z')) or ch == ord('-') or ch == ord('_'):
                     image[record+o+8] = ch
@@ -69,17 +71,47 @@ def main():
                 image[record+o+8] = ord('-')
         
         # Insert file size
-        size = len(new)
+        size = math.ceil(len(new) / 512)
+        if (size > 256):
+            print("Error: File too large")
+            sys.exit(1)
+            
+        if (size == 256):
+            image[record+10] = 1
+            image[record+11] = 0
+        else:
+            image[record+10] = 0
+            image[record+11] = size
+            
+        # Allocate block table
+        bt = alloc(image)
+        image[record+13] = bt >> 8
+        image[record+14] = bt & 0xFF
+        bt *= 512
+        
+        # Copy file content
+        for o in range(size):
+            block = alloc(image)
+            image[bt] = block >> 8
+            image[bt+1] = block & 0xFF
+            bt += 2
+            block *= 512
+            for u in range(512):
+                if o * 512 + u < len(new):
+                    image[block + u] = new[o * 512 + u]
+                else:
+                    image[block + u] = 0x00
         
         # Close file
         new_f.close()
         
+        
+    # Write out image file
+    image_f = open(sys.argv[1], mode="wb")
+    image_f.write(bytes(image))
     image_f.close()
     
-    
-    
-    
-# Finds a file record that is empty
+# Fwnds a file record that is empty
 # Returns address of the empty record
 def newrec(image):
     pointer = 17 * 512
