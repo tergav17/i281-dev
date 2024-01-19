@@ -6,47 +6,127 @@
 01/80:          PRGM	= 0X02
 01/80:          HALT	= 0X7F
 01/80:          
-01/80:          DBANK	=	0X80	; DATA BANK ADDRESS 
-01/80:          CF	=	0XA0	; COMPACT FLASH BASE ADDRESS
-01/80:          CF_DATA	=	CF+0X00	; CF DATA
-01/80:          CF_ERR	=	CF+0X01	; CF ERROR
-01/80:          CF_FEAT	=	CF+0x01	; CF FEATURES
-01/80:          CF_CNT	=	CF+0X02	; CF SECTOR COUNT
-01/80:          CF_LBA0	=	CF+0X03	; CF LBA BITS 0-7
-01/80:          CF_LBA1	=	CF+0X04	; CF LBA BITS 8-15
-01/80:          CF_LBA2	=	CF+0X05	; CF LBA BITS 16-23
-01/80:          CF_LBA3	=	CF+0X06	; CF LBA BITS 24-27
-01/80:          CF_STAT	=	CF+0X07	; CF STATUS
-01/80:          CF_CMD	=	CF+0X07	; CF COMMAND
+01/80:          DBANK	= 0X80		; DATA BANK ADDRESS 
+01/80:          CF	= 0XA0		; COMPACT FLASH BASE ADDRESS
+01/80:          CF_DATA	= CF+0X00	; CF DATA
+01/80:          CF_ERR	= CF+0X01	; CF ERROR
+01/80:          CF_FEAT	= CF+0x01	; CF FEATURES
+01/80:          CF_CNT	= CF+0X02	; CF SECTOR COUNT
+01/80:          CF_LBA0	= CF+0X03	; CF LBA BITS 0-7
+01/80:          CF_LBA1	= CF+0X04	; CF LBA BITS 8-15
+01/80:          CF_LBA2	= CF+0X05	; CF LBA BITS 16-23
+01/80:          CF_LBA3	= CF+0X06	; CF LBA BITS 24-27
+01/80:          CF_STAT	= CF+0X07	; CF STATUS
+01/80:          CF_CMD	= CF+0X07	; CF COMMAND
 01/80:          
+01/80:          CF_READ	= 0X20		; READ COMMAND
 01/80:          .TEXT
 01/80:          
-01/80: FFFE     	JUMP	HALT
-01/82:          
-01/81:          	; WAIT FOR THE CF CARD TO BECOME READY
-01/81:          	; FOR THIS TO HAPPEN, THE BUSY FLAG MUST BE 0
-01/81:          	; AND THE READY FLAG MUST BE 1
-01/81:          	; IF A CF CARD ISN'T PRESENT, THIS ROUTINE HANGS
-01/81:          	; BUT WE DON'T CARE
-01/81:          	; USES: A
-01/81: 80A7     CFWAIT:	LOAD	A,[CF_STAT]
-01/83:          
-01/82:          	; CHECK BIT 7 (BUSY FLAG)
-01/82: 4000     	SHIFTL	A
+01/80:          	; LOAD ADDRESS OF FILE RECORDS
+01/80: 3000     	LOADI	A,0
+01/81: A0A4     	STORE	[CF_LBA1],A
+01/82: 3011     	LOADI	A,17
 01/84:          	
-01/83:          	; GO BACK TO START BUSY
-01/83: F0FD     	BRC	CFWAIT
-01/85:          	
-01/84:          	; CHECK BIT 6 (READY FLAG)
-01/84: 4000     	SHIFTL	A
-01/86:          	
-01/85:          	; GO BACK TO START IF NOT READY
-01/85: F1FB     	BRNC	CFWAIT
+01/83:          	; BEGIN FILE SEARCH
+01/83:          	; EXECUTE READ OPERATION
+01/83: A0A3     0:	STORE	[CF_LBA0],A
+01/84: 3886     	LOADI	C,@+2
+01/85: FF17     	JUMP	CFREAD
 01/87:          	
-01/86:          	; RETURN FROM FUNCTION CALL
-01/86: FE79     	JUMPR	C
-01/88:          	
-01/87:          
-01/87:          
-01/87:          .DATA
-01/87:          
+01/86:          	; MATCH THE FIRST 10 WORDS
+01/86: 3800     1:	LOADI	C,FNAME
+01/87: 3C00     	LOADI	D,0
+01/89:          	
+01/88:          	; MATCH CHARACTER
+01/88: 80A0     2:	LOAD	A,[CF_DATA]
+01/89: 9600     	LOADF	B,[C]
+01/8A: D100     	CMP	A,B
+01/8B: F601     	BRZ	3F
+01/8D:          	
+01/8C:          	; DOESN'T MATCH, SET A FLAG
+01/8C: 3C01     	LOADI	D,1
+01/8E:          	
+01/8D:          	; NEXT CHARACTER
+01/8D: 7809     3:	SUBI	C,FNAME+9
+01/8E: F602     	BRZ	4F
+01/8F: 580A     	ADDI	C,FNAME+10
+01/90: FFF7     	JUMP	2B
+01/92:          
+01/91:          	; MATCH COMPLETE
+01/91:          	; DID WE WIN?
+01/91: 5C00     4:	ADDI	D,0
+01/92: F60A     	BRZ	9F
+01/94:          	
+01/93:          	; NO WE DID NOT, NEXT ENTRY
+01/93: 3406     	LOADI	B,6
+01/94: 80A0     5:	LOAD	A,[CF_DATA]
+01/95: 7401     	SUBI	B,1
+01/96: F7FD     	BRNZ	5B
+01/98:          	
+01/97:          	; CHECK NEXT ENTRY STATUS
+01/97: 5000     	ADDI	A,0
+01/99:          	
+01/98:          	; IT'S 0X00: DO THE NEXT ENTRY IN THE BLOCK
+01/98: F6ED     	BRZ	1B
+01/9A:          	
+01/99:          	; IT'S 0XFF: WE ARE OUT OF ENTRIES
+01/99: F4E5     	BRN	HALT
+01/9B:          	
+01/9A:          	; IT'S 0X01, THE RECORD IS ON THE NEXT BLOCK
+01/9A: 80A3     	LOAD	A,[CF_LBA0]
+01/9B: 5001     	ADDI	A,1
+01/9C: FFE6     	JUMP	0B
+01/9E:          
+01/9D:          	; WE HAVE FOUND THE FILE, EXTRACT RELEVANT DATA
+01/9D:          9:
+01/9D:          	
+01/9D:          	
+01/9D:          
+01/9D:          	; READS FROM THE CF CARD
+01/9D:          	; USING A PRE-LOADED LBA ADDRESS,
+01/9D:          	; A READ COMMAND IS EXECUTED AND
+01/9D:          	; A WAIT IS PERFORMED UNTIL THE
+01/9D:          	; COMMAND COMPLETES
+01/9D:          	; USES: A, C, D
+01/9D: 3001     CFREAD:	LOADI	A,1
+01/9E: A0A2     	STORE	[CF_CNT],A
+01/A0:          
+01/9F:          	; LETS WAIT FOR A POTENTIAL PREVIOUS COMMAND TO COMPLETE
+01/9F: 2E00     	MOV	D,C
+01/A0: 38A2     	LOADI	C,@+2
+01/A1: FF03     	JUMP	CFWAIT
+01/A3:          
+01/A2:          	; ACTUALLY EXECUTE THE READ COMMAND NOW
+01/A2: 3020     	LOADI	A,CF_READ
+01/A3: A0A7     	STORE	[CF_CMD],A
+01/A5:          	
+01/A4:          	; WAIT FOR IT TO COMPLETE
+01/A4: 2B00     	MOV	C,D
+01/A6:          
+01/A5:          	; WAIT FOR THE CF CARD TO BECOME READY
+01/A5:          	; FOR THIS TO HAPPEN, THE BUSY FLAG MUST BE 0
+01/A5:          	; AND THE READY FLAG MUST BE 1
+01/A5:          	; IF A CF CARD ISN'T PRESENT, THIS ROUTINE HANGS
+01/A5:          	; BUT WE DON'T CARE
+01/A5:          	; USES: B
+01/A5: 80A7     CFWAIT:	LOAD	A,[CF_STAT]
+01/A7:          
+01/A6:          	; CHECK BIT 7 (BUSY FLAG)
+01/A6: 4000     	SHIFTL	A
+01/A8:          	
+01/A7:          	; GO BACK TO START BUSY
+01/A7: F0FD     	BRC	CFWAIT
+01/A9:          	
+01/A8:          	; CHECK BIT 6 (READY FLAG)
+01/A8: 4000     	SHIFTL	A
+01/AA:          	
+01/A9:          	; GO BACK TO START IF NOT READY
+01/A9: F1FB     	BRNC	CFWAIT
+01/AB:          	
+01/AA:          	; RETURN FROM FUNCTION CALL
+01/AA: FE55     	JUMPR	C
+01/AC:          
+01/AB:          
+01/AB:          
+01/AB:          .DATA
+01/AB:          
