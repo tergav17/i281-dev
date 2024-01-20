@@ -325,7 +325,7 @@ function uartOutput(ch) {
 	switch (ch) {
 		case 0x08:
 			// Backspace
-			terminal.value = terminal.value.substring(0, terminal.value.length);
+			terminal.value = terminal.value.substring(0, terminal.value.length-1);
 			break;
 			
 		case 0x09:
@@ -366,11 +366,11 @@ terminal.onkeydown = function(e) {
 	switch (ch) {
 		case 8:
 			uartInput(8);
-			break;
+			return false;
 		
 		case 46:
 			uartInput(127);
-			break;
+			return false;
 			
 		default:
 			break;

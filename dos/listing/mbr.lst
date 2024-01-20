@@ -3,15 +3,19 @@
 01/80:          
 01/80:          ; DEFINES
 01/80:          INDIR	= 0X01
-01/80:          PRGM	= 0X02
+01/80:          IRET	= 0X02
+01/80:          SYSCALL	= 0X03
+01/80:          PRGM	= 0X04
 01/80:          HALT	= 0X7F
 01/80:          
 01/80:          DBANK	= 0X80		; DATA BANK ADDRESS
+01/80:          
 01/80:          UART	= 0X90		; UART BASE ADDRESS
 01/80:          UART_RH	= UART+0X00	; UART READ HOLDING
 01/80:          UART_TH	= UART+0X00	; UART TRANSMIT HOLDING
 01/80:          UART_LS	= UART+0X05	; UART LINE STATUS
 01/80:          SCRATCH	= UART+0X07	; SCRATCH BYTE ADDRESS
+01/80:          
 01/80:          CF	= 0XA0		; COMPACT FLASH BASE ADDRESS
 01/80:          CF_DATA	= CF+0X00	; CF DATA
 01/80:          CF_ERR	= CF+0X01	; CF ERROR
@@ -207,7 +211,7 @@
 01/DF: 3406     	LOADI	B,ISRBLK
 01/E0: 3C01     	LOADI	D,1
 01/E1: 38E3     	LOADI	C,@+2
-01/E2: FF1F     	JUMP	PRGM
+01/E2: FF21     	JUMP	PRGM
 01/E4:          	
 01/E3:          	; MOVE ON TO NEXT BLOCK OR RECORD
 01/E3:          	; CHECK IF WE ARE DONE
