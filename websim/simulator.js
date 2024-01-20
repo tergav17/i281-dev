@@ -109,7 +109,7 @@ function simToggleIsrData() {
 
 // event farm!!!! :)
 var clockSlack = 0.0;
-var clockCyclesPerTick = 10;
+var clockCyclesPerTick = 200.0;
 function updateClock() {
 	if (runClock) {
 		// Add the desired cycles per tick to the slack

@@ -1,53 +1,76 @@
-00/00:          ; LOW.S
+00/00:          ; COMMON.S
+01/80:          ; DOS/281 SYSTEM COMMON DEFINITIONS
+01/80:          
+01/80:          ; DEFINES
+01/80:          INDIR	= 0X01
+01/80:          PRGM	= 0X02
+01/80:          HALT	= 0X7F
+01/80:          
+01/80:          DBANK	= 0X80		; DATA BANK ADDRESS
+01/80:          UART	= 0X90		; UART BASE ADDRESS
+01/80:          UART_RH	= UART+0X00	; UART READ HOLDING
+01/80:          UART_TH	= UART+0X00	; UART TRANSMIT HOLDING
+01/80:          UART_LS	= UART+0X05	; UART LINE STATUS
+01/80:          SCRATCH	= UART+0X07	; SCRATCH BYTE ADDRESS
+01/80:          CF	= 0XA0		; COMPACT FLASH BASE ADDRESS
+01/80:          CF_DATA	= CF+0X00	; CF DATA
+01/80:          CF_ERR	= CF+0X01	; CF ERROR
+01/80:          CF_FEAT	= CF+0x01	; CF FEATURES
+01/80:          CF_CNT	= CF+0X02	; CF SECTOR COUNT
+01/80:          CF_LBA0	= CF+0X03	; CF LBA BITS 0-7
+01/80:          CF_LBA1	= CF+0X04	; CF LBA BITS 8-15
+01/80:          CF_LBA2	= CF+0X05	; CF LBA BITS 16-23
+01/80:          CF_LBA3	= CF+0X06	; CF LBA BITS 24-27
+01/80:          CF_STAT	= CF+0X07	; CF STATUS
+01/80:          CF_CMD	= CF+0X07	; CF COMMAND
+01/80:          
+01/80:          CF_READ	= 0X20		; READ COMMAND
+01/80:          CF_WRIT = 0X30		; WRITE COMMAND
+01/80:          
+01/80:          ; LOW.S
 01/80:          ; LOW MEMORY OF THE DOS/281 SYSTEM
 01/80:          ; HANDLES SYSCALLS
 01/80:          
-01/80:          ; DEFINES
-01/80:          UART	=	0X90
-01/80:          UART_TH	=	UART+0X00
-01/80:          UART_LS	=	UART+0X05
-01/80:          
 01/80:          .BANK 0
 00/80:          .TEXT
-00/80:          	; START HERE
-00/80:          	; LET B BE OUR STRING POINTER 
-00/80: 3400     START:	LOADI	B,STRING
-00/82:          
-00/81:          	; LOAD STRING CHARACTER
-00/81: 9100     PRINT:	LOADF	A,[B]
+00/80:          
+00/80:          	; JUMP STUB FOR HANDLING SYSCALLS
+00/80: FFFE     	JUMP	HALT
+00/81: FF00     	JUMP	ENTRY
 00/83:          
-00/82:          	; MAKE SURE IT ISNT ZERO
-00/82: 5000     	ADDI	A,0
-00/83: F608     	BRZ	END
-00/85:          	
-00/84:          	; GET LINE STATUS REGISTER
-00/84: 8895     WAIT:	LOAD	C,[UART_LS]
+00/82:          
+00/82:          	; ENTRY POINT FOR THE KERENL AFTER THE 2ND STAGE BOOT
+00/82:          	; JUST JUMP DIRECTLY TO THE 'INIT' ROUTINE IN CORE 
+00/82: 34FF     ENTRY:	LOADI	B,CORE0_B
+00/83: 3880     	LOADI	C,INIT
+00/84: FF7C     	JUMP	INDIR
 00/86:          	
-00/85:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
-00/85: 4A00     	SHIFTL	C
-00/86: 4A00     	SHIFTL	C
-00/87: 4A00     	SHIFTL	C
-00/88: F1FB     	BRNC	WAIT
-00/8A:          	
-00/89:          	; TRANSMIT BYTE
-00/89: A090     	STORE	[UART_TH],A
-00/8B:          	
-00/8A:          	; INCREMENT POINTER
-00/8A: 5401     	ADDI	B,1
-00/8C:          	
-00/8B:          	; RETURN TO PRINT LOOP
-00/8B: FFF5     	JUMP	PRINT
-00/8D:          	
-00/8C:          	; AND HALT...
-00/8C: FFFF     END:	JUMP	END
-00/8E:          	
-00/8D:          
-00/8D:          
-00/8D:          .DATA
-00/00: 48454C4C
-       4F204652
-       4F4D2054
-       4845204B
-       45524E45
-       4C210A0D
-       00       .DEFL BYTE STRING	"HELLO FROM THE KERNEL!",0X0A,0x0D,0
+00/85:          
+00/85:          
+00/85:          .DATA
+00/85:          
+00/00:          
+00/00:          
+00/00:          
+00/00:          	; SET UP UPPER BANK STUFF
+00/00:          	; THE 'B_' SYMBOLS WILL BE USED TO KEEP TRACK OF WHAT BANKS ARE
+00/00:          	; IN USE
+00/00:          	; 'BI" WILL BE USED FOR INSTRUCTION BANKS
+00/00:          	; 'BD' WILL BE USED FOR DATA BANKS
+00/00:          	; AT THE END OF ASSEMBLY, THESE VALUES WILL BE USED TO DETERMINE
+00/00:          	; HOW MUCH FREE MEMORY USER PROGRAMS HAVE
+00/00:          BI	= 255
+00/00:          BD	= 255
+00/00:          
+00/00:          ; CORE.S
+00/00:          ; MAIN 'GUTS' OF DOS/281
+00/00:          
+00/00:          .BANK BI
+FF/00:          CORE0_B	= BI
+FF/00:          .TEXT
+FF/00:          
+FF/80:          	; SET UP SYSTEM FOR OPERATION
+FF/80: FFFF     INIT:	JUMP	INIT
+FF/82:          
+FF/81:          
+FF/81:          	; BANK IS DONE, MOVE ON TO THE NEXT
