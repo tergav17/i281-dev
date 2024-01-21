@@ -8,7 +8,7 @@ dos281.img: binary/mbr.sav binary/kernel.sav apps/binary/* other/*
 
 binary/%.sav: source/*.s
 	cd source; ../$(I281_ASM) -o ../mbr common.s mbr.s
-	cd source; ../$(I281_ASM) -o ../kernel common.s low.s core.s tty.s
+	cd source; ../$(I281_ASM) -o ../kernel common.s low.s core.s tty.s blk.s fs.s
 	cp kernel.sav apps/binary/kernel.sy
 	mv *.sav binary
 	mv *.lst listing

@@ -28,8 +28,12 @@
 01/80:          CF_STAT	= CF+0X07	; CF STATUS
 01/80:          CF_CMD	= CF+0X07	; CF COMMAND
 01/80:          
+01/80:          CF_8BIT	= 0X01		; 8 BIT MODE
+01/80:          CF_DCAC	= 0X82		; DISABLE CACHE
+01/80:          
 01/80:          CF_READ	= 0X20		; READ COMMAND
 01/80:          CF_WRIT = 0X30		; WRITE COMMAND
+01/80:          CF_SETF	= 0XEF		; SET FEATURE COMMAND
 01/80:          
 01/80:          ; MBR.S
 01/80:          ; MASTER BOOT RECORD (2ND STAGE BOOTLOADER)
