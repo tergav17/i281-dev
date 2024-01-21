@@ -613,7 +613,7 @@ function decode(out, isr, flags) {
                 
         else if (operand == 0x9) { // BRBE
 			mnem = "BRBE ";
-            if (flagZ == 1 && flagC == 0)
+            if (flagZ == 1 || flagC == 0)
                 out[PROGRAM_COUNTER_MUX] = 1;
         }
 				

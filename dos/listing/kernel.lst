@@ -118,7 +118,7 @@ FF/98:
 FF/97:          	; DOT PROMPT
 FF/97: 38FF     PROMPT: LOADI	C,WORK_B
 FF/98: A803     	STORE	[SRC_BNK],C
-FF/99: 3006     	LOADI	A,S_PRMT
+FF/99: 300F     	LOADI	A,S_PRMT
 FF/9B:          
 FF/9A: 38FF     	LOADI	C,CORE0_B
 FF/9B: BB01     	STOREF	[D+1],C
@@ -140,17 +140,30 @@ FF/A5: 34FE     	LOADI	B,TTY0_B
 FF/A6: 389A     	LOADI	C,TTYINPT
 FF/A7: FF59     	JUMP	INDIR
 FF/A9:          	
-FF/A8: FFEE     	JUMP	PROMPT
-FF/AA:          
-FF/A9:          	; BANK IS DONE, MOVE ON TO THE NEXT
-FF/A9:          BI	= BI-1
-FF/A9:          
-FF/A9:          	; ALLOCATE A BANK FOR THE KERNEL WORK AREA
-FF/A9:          	; 0X60-7F = KERNEL STACK SPACE
-FF/A9:          .BANK	BD
-FF/A9:          WORK_B	= BD
-FF/A9:          .DATA
-FF/A9:          
+FF/A8:          	
+FF/A8:          	; ATTEMPT TO LOOKUP FILE
+FF/A8: 3000     	LOADI	A,0
+FF/A9: 38AE     	LOADI	C,@+5
+FF/AA: BB00     	STOREF	[D],C
+FF/AC:          	
+FF/AB: 34FC     	LOADI	B,FS0_B
+FF/AC: 3880     	LOADI	C,SSPARAM
+FF/AD: FF53     	JUMP	INDIR
+FF/AF:          	
+FF/AE:          	; AND BREAK
+FF/AE: FFFF     BP:	JUMP	BP
+FF/B0:          	
+FF/AF: FFE7     	JUMP	PROMPT
+FF/B1:          
+FF/B0:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FF/B0:          BI	= BI-1
+FF/B0:          
+FF/B0:          	; ALLOCATE A BANK FOR THE KERNEL WORK AREA
+FF/B0:          	; 0X60-7F = KERNEL STACK SPACE
+FF/B0:          .BANK	BD
+FF/B0:          WORK_B	= BD
+FF/B0:          .DATA
+FF/B0:          
 FF/00:          	; MISC VALUES
 FF/00:          	; USED AS TEMP REGISTERS FOR ALL SORTS OF STUFF
 FF/00: 00       .DEFL BYTE M0		0
@@ -167,12 +180,19 @@ FF/04:          	; USED DURING A 'READ' OR 'WRITE' CALL
 FF/04: 00       .DEFL BYTE BLK_HI	0
 FF/05: 00       .DEFL BYTE BLK_LO	0
 FF/06:          
-FF/06:          	; COMMAND LINE PROMPT
-FF/06: 0A0D2E00 .DEFL BYTE S_PRMT	0X0A,0X0D,'.',0
-FF/0A:          
-FF/0A:          	; PLACE 'HELLO' AT BOTTOM  OF STACK
-FF/0A:          	; WE DON'T CARE IF IT GETS OVERWRITTEN LATER
-FF/0A:          .ORG 0X60
+FF/06:          	; PATTERN FOR SEARCHING FOR FILES
+FF/06: 3F3F3F3F
+       3F3F3F3F .DEFL BYTE[8] PATTERN	"????????"
+FF/0E:          
+FF/0E:          	; WORKING USER AREA
+FF/0E: 30       .DEFL BYTE WRK_USR	'0'
+FF/0F:          
+FF/0F:          	; COMMAND LINE PROMPT
+FF/0F: 0A0D2E00 .DEFL BYTE S_PRMT	0X0A,0X0D,'.',0
+FF/13:          
+FF/13:          	; PLACE 'HELLO' AT BOTTOM  OF STACK
+FF/13:          	; WE DON'T CARE IF IT GETS OVERWRITTEN LATER
+FF/13:          .ORG 0X60
 FF/60: 444F532F
        32383120
        56312E30
@@ -185,7 +205,28 @@ FF/6F:
 FF/6F:          	; COMMAND LINE BANK
 FF/6F:          CMDL_B	= BD
 FF/6F:          
+FF/6F:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FF/6F:          BD	= BD-4
+FF/6F:          	
+FF/6F:          	; BLOCK ALLOCATION BITMAP
+FF/6F:          ABM_B	= BD
+FF/6F:          
+FF/6F:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FF/6F:          BD	= BD-4
+FF/6F:          
+FF/6F:          	; FILE BLOCK TABLE
+FF/6F:          FBT_B	= BD
+FF/6F:          
+FF/6F:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FF/6F:          BD	= BD-4
+FF/6F:          
+FF/6F:          	; KERNEL BUFFER
+FF/6F:          KBUF_B	= BD
+FF/6F:          
+FF/6F:          	; BANK IS DONE, MOVE ON TO THE NEXT
 FF/6F:          BD	= BD-1
+FF/6F:          
+FF/6F:          
 FF/6F:          ; TTY.S
 FF/6F:          ; SERIAL CONSOLE DRIVER
 FF/6F:          
@@ -540,6 +581,156 @@ FD/C6:
 FD/C6:          .BANK BI
 FC/80:          FS0_B	= BI
 FC/80:          .TEXT
-FC/80:          
-FC/80:          
-FC/80:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FC/80:          	; SET SEARCH PARAMETERS
+FC/80:          	; USING A STRING IN USER SPACE, THE FILE SEARCH PATTERN WILL
+FC/80:          	; BE UPDATED
+FC/80:          	; THE FILE SEARCH POINTER WILL ALSO BE RESET
+FC/80:          	; ASSUMES WORK BANK IS SELECTED
+FC/80:          	; A = ADDRESS OF STRING
+FC/80:          	; [SRC_BNK] = DATA BANK OF STRING
+FC/80:          	; RETURNS A=0X00 IF PATTERN IS VALID, OTHERWISE 0XFF
+FC/80:          	; USES: A, B, C, M0, M1, M2
+FC/80: A000     SSPARAM:STORE	[M0],A
+FC/82:          
+FC/81:          	; STORE PATTERN COUNTER
+FC/81: 3006     	LOADI	A,6
+FC/82: A001     	STORE	[M1],A
+FC/84:          	
+FC/83:          	; STORE PATTERN POINTER
+FC/83: 3006     	LOADI	A,PATTERN
+FC/84: A002     	STORE	[M2],A
+FC/86:          	
+FC/85:          	; RESET THE PATTERN
+FC/85: 3006     	LOADI	A,PATTERN
+FC/86: 3408     	LOADI	B,8
+FC/87: 3820     	LOADI	C,0X20
+FC/88: B800     0:	STOREF	[A],C
+FC/89: 5001     	ADDI	A,1
+FC/8A: 7401     	SUBI	B,1
+FC/8B: F7FC     	BRNZ	0B
+FC/8D:          	
+FC/8C:          	; DO AN INITAL CHECKOUT OF THE PATTERN
+FC/8C: 8003     	LOAD	A,[SRC_BNK]
+FC/8D: 8400     	LOAD	B,[M0]
+FC/8E: A080     	STORE	[DBANK],A
+FC/90:          	
+FC/8F:          	; MAKE SURE THERE IS ACTUALLY A PATTERN
+FC/8F: 9900     	LOADF	C,[B]
+FC/90: 3020     	LOADI	A,0X20
+FC/91: D200     	CMP	A,C
+FC/92: F03A     	BRAE	9F
+FC/94:          	
+FC/93:          	; SEE IF THERE IS A USER AREA PREFIX
+FC/93:          	; AND CHANGE BANK TO KERNEL WORK AREA
+FC/93: 9101     	LOADF	A,[B+1]
+FC/94: 703A     	SUBI	A,':'
+FC/95: 30FF     	LOADI	A,WORK_B
+FC/96: A080     	STORE	[DBANK],A
+FC/97: F709     	BRNZ	1F
+FC/99:          	
+FC/98:          	; MAKE SURE THAT THE USER AREA PREFIX IS VALID
+FC/98: 3030     	LOADI	A,'0'
+FC/99: D800     	CMP	C,A
+FC/9A: F132     	BRB	9F
+FC/9B: 3039     	LOADI	A,'9'
+FC/9C: D800     	CMP	C,A
+FC/9D: F82F     	BRA	9F
+FC/9F:          
+FC/9E:          	; SET THE WORKING USER AREA
+FC/9E: A80E     	STORE	[WRK_USR],C
+FC/A0:          	
+FC/9F:          	; AND SKIP THE PREFIX
+FC/9F: 5402     	ADDI	B,2
+FC/A0: A400     	STORE	[M0],B
+FC/A2:          
+FC/A1:          	; GRAB THE NEXT CHARACTER
+FC/A1:          	; C = NEXT CHARACTER
+FC/A1: 8400     1:	LOAD	B,[M0]
+FC/A2: 8003     	LOAD	A,[SRC_BNK]
+FC/A3: A080     	STORE	[DBANK],A
+FC/A4: 9900     	LOADF	C,[B]
+FC/A5: 30FF     	LOADI	A,WORK_B
+FC/A6: A080     	STORE	[DBANK],A
+FC/A8:          	
+FC/A7:          	; INCREMENT AND SAVE POINTER INTO M0
+FC/A7: 5401     	ADDI	B,1
+FC/A8: A400     	STORE	[M0],B
+FC/AA:          	
+FC/A9:          	; GRAB PATTERN POINTER
+FC/A9: 8002     	LOAD	A,[M2]
+FC/AB:          	
+FC/AA:          	; SEE IF THE PATTERN IS COMPLETE
+FC/AA: 3420     	LOADI	B,0X20
+FC/AB: D600     	CMP	B,C
+FC/AC: F01B     	BRAE	6F
+FC/AE:          	
+FC/AD:          	; GRAB PATTERN COUNTER
+FC/AD: 8401     	LOAD	B,[M1]
+FC/AF:          	
+FC/AE:          	; SEE IF IT IS A '.'
+FC/AE: 782E     	SUBI	C,'.'
+FC/AF: F611     	BRZ	5F
+FC/B1:          	
+FC/B0:          	; THERE MUST BE SPACE IN THE PATTERN BUFFER FOR ANY
+FC/B0:          	; OF THE NEXT VALUES TO BE VALID
+FC/B0:          	; LETS CHECK IT
+FC/B0: 7401     	SUBI	B,1
+FC/B1: F41B     	BRN	9F
+FC/B3:          	
+FC/B2:          	; SEE IF IT IS A '*'
+FC/B2: 78FC     	SUBI	C,'*'-'.'
+FC/B3: F606     	BRZ	3F
+FC/B5:          	
+FC/B4:          	; OTHERWISE, IT'S A NORMAL CHARACTER
+FC/B4:          	; PLACE IT IN THE BUFFER AND MOVE ON
+FC/B4: 582A     	ADDI	C,'*'
+FC/B5: B800     	STOREF	[A],C
+FC/B6: 5001     	ADDI	A,1
+FC/B7: A002     2:	STORE	[M2],A
+FC/B8: A401     	STORE	[M1],B
+FC/B9: FFE7     	JUMP	1B
+FC/BB:          
+FC/BA:          	; HANDLE '*'
+FC/BA:          	; FILL REST OF PATTERN SECTION WITH '?'
+FC/BA: 5401     3:	ADDI	B,1
+FC/BB: 383F     	LOADI	C,'?'
+FC/BC: B800     4:	STOREF	[A],C
+FC/BD: 5001     	ADDI	A,1
+FC/BE: 7401     	SUBI	B,1
+FC/BF: F7FC     	BRNZ	4B
+FC/C0: FFF6     	JUMP	2B
+FC/C2:          	
+FC/C1:          	; HANDLE '.'
+FC/C1:          	; MAKE SURE THE LAST 2 BYTES OF THE PATTERN BUFFER ARE EMPTY
+FC/C1:          	; AND THERE HASN'T BEEN A '.' ALREADY
+FC/C1: 380C     5:	LOADI	C,PATTERN+6
+FC/C2: 4100     	ADD	A,B
+FC/C3: D200     	CMP	A,C
+FC/C4: F808     	BRA	9F
+FC/C6:          	
+FC/C5:          	; SET THE NEW PATTERN POINTER
+FC/C5: 300C     	LOADI	A,PATTERN+6
+FC/C6: 3402     	LOADI	B,2
+FC/C7: FFEF     	JUMP	2B
+FC/C9:          
+FC/C8:          	; PATTERN IS COMPLETE
+FC/C8:          	; MAKE SURE ALL FIELDS HAVE BEEN FILLED IN
+FC/C8: 380C     6:	LOADI	C,PATTERN+6
+FC/C9: D200     	CMP	A,C
+FC/CA: F902     	BRBE	9F
+FC/CB: 3000     	LOADI	A,0
+FC/CC: FF02     	JUMP	FS0DONE
+FC/CE:          	
+FC/CD:          	; PATTERN IS INVALID
+FC/CD: 30FF     9:	LOADI	A,0XFF
+FC/CE: FF00     	JUMP	FS0DONE
+FC/D0:          	
+FC/CF:          
+FC/CF:          
+FC/CF:          
+FC/CF:          	; INTERNAL FS0 FUNCTION TO RESET TO WORK BANK AND RETURN
+FC/CF: 38FF     FS0DONE:LOADI	C,WORK_B
+FC/D0: A880     	STORE	[DBANK],C
+FC/D1: FF30     	JUMP	IRET
+FC/D3:          
+FC/D2:          	; BANK IS DONE, MOVE ON TO THE NEXT

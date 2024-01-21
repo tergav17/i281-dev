@@ -390,7 +390,7 @@ terminal.onkeypress = function(e) {
 
 // Instruction dump function
 dump_isr.onclick = function() {
-	let content = "BANK : 0x" + (cpu_state.isr_bank).toString(16).padStart(2, '0') + "\n";
+	let content = "BANK : 0x" + (cpu_state.isr_bank).toString(16).padStart(2, '0').toUpperCase() + "\n";
 	
 	for (let i = 0x80; i < 0x100; i++) {
 		content += "0x" + (i).toString(16).padStart(2, '0').toUpperCase() + " : ";
@@ -407,7 +407,7 @@ dump_isr.onclick = function() {
 
 // Data dump function
 dump_data.onclick = function() {
-	let content = "BANK : 0x" + (cpu_state.data_bank).toString(16).padStart(2, '0') + "\n";
+	let content = "BANK : 0x" + (cpu_state.data_bank).toString(16).padStart(2, '0').toUpperCase() + "\n";
 	
 	for (let i = 0; i < 0x80; i += 8) {
 		content += "0x" + (i).toString(16).padStart(2, '0').toUpperCase() + " : ";
