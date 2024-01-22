@@ -416,7 +416,17 @@ dump_data.onclick = function() {
 			content += (cpu_state.dmem[cpu_state.data_bank * 128 + i + o]).toString(16).padStart(2, '0').toUpperCase() + " ";
 		}
 		
-		content += "\n"
+		content += " \"";
+		for (let o = 0; o < 8; o++) {
+			let b = cpu_state.dmem[cpu_state.data_bank * 128 + i + o];
+			if (b >= 0x20 && b <= 0x7E) {
+				content += String.fromCharCode(b);
+			} else {
+				content += ".";
+			}
+		}
+		
+		content += "\"\n"
 	}
 	
 	
