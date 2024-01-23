@@ -62,7 +62,7 @@ and the extension.
 
 User areas act as primitive directories on a file system. User areas are
 labelled `0` to `9`. File paths can be prefixed with `[0-9]:` to explicitly
-define a user area, otherwise the default user area will be used.
+define a user area, otherwise the default user area will be used (DFLT_USR).
 
 ## File Creation
 
@@ -81,5 +81,10 @@ during a program load, but after the program executes it can be accessed.
 | 0x60-0x67 | CF_NAME  | Name of the currently open file, or file last searched      |
 | 0x68      | CF_USR   | User area of the currently open file, or file last searched |
 | 0x69-0x6A | CF_SIZE  | Size of the current file                                    |
-| 0x70      | DFLT_USR | The default user area |
+| 0x6B      | DFLT_USR | The default user area 										 |
+| 0x70      | MAX_IB   | Maximum instruction bank available to use                   |
+| 0x71      | MAX_DB   | Maximum data bank available to use                          |
+| 0x72      | CMDL_B   | Bank which contains arguments used to invoke the program    |
+| 0x73      | AUTO_B   | Bank which contains information to script execution         |
+| 0x78-0x7B | KERN_MEM | Reserved for kernel use                                     |
 | 0x7C-0x7F | BIOS_MEM | Reserved for BIOS use                                       |
