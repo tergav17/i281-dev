@@ -1,43 +1,79 @@
-00/00:          ; HELLO.S
-01/80:          ; THE CLASSIC "HELLO WORLD" PROGRAM
+00/00:          ; DOSDEFS.S
+01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
 01/80:          
-01/80:          ; DEFINES
-01/80:          UART	=	0X90
-01/80:          UART_TH	=	UART+0X00
-01/80:          UART_LS	=	UART+0X05
+01/80:          ; BIOS CALLS
+01/80:          INDIR	= 1
+01/80:          IRET	= 2
+01/80:          SYSCALL	= 3
+01/80:          SYSJUMP	= 4
+01/80:          PRGM	= 5
+01/80:          HALT	= 6
 01/80:          
+01/80:          ; SYSTEM CALLS
+01/80:          S_EXIT	= 0
+01/80:          S_PUTC	= 1
+01/80:          S_GETC	= 2
+01/80:          S_STAT	= 3
+01/80:          S_PUTS	= 4
+01/80:          S_INPUT	= 5
+01/80:          S_OPEN	= 6
+01/80:          S_CLOSE	= 7
+01/80:          S_READ	= 8
+01/80:          S_WRITE	= 9
+01/80:          S_FSRCH	= 10
+01/80:          S_NEXT	= 11
+01/80:          S_DELET	= 12
+01/80:          S_CREAT	= 13
+01/80:          S_FREE	= 14
+01/80:          S_EXEC	= 15
+01/80:          
+01/80:          ; MEMORY AREAS
+01/80:          CF_NAME	= 0X60
+01/80:          CF_SIZE	= 0X68
+01/80:          CF_USR	= 0X6A
+01/80:          DFT_USR	= 0X6B
+01/80:          ARG_BNK	= 0X6C
+01/80:          BD_FREE	= 0X6E
+01/80:          MAX_IB	= 0X70
+01/80:          MAX_DB	= 0X71
+01/80:          CMDL_B	= 0X72
+01/80:          AUTO_B	= 0X73
+01/80:          KERNMEM	= 0X78
+01/80:          BIOSMEM	= 0X7C
+01/80:          
+01/80:          ; DATA BANK ADDRESS
+01/80:          DBANK	= 0X80		
+01/80:          
+01/80:          ; HELLO.S
+01/80:          ; THE CLASSIC "HELLO WORLD" PROGRAM FOR DOS/28 
+01/80:          
+01/80:          .BANK 1
 01/80:          .TEXT
 01/80:          	; START HERE
-01/80:          	; LET B BE OUR STRING POINTER 
-01/80: 3400     START:	LOADI	B,STRING
-01/82:          
-01/81:          	; LOAD STRING CHARACTER
-01/81: 9100     PRINT:	LOADF	A,[B]
-01/83:          
-01/82:          	; MAKE SURE IT ISNT ZERO
-01/82: 5000     	ADDI	A,0
-01/83: F608     	BRZ	END
-01/85:          	
-01/84:          	; GET LINE STATUS REGISTER
-01/84: 8895     WAIT:	LOAD	C,[UART_LS]
-01/86:          	
-01/85:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
-01/85: 4A00     	SHIFTL	C
-01/86: 4A00     	SHIFTL	C
-01/87: 4A00     	SHIFTL	C
-01/88: F1FB     	BRNC	WAIT
-01/8A:          	
-01/89:          	; TRANSMIT BYTE
-01/89: A090     	STORE	[UART_TH],A
+01/80:          	; SET OUT BANK TO BANK 0
+01/80: 3000     START:	LOADI	A,0
+01/81: A080     	STORE	[DBANK],A
+01/83:          	
+01/82:          	; SET UP STACK
+01/82: 3C5E     	LOADI	D,0X60-2
+01/84:          	
+01/83:          	; SET UP SYSTEM CALL ARGUMENTS
+01/83: 3001     	LOADI	A,1
+01/84: A06C     	STORE	[ARG_BNK],A
+01/85: 3000     	LOADI	A,STRING
+01/86: 3404     	LOADI	B,S_PUTS
+01/88:          	
+01/87:          	; SET UP RETURN ADDRESS
+01/87: 3801     	LOADI	C,1	; RETURN BANK
+01/88: BB01     	STOREF	[D+1],C
+01/89: 388B     	LOADI	C,@+2	; RETURN ADDRESS
 01/8B:          	
-01/8A:          	; INCREMENT POINTER
-01/8A: 5401     	ADDI	B,1
+01/8A:          	; DO SYSTEM CALL
+01/8A: FF78     	JUMP	SYSCALL
 01/8C:          	
-01/8B:          	; RETURN TO PRINT LOOP
-01/8B: FFF5     	JUMP	PRINT
-01/8D:          	
-01/8C:          	; AND HALT...
-01/8C: FFFF     END:	JUMP	END
+01/8B:          	; AND EXIT
+01/8B: 3400     END:	LOADI	B,0
+01/8C: FF77     	JUMP	SYSJUMP
 01/8E:          	
 01/8D:          
 01/8D:          

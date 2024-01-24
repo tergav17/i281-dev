@@ -1,0 +1,316 @@
+00/00:          ; DOSDEFS.S
+01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          
+01/80:          ; BIOS CALLS
+01/80:          INDIR	= 1
+01/80:          IRET	= 2
+01/80:          SYSCALL	= 3
+01/80:          SYSJUMP	= 4
+01/80:          PRGM	= 5
+01/80:          HALT	= 6
+01/80:          
+01/80:          ; SYSTEM CALLS
+01/80:          S_EXIT	= 0
+01/80:          S_PUTC	= 1
+01/80:          S_GETC	= 2
+01/80:          S_STAT	= 3
+01/80:          S_PUTS	= 4
+01/80:          S_INPUT	= 5
+01/80:          S_OPEN	= 6
+01/80:          S_CLOSE	= 7
+01/80:          S_READ	= 8
+01/80:          S_WRITE	= 9
+01/80:          S_FSRCH	= 10
+01/80:          S_NEXT	= 11
+01/80:          S_DELET	= 12
+01/80:          S_CREAT	= 13
+01/80:          S_FREE	= 14
+01/80:          S_EXEC	= 15
+01/80:          
+01/80:          ; MEMORY AREAS
+01/80:          CF_NAME	= 0X60
+01/80:          CF_SIZE	= 0X68
+01/80:          CF_USR	= 0X6A
+01/80:          DFT_USR	= 0X6B
+01/80:          ARG_BNK	= 0X6C
+01/80:          BD_FREE	= 0X6E
+01/80:          MAX_IB	= 0X70
+01/80:          MAX_DB	= 0X71
+01/80:          CMDL_B	= 0X72
+01/80:          AUTO_B	= 0X73
+01/80:          KERNMEM	= 0X78
+01/80:          BIOSMEM	= 0X7C
+01/80:          
+01/80:          ; DATA BANK ADDRESS
+01/80:          DBANK	= 0X80		
+01/80:          
+01/80:          ; DIR.S
+01/80:          ; LIST FILES IN DIRECTORY
+01/80:          
+01/80:          .BANK 1
+01/80:          .TEXT
+01/80:          	; START HERE
+01/80:          	; SET OUT BANK TO BANK 0
+01/80: 3000     START:	LOADI	A,0
+01/81: A080     	STORE	[DBANK],A
+01/83:          	
+01/82:          	; SET UP STACK
+01/82: 3C5E     	LOADI	D,0X60-2
+01/84:          	
+01/83:          	; FIRST ORDER OF BUISNESS: CLOSE EXISTING FILE
+01/83:          	
+01/83:          	; SET UP SYSTEM CALL ARGUMENTS
+01/83: 3407     	LOADI	B,S_CLOSE
+01/85:          	
+01/84:          	; SET UP RETURN ADDRESS
+01/84: 3801     	LOADI	C,1	; RETURN BANK
+01/85: BB01     	STOREF	[D+1],C
+01/86: 3888     	LOADI	C,@+2	; RETURN ADDRESS
+01/88:          	
+01/87:          	; AND DO SYSCALL
+01/87: FF7B     	JUMP	SYSCALL
+01/89:          	
+01/88:          	; NOW START THE SEARCH
+01/88: 3001     	LOADI	A,1
+01/89: A06C     	STORE	[ARG_BNK],A
+01/8A: 301B     	LOADI	A,PATH
+01/8C:          	
+01/8B:          	; SET THE SYSTEM CALL TYPE
+01/8B: 340A     	LOADI	B,S_FSRCH
+01/8C: 388E     	LOADI	C,@+2
+01/8D: FF75     	JUMP	SYSCALL
+01/8F:          	
+01/8E:          	; PRINT HEADER
+01/8E: 3003     	LOADI	A,HEADER
+01/8F: 3404     	LOADI	B,S_PUTS
+01/90: 3892     	LOADI	C,@+2
+01/91: FF71     	JUMP	SYSCALL
+01/93:          	
+01/92:          	; PRINT THE FILE LISTING
+01/92: 806A     PRINTFI:LOAD	A,[CF_USR]
+01/93: 3401     	LOADI	B,1
+01/94: A480     	STORE	[DBANK],B
+01/95: A017     	STORE	[LSSTART],A
+01/96: 3400     	LOADI	B,0
+01/97: A480     	STORE	[DBANK],B
+01/99:          
+01/98:          	; PRINT OUT THE START OF THE LISTING
+01/98: 3017     	LOADI	A,LSSTART
+01/99: 3404     	LOADI	B,S_PUTS
+01/9A: 389C     	LOADI	C,@+2
+01/9B: FF67     	JUMP	SYSCALL
+01/9D:          
+01/9C:          	; START PRINTING OUT THE NAME PROPER
+01/9C: 3006     	LOADI	A,6
+01/9D: A001     	STORE	[MAXIMUM],A
+01/9E: 3000     	LOADI	A,0
+01/A0:          	
+01/9F:          	; STORE THE COUNTER
+01/9F: A000     0:	STORE	[COUNT],A
+01/A1:          
+01/A0:          	; GET THE CHARACTER FROM THE NAME
+01/A0: 9060     	LOADF	A,[A+CF_NAME]
+01/A1: 3401     	LOADI	B,S_PUTC
+01/A2: 38A4     	LOADI	C,@+2
+01/A3: FF5F     	JUMP	SYSCALL
+01/A5:          	
+01/A4:          	
+01/A4:          	
+01/A4:          	; DO WE COUNT UP?
+01/A4: 8000     	LOAD	A,[COUNT]
+01/A5: 8401     	LOAD	B,[MAXIMUM]
+01/A6: 5001     	ADDI	A,1
+01/A7: D100     	CMP	A,B
+01/A8: F001     	BRAE	1F
+01/A9: FFF5     	JUMP	0B
+01/AB:          	
+01/AA:          	; EITHER PRINT A '.' OR MOVE ON TO THE NEXT FILE
+01/AA: 7008     1:	SUBI	A,8
+01/AB: F608     	BRZ	FINISH
+01/AD:          	
+01/AC:          	; PRINT A '.'
+01/AC: 302E     	LOADI	A,'.'
+01/AE:          
+01/AD:          	; SET THE SYSTEM CALL TYPE
+01/AD: 3401     	LOADI	B,S_PUTC
+01/AF:          	
+01/AE:          	; SET UP RETURN ADDRESS
+01/AE:          	; AND DO SYSCALL
+01/AE: 38B0     	LOADI	C,@+2
+01/AF: FF53     	JUMP	SYSCALL
+01/B1:          	
+01/B0: 3008     	LOADI	A,8
+01/B1: A001     	STORE	[MAXIMUM],A
+01/B2: 3006     	LOADI	A,6
+01/B3: FFEB     	JUMP	0B
+01/B5:          	
+01/B4:          	
+01/B4:          	; FINISH OFF THE FILE LISTING
+01/B4: 3020     FINISH:	LOADI	A,0x20
+01/B5: 3401     	LOADI	B,S_PUTC
+01/B6: 38B8     	LOADI	C,@+2
+01/B7: FF4B     	JUMP	SYSCALL
+01/B9:          	
+01/B8:          	; PRINT THE FILE SIZE
+01/B8: 38BD     	LOADI	C,NEXT
+01/B9: BB00     	STOREF	[D],C
+01/BA: 3402     	LOADI	B,2
+01/BB: 3880     	LOADI	C,PRINTD
+01/BC: FF44     	JUMP	INDIR
+01/BE:          	
+01/BD:          	; GET THE NEXT FILE
+01/BD:          	; PRINT NEW LINE
+01/BD: 3000     NEXT:	LOADI	A,CRLF
+01/BE: 3404     	LOADI	B,S_PUTS
+01/BF: 38C1     	LOADI	C,@+2
+01/C0: FF42     	JUMP	SYSCALL
+01/C2:          	
+01/C1:          	; LOOK UP NEXT FILE
+01/C1: 340B     	LOADI	B,S_NEXT
+01/C2: 38C4     	LOADI	C,@+2
+01/C3: FF3F     	JUMP	SYSCALL
+01/C5:          	
+01/C4:          	; CHECK TO SEE IF IT WORKED
+01/C4: 5000     	ADDI	A,0
+01/C5: F6CC     	BRZ	PRINTFI
+01/C7:          
+01/C6:          	; AND EXIT
+01/C6: 3400     END:	LOADI	B,0
+01/C7: FF3C     	JUMP	SYSJUMP
+01/C9:          	
+01/C8:          .BANK	2
+01/C8:          	
+02/80:          	; PRINTS THE SIZE AS A 8 OR 16 BIT BASE-10 NUMBER
+02/80:          	; A = 0: 8 BIT 1: 16 BIT
+02/80: BB00     PRINTD: STOREF	[D],C
+02/81: 7C02     	SUBI	D,2
+02/83:          	
+02/82:          	; SET PADDING TO SPACE AT FIRST
+02/82: 3820     	LOADI	C,0X20
+02/83: A803     	STORE	[PADDING],C
+02/85:          	
+02/84:          	; SEE IF WE ARE DOING 8 OR 16 BIT
+02/84: 5000     	ADDI	A,0
+02/85: F608     	BRZ	0F
+02/87:          	
+02/86:          V	= 10000
+02/86: 3027     	LOADI	A,V/256
+02/87: 3410     	LOADI	B,V%256
+02/88: 388A     	LOADI	C,@+2
+02/89: FF12     	JUMP	DOCHAR
+02/8B:          	
+02/8A:          V	= 1000
+02/8A: 3003     	LOADI	A,V/256
+02/8B: 34E8     	LOADI	B,V%256
+02/8C: 388E     	LOADI	C,@+2
+02/8D: FF0E     	JUMP	DOCHAR
+02/8F:          	
+02/8E:          V	= 100
+02/8E: 3000     0:	LOADI	A,V/256
+02/8F: 3464     	LOADI	B,V%256
+02/90: 3892     	LOADI	C,@+2
+02/91: FF0A     	JUMP	DOCHAR
+02/93:          	
+02/92:          V	= 10
+02/92: 3000     	LOADI	A,V/256
+02/93: 340A     	LOADI	B,V%256
+02/94: 3896     	LOADI	C,@+2
+02/95: FF06     	JUMP	DOCHAR
+02/97:          	
+02/96:          V	= 1
+02/96: 3000     	LOADI	A,V/256
+02/97: 3401     	LOADI	B,V%256
+02/98: 389A     	LOADI	C,@+2
+02/99: FF02     	JUMP	DOCHAR
+02/9B:          	
+02/9A: 5C02     	ADDI	D,2
+02/9B: FF66     	JUMP	IRET
+02/9D:          	
+02/9C:          	; A = UPPER SUB
+02/9C:          	; B = LOWER SUB
+02/9C: A804     DOCHAR:	STORE	[LEAFRET],C
+02/9D: 8803     	LOAD	C,[PADDING]	
+02/9E: A802     	STORE	[CHAR],C
+02/A0:          
+02/9F:          	; GET THE SIZE
+02/9F: 8868     0:	LOAD	C,[CF_SIZE]
+02/A0: 8C69     	LOAD	D,[CF_SIZE+1]
+02/A2:          	
+02/A1:          	; DO 16 BIT SUBTRACTION
+02/A1: 6D00     1:	SUB	D,B
+02/A2: F002     	BRC	2F
+02/A3: 7801     	SUBI	C,1
+02/A4: F10D     	BRNC	4F
+02/A5: 6800     2:	SUB	C,A
+02/A6: F10B     	BRNC	4F
+02/A8:          	
+02/A7:          	; SAVE VALUE
+02/A7: A868     	STORE	[CF_SIZE],C
+02/A8: AC69     	STORE	[CF_SIZE+1],D
+02/AA:          	
+02/A9:          	; GET THE CHAR AND CHECK TO SEE IF IT IS A SPACE
+02/A9: 8802     	LOAD	C,[CHAR]
+02/AA: 3C20     	LOADI	D,0X20
+02/AB: DB00     	CMP	C,D
+02/AC: F702     	BRNZ	3F
+02/AE:          	
+02/AD:          	; SET PADDING AND CHAR TO '0'
+02/AD: 3830     	LOADI	C,'0'
+02/AE: A803     	STORE	[PADDING],C
+02/B0:          	
+02/AF: 5801     3:	ADDI	C,1
+02/B0: A802     	STORE	[CHAR],C
+02/B1: FFED     	JUMP	0B
+02/B3:          	
+02/B2:          	; PRINT THE CHARACTER
+02/B2: 8002     4:	LOAD	A,[CHAR]
+02/B3: 3401     	LOADI	B,S_PUTC
+02/B4: 3802     	LOADI	C,2	; RETURN BANK
+02/B5: BB01     	STOREF	[D+1],C
+02/B6: 8804     	LOAD	C,[LEAFRET]
+02/B7: FF4B     	JUMP	SYSCALL
+02/B9:          	
+02/B8:          
+02/B8:          
+02/B8:          .DATA
+02/B8:          
+02/00:          	; CR / LF
+02/00: 0A0D00   .DEFL BYTE CRLF		0X0A,0X0D,0
+02/03:          
+02/03:          	; FILE LISTING HEADER
+02/03: 5541204E
+       414D4520
+       20204558
+       2053495A
+       450A0D00 .DEFL BYTE HEADER	"UA NAME   EX SIZE",0X0A,0X0D,0
+02/17:          
+02/17:          	; FILE LIST START
+02/17: 303A2000 .DEFL BYTE LSSTART	"0: ",0
+02/1B:          
+02/1B:          	; PATH TO SEARCH FILES BY
+02/1B: 2A2E2A00 .DEFL BYTE PATH		"*.*",0
+02/1F:          
+02/1F: 4E4F2046
+       494C4553
+       0A0D00   .DEFL BYTE ERROR	"NO FILES",0X0A,0X0D,0
+02/2A:          
+02/2A:          
+02/2A:          .BANK 0
+00/00:          .BSS
+00/00:          	; DEFINE SOME SPACE ON THE ZERO BANK FOR STATE INFORMATION
+00/00:          
+00/00:          	; GENERAL PURPOSE COUNTER
+00/00: 00       .DEFL BYTE COUNT	0
+00/01:          
+00/01:          	; COUNTER MAXIMUM
+00/01: 00       .DEFL BYTE MAXIMUM	0
+00/02:          
+00/02:          	; VALUE FOR DECIMAL NUMBER PRINT
+00/02: 00       .DEFL BYTE CHAR		0
+00/03:          
+00/03:          	; PADDING FOR DECIMAL NUMBER PRINT
+00/03: 00       .DEFL BYTE PADDING	0
+00/04:          
+00/04:          	; RETURN FOR LEAF FUNCTIONS
+00/04: 00       .DEFL BYTE LEAFRET	0
+00/05:          

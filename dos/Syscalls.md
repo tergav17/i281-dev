@@ -8,7 +8,7 @@ The interal kernel functions are not documented here.
 
 The procedure to execute a system call is as follows:
 - Set the current data bank to bank 0
-- Place the return address in memory address [D]
+- Place the return address in register C (Will get moved to [D] on syscall execution)
 - Place the return page in memory address [D+1]
 - Place the syscall # in register B
 - Place the syscall argument (if needed) in register A
@@ -17,9 +17,9 @@ The procedure to execute a system call is as follows:
 ## System Call Tables
 | Syscall # | Name    | Arguments | Returns           | Description |
 | 0         | S_EXIT  | None      | None              | Terminates the user program, control is given back to the kernel |
-| 1         | S_GETC  | None      | A = Character     | Waits for a single character to be inputted in the terminal, and returns it. | 
-| 2         | S_STAT  | None      | A = Status        | Returns terminal status, A = 0xFF will be returned if there is a character waiting |
-| 3         | S_PUTC  | A = Character | None          | Prints out a single character on the terminal |
+| 1         | S_PUTC  | A = Character | None          | Prints out a single character on the terminal |
+| 2         | S_GETC  | None      | A = Character     | Waits for a single character to be inputted in the terminal, and returns it. | 
+| 3         | S_STAT  | None      | A = Status        | Returns terminal status, A = 0xFF will be returned if there is a character waiting |
 | 4         | S_PUTS  | A = String address \ [ARG_BNK] = String bank | Prints out a zero-terminated string |
 | 5         | S_INPUT | [ARG_BNK] = Destination of string | None | Inputs a line of text from the terminal. The inputted string can take up the entire bank, is zero-terminated, and always starts at address 0.
 | 6         | S_OPEN  | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Takes a file path as a string, and opens it. The existing file will be closed |
@@ -30,7 +30,8 @@ The procedure to execute a system call is as follows:
 | 11        | S_NEXT  | None      | A = 0x00 if file is found, 0xFF otherwise | Searches for the next file |
 | 12        | S_DELET | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Deletes a file. If the path is a glob, the first file found will be deleted |
 | 13        | S_CREAT | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Creates a new file, the operation will fail if the file already exists |
-| 14        | S_EXEC  | None      | None              | Takes the content in the argument buffer and attempts to execute it |
+| 14        | S_FREE  | None      | [BD_FREE] = Remaining free blocks | Calculates the remaining free blocks on the block device. Should be run after a file close | 
+| 15        | S_EXEC  | None      | None              | Takes the content in the argument buffer and attempts to execute it |
 
 ## File I/O Operations
 
@@ -45,6 +46,7 @@ type of system calls can be executes at a given time.
 - S_NEXT
 - S_DELET
 - S_CREAT
+- S_FREE
 
 ### File is Open
 - S_OPEN
@@ -79,12 +81,14 @@ during a program load, but after the program executes it can be accessed.
 | Address   | Name     | Description                                                 |
 | 0x00-0x5F | ---      | Unused, free for use in user programs                       |
 | 0x60-0x67 | CF_NAME  | Name of the currently open file, or file last searched      |
-| 0x68      | CF_USR   | User area of the currently open file, or file last searched |
-| 0x69-0x6A | CF_SIZE  | Size of the current file                                    |
-| 0x6B      | DFLT_USR | The default user area 										 |
+| 0x68-0x69 | CF_SIZE  | Size of the current file                                    |
+| 0x6A      | CF_USR   | User area of the currently open file, or file last searched |
+| 0x6B      | DFT_USR  | The default user area 										 |
+| 0X6C      | ARG_BNK  | Bank that will be used as an argument by system calls       |
+| 0X6E-0X6F | BD_FREE  | Stores the number of unallocated blocks     |
 | 0x70      | MAX_IB   | Maximum instruction bank available to use                   |
 | 0x71      | MAX_DB   | Maximum data bank available to use                          |
 | 0x72      | CMDL_B   | Bank which contains arguments used to invoke the program    |
 | 0x73      | AUTO_B   | Bank which contains information to script execution         |
-| 0x78-0x7B | KERN_MEM | Reserved for kernel use                                     |
-| 0x7C-0x7F | BIOS_MEM | Reserved for BIOS use                                       |
+| 0x78-0x7B | KERNMEM  | Reserved for kernel use                                     |
+| 0x7C-0x7F | BIOSMEM  | Reserved for BIOS use                                       |
