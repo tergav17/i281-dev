@@ -1,4 +1,4 @@
-00/00:          ; DOSDEFS.S
+00/00:          ; DOSDEF.S
 01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
 01/80:          
 01/80:          ; BIOS CALLS

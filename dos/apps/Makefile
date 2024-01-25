@@ -1,9 +1,9 @@
 I281_ASM = "../../i281as"
 
-all: binary/hello.sv binary/dir.sv binary/type.sv
+all: binary/hello.sv binary/dir.sv binary/type.sv binary/cd.sv
 
-binary/%.sv: dosdefs.s source/%.s
-	$(I281_ASM) -o $* dosdefs.s source/$*.s
+binary/%.sv: dosdef.s source/%.s
+	$(I281_ASM) -o $* dosdef.s source/$*.s
 	mv $*.sav binary/$*.sv
 	mv $*.lst listing
 	

@@ -68,7 +68,7 @@ def main():
                     print("Error: Invalid character in filename")
                     sys.exit(1)
             else:
-                image[record+o+8] = ord('-')
+                image[record+o+8] = ord(' ')
         
         # Insert file size
         size = math.ceil(len(new) / 512)

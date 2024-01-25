@@ -1,0 +1,147 @@
+00/00:          ; DOSDEF.S
+01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          
+01/80:          ; BIOS CALLS
+01/80:          INDIR	= 1
+01/80:          IRET	= 2
+01/80:          SYSCALL	= 3
+01/80:          SYSJUMP	= 4
+01/80:          PRGM	= 5
+01/80:          HALT	= 6
+01/80:          
+01/80:          ; SYSTEM CALLS
+01/80:          S_EXIT	= 0
+01/80:          S_PUTC	= 1
+01/80:          S_GETC	= 2
+01/80:          S_STAT	= 3
+01/80:          S_PUTS	= 4
+01/80:          S_INPUT	= 5
+01/80:          S_OPEN	= 6
+01/80:          S_CLOSE	= 7
+01/80:          S_READ	= 8
+01/80:          S_WRITE	= 9
+01/80:          S_FSRCH	= 10
+01/80:          S_NEXT	= 11
+01/80:          S_DELET	= 12
+01/80:          S_CREAT	= 13
+01/80:          S_FREE	= 14
+01/80:          S_EXEC	= 15
+01/80:          
+01/80:          ; MEMORY AREAS
+01/80:          CF_NAME	= 0X60
+01/80:          CF_SIZE	= 0X68
+01/80:          CF_USR	= 0X6A
+01/80:          DFT_USR	= 0X6B
+01/80:          ARG_BNK	= 0X6C
+01/80:          BD_FREE	= 0X6E
+01/80:          MAX_IB	= 0X70
+01/80:          MAX_DB	= 0X71
+01/80:          CMDL_B	= 0X72
+01/80:          AUTO_B	= 0X73
+01/80:          KERNMEM	= 0X78
+01/80:          BIOSMEM	= 0X7C
+01/80:          
+01/80:          ; DATA BANK ADDRESS
+01/80:          DBANK	= 0X80		
+01/80:          
+01/80:          ; CD.S
+01/80:          ; CHANGE DEFAULT USER AREA
+01/80:          
+01/80:          	; START BY PROCESSING THE ARGUMENTS
+01/80: 3000     START:	LOADI	A,0
+01/81: A080     	STORE	[DBANK],A
+01/83:          	
+01/82:          	; SET UP STACK
+01/82: 3C5E     	LOADI	D,0X60-2
+01/84:          	
+01/83:          	; SYSCALL RETURN BANK
+01/83: 3801     	LOADI	C,1	
+01/84: BB01     	STOREF	[D+1],C
+01/86:          	
+01/85:          	; GO TO ARGUMENT BANK
+01/85: 8072     	LOAD	A,[CMDL_B]
+01/86: A06C     	STORE	[ARG_BNK],A
+01/87: A080     	STORE	[DBANK],A
+01/89:          	
+01/88:          	; SET UP POINTER
+01/88: 3800     	LOADI	C,0
+01/8A:          	
+01/89:          	; SKIP THE INITIAL COMMAND
+01/89: 9200     0:	LOADF	A,[C]
+01/8A: 3420     	LOADI	B,0X20
+01/8B: D100     	CMP	A,B
+01/8C: F902     	BRBE	1F
+01/8D: 5801     	ADDI	C,1
+01/8E: FFFA     	JUMP	0B
+01/90:          
+01/8F:          	; LOOK FOR THE FIRST ARGUMENT
+01/8F: 9200     1:	LOADF	A,[C]
+01/90: 5000     	ADDI	A,0
+01/91: F604     	BRZ	2F
+01/92: D100     	CMP	A,B
+01/93: F80A     	BRA	PROCARG
+01/94: 5801     	ADDI	C,1
+01/95: FFF9     	JUMP	1B
+01/97:          	
+01/96:          	; NO ARGUMENT, ERROR
+01/96: 3000     2:	LOADI	A,0
+01/97: A080     	STORE	[DBANK],A
+01/99:          	
+01/98: 3001     	LOADI	A,1
+01/99: A06C     	STORE	[ARG_BNK],A
+01/9A: 3000     	LOADI	A,ERROR0
+01/9C:          	
+01/9B:          	; PRINT ERROR MESSAGE
+01/9B: 3404     	LOADI	B,S_PUTS
+01/9C: 38B9     	LOADI	C,EXIT
+01/9D: FF65     	JUMP	SYSCALL
+01/9F:          	
+01/9E:          	; PROCESS THE ARGUMENT
+01/9E: 3430     PROCARG:LOADI	B,'0'
+01/9F: D100     	CMP	A,B
+01/A0: F110     	BRB	INVALID
+01/A1: 3439     	LOADI	B,'9'
+01/A2: D100     	CMP	A,B
+01/A3: F80D     	BRA	INVALID
+01/A5:          	
+01/A4:          	; CHECK ENDING
+01/A4: 9201     	LOADF	A,[C+1]
+01/A5: 343A     	LOADI	B,':'
+01/A6: D100     	CMP	A,B
+01/A7: F709     	BRNZ	INVALID
+01/A8: 9202     	LOADF	A,[C+2]
+01/A9: 3420     	LOADI	B,0X20
+01/AA: D100     	CMP	A,B
+01/AB: F805     	BRA	INVALID
+01/AD:          	
+01/AC:          	; STORE DEFAULT USER AREA
+01/AC: 9200     	LOADF	A,[C]
+01/AD: 3400     	LOADI	B,0
+01/AE: A480     	STORE	[DBANK],B
+01/AF: A06B     	STORE	[DFT_USR],A
+01/B0: FF08     	JUMP	EXIT
+01/B2:          
+01/B1:          	; INVALID USER AREA
+01/B1: 3000     INVALID:LOADI	A,0
+01/B2: A080     	STORE	[DBANK],A
+01/B4:          	
+01/B3: 3001     	LOADI	A,1
+01/B4: A06C     	STORE	[ARG_BNK],A
+01/B5: 300E     	LOADI	A,ERROR1
+01/B7:          	
+01/B6:          	; PRINT ERROR MESSAGE
+01/B6: 3404     	LOADI	B,S_PUTS
+01/B7: 38B9     	LOADI	C,EXIT
+01/B8: FF4A     	JUMP	SYSCALL
+01/BA:          
+01/B9:          	; EXIT PROGRAM
+01/B9: 3400     EXIT:	LOADI	B,0
+01/BA: FF49     	JUMP	SYSJUMP
+01/BC:          
+01/BB:          .DATA
+01/BB:          
+01/00:          	; ERROR MESSAGES
+01/00: 4E4F2041
+       5247554D
+       454E540A
+       0D00     .DEFL BYTE ERROR0	"NO ARGUMENT",0X0A,0X0D,0
