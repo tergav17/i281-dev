@@ -1546,6 +1546,9 @@ F7/A4: FF5D     	JUMP	IRET
 F7/A6:          
 F7/A5:          	; BANK IS DONE, MOVE ON TO THE NEXT
 F7/A5:          BI	= BI-1
+F7/A5:          ; ALLOC.S
+F7/A5:          ; BLOCK ALLOCATION MANAGEMENT
+F7/A5:          
 F7/A5:          ; END.S
 F7/A5:          ; DEFINES SYMBOLS BASED ON ASSEMBLY STATE
 F7/A5:          
