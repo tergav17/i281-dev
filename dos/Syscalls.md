@@ -16,6 +16,7 @@ The procedure to execute a system call is as follows:
 
 ## System Call Tables
 | Syscall # | Name    | Arguments | Returns           | Description |
+| --------- | ------- | --------- | ----------------- | ----------- |
 | 0         | S_EXIT  | None      | None              | Terminates the user program, control is given back to the kernel |
 | 1         | S_PUTC  | A = Character | None          | Prints out a single character on the terminal |
 | 2         | S_GETC  | None      | A = Character     | Waits for a single character to be inputted in the terminal, and returns it. | 
@@ -79,13 +80,14 @@ program and the kernel. DOS/281 will not load data or instruction into bank 0
 during a program load, but after the program executes it can be accessed. 
 
 | Address   | Name     | Description                                                 |
+| --------- | -------- | ------------------------------------------------------------|
 | 0x00-0x5F | ---      | Unused, free for use in user programs                       |
 | 0x60-0x67 | CF_NAME  | Name of the currently open file, or file last searched      |
 | 0x68-0x69 | CF_SIZE  | Size of the current file                                    |
 | 0x6A      | CF_USR   | User area of the currently open file, or file last searched |
 | 0x6B      | DFT_USR  | The default user area 										 |
 | 0X6C      | ARG_BNK  | Bank that will be used as an argument by system calls       |
-| 0X6E-0X6F | BD_FREE  | Stores the number of unallocated blocks     |
+| 0X6E-0X6F | BD_FREE  | Stores the number of unallocated blocks                     |
 | 0x70      | MAX_IB   | Maximum instruction bank available to use                   |
 | 0x71      | MAX_DB   | Maximum data bank available to use                          |
 | 0x72      | CMDL_B   | Bank which contains arguments used to invoke the program    |
