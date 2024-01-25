@@ -21,7 +21,7 @@ The procedure to execute a system call is as follows:
 | 1         | S_PUTC  | A = Character | None          | Prints out a single character on the terminal |
 | 2         | S_GETC  | None      | A = Character     | Waits for a single character to be inputted in the terminal, and returns it. | 
 | 3         | S_STAT  | None      | A = Status        | Returns terminal status, A = 0xFF will be returned if there is a character waiting |
-| 4         | S_PUTS  | A = String address \ [ARG_BNK] = String bank | Prints out a zero-terminated string |
+| 4         | S_PUTS  | A = String address \ [ARG_BNK] = String bank | None | Prints out a zero-terminated string |
 | 5         | S_INPUT | [ARG_BNK] = Destination of string | None | Inputs a line of text from the terminal. The inputted string can take up the entire bank, is zero-terminated, and always starts at address 0.
 | 6         | S_OPEN  | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Takes a file path as a string, and opens it. The existing file will be closed |
 | 7         | S_CLOSE | None      | None              | Closes the current file and flushes all of the buffers |
