@@ -215,7 +215,7 @@ function cfRead(cf, register) {
 				cf.last = cf.buffer.shift();
 			}
 			
-			console.log("Reading value: " + cf.last);
+			// console.log("Reading value: " + cf.last);
 			
 			// Just return the last byte read
 			return cf.last;

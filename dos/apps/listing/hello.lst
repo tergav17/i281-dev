@@ -45,7 +45,7 @@
 01/80:          DBANK	= 0X80		
 01/80:          
 01/80:          ; HELLO.S
-01/80:          ; THE CLASSIC "HELLO WORLD" PROGRAM FOR DOS/28 
+01/80:          ; THE CLASSIC "HELLO WORLD" PROGRAM FOR DOS/281
 01/80:          
 01/80:          .BANK 1
 01/80:          .TEXT
