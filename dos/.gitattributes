@@ -1,1 +1,3 @@
-other/*.tx eol=crlf
+other/* eol=crlf
+source/* eol=crlf
+apps/source/* eol=crlf
