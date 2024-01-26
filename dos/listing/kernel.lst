@@ -1321,7 +1321,7 @@ F9/A2:
 F9/A1:          	; SHADOW OF FCLOSE
 F9/A1: 3000     FCLOSEA:LOADI	A,0
 F9/A2: A016     	STORE	[OF_OPEN],A
-F9/A3: 34F6     	LOADI	B,ALC0_B
+F9/A3: 34F6     	LOADI	B,AL0_B
 F9/A4: 3880     	LOADI	C,FLUSH
 F9/A5: FF5B     	JUMP	INDIR
 F9/A7:          	
@@ -1525,7 +1525,7 @@ F7/86:
 F7/85:          	; CHECK TO MAKE SURE THE FILE IS CLOSED
 F7/85: 8416     	LOAD	B,[OF_OPEN]
 F7/86: 5400     	ADDI	B,0
-F7/87: F720     	BRNZ	SYSERR1
+F7/87: F72F     	BRNZ	SYSERR1
 F7/89:          	
 F7/88:          	; GET THE DEFAULT USER AREA
 F7/88: 3800     	LOADI	C,0
@@ -1550,7 +1550,7 @@ F7/95: FF6B     	JUMP	INDIR
 F7/97:          	
 F7/96:          	; CHECK TO MAKE SURE IT RETURNS 0X00
 F7/96: 5000     	ADDI	A,0
-F7/97: F710     	BRNZ	SYSERR1
+F7/97: F71F     	BRNZ	SYSERR1
 F7/99:          	
 F7/98:          	; AND SEARCH FOR IT
 F7/98: 3000     	LOADI	A,0
@@ -1575,21 +1575,44 @@ F7/A4: 34FB     	LOADI	B,FS0_B
 F7/A5: 38D7     	LOADI	C,FSEARCH
 F7/A6: FF5A     	JUMP	INDIR
 F7/A8:          	
-F7/A7:          	; UNKNOWN SYSCALL
-F7/A7: FF5A     9:	JUMP	IRET
-F7/A9:          
-F7/A8:          	; SYSCALL ERROR
-F7/A8: 5C03     SYSERR1:ADDI	D,3
-F7/A9: 30FF     	LOADI	A,0XFF
-F7/AA: FF57     	JUMP	IRET
-F7/AC:          
-F7/AB:          	; BANK IS DONE, MOVE ON TO THE NEXT
-F7/AB:          BI	= BI-1
-F7/AB:          ; ALLOC.S
-F7/AB:          ; BLOCK ALLOCATION MANAGEMENT
-F7/AB:          
-F7/AB:          .BANK BI
-F6/80:          ALC0_B	= BI
+F7/A7:          	; 14: S_FREE
+F7/A7: 7403     9:	SUBI	B,3
+F7/A8: F708     	BRNZ	9F
+F7/AA:          	
+F7/A9:          	; CHECK TO MAKE SURE THE FILE IS CLOSED
+F7/A9: 8416     	LOAD	B,[OF_OPEN]
+F7/AA: 5400     	ADDI	B,0
+F7/AB: 30FF     	LOADI	A,0XFF
+F7/AC: F755     	BRNZ	IRET
+F7/AE:          	
+F7/AD: 30FF     	LOADI	A,0XFF
+F7/AE: 34F6     	LOADI	B,AL0_B
+F7/AF: 38B4     	LOADI	C,INDEX
+F7/B0: FF50     	JUMP	INDIR
+F7/B2:          	
+F7/B1:          	; 15: S_EXEC
+F7/B1: 7401     9:	SUBI	B,1
+F7/B2: F703     	BRNZ	9F
+F7/B4:          	
+F7/B3: 34FF     	LOADI	B,CORE0_B
+F7/B4: 3880     	LOADI	C,EXEC
+F7/B5: FF4B     	JUMP	INDIR
+F7/B7:          	
+F7/B6:          	; UNKNOWN SYSCALL
+F7/B6: FF4B     9:	JUMP	IRET
+F7/B8:          
+F7/B7:          	; SYSCALL ERROR
+F7/B7: 5C03     SYSERR1:ADDI	D,3
+F7/B8: 30FF     	LOADI	A,0XFF
+F7/B9: FF48     	JUMP	IRET
+F7/BB:          
+F7/BA:          	; BANK IS DONE, MOVE ON TO THE NEXT
+F7/BA:          BI	= BI-1
+F7/BA:          ; ALLOC.S
+F7/BA:          ; BLOCK ALLOCATION MANAGEMENT
+F7/BA:          
+F7/BA:          .BANK BI
+F6/80:          AL0_B	= BI
 F6/80:          .TEXT
 F6/80:          
 F6/80:          	; FLUSH ANY BUFFERS THAT MAY HAVE BECOME DIRTY
@@ -1672,26 +1695,168 @@ F6/B1: 30FF     	LOADI	A,WORK_B
 F6/B2: A080     	STORE	[DBANK],A
 F6/B3: FF4E     	JUMP	IRET
 F6/B5:          	
-F6/B4:          	; THE CURRENTLY OPEN FILE IS DIRTY
-F6/B4:          	; WRITE THE BLOCK TABLE AND UPDATE THE FILE RECORD
-F6/B4:          
 F6/B4:          	; INDEX ALLOCATION BITMAP
 F6/B4:          	; SEARCHES FOR A BLOCK IN THE ALLOCATION TABLE
 F6/B4:          	; THAT CONTAINS AN EMPTY BLOCK OR ALLOCATED BLOCK
 F6/B4:          	; ASSUMES WORK BANK IS SELECTED
 F6/B4:          	; A = 0 IF LOOKING FOR EMPTY BLOCK, A = 1 IF LOOKING FOR FULL BLOCK
-F6/B4:          	; USES: A, B, C
-F6/B4:          AINDEX:
-F6/B4:          
-F6/B4:          	; BANK IS DONE, MOVE ON TO THE NEXT
-F6/B4:          BI	= BI-1
-F6/B4:          .BANK BI
-F5/80:          ALC1_B	= BI
+F6/B4:          	; A = 0XFF IF COUNTING FREE BLOCKS
+F6/B4:          	; RETURNS A = 0 IF OPERATION IS SUCCESSFUL, A = 0XFF OTHERWISE
+F6/B4:          	; USES: A, B, C, M0, M1, M2
+F6/B4: 34F5     INDEX:	LOADI	B,AL1_B
+F6/B5: 3880     	LOADI	C,INDEXA
+F6/B6: FF4A     	JUMP	INDIR
+F6/B8:          
+F6/B7:          	; BANK IS DONE, MOVE ON TO THE NEXT
+F6/B7:          BI	= BI-1
+F6/B7:          .BANK BI
+F5/80:          AL1_B	= BI
 F5/80:          .TEXT
-F5/80:          
-F5/80:          	; BANK IS DONE, MOVE ON TO THE NEXT
-F5/80:          BI	= BI-1
-F5/80:          ; END.S
-F5/80:          ; DEFINES SYMBOLS BASED ON ASSEMBLY STATE
-F5/80:          
-F5/80:          MAX_IB	= BI
+F5/80:          	
+F5/80:          BD_FREE	= 0X6E
+F5/80:          	
+F5/80:          	; SHADOW OF INDEX
+F5/80: A002     INDEXA: STORE	[M2],A
+F5/81: 7C02     	SUBI	D,2
+F5/83:          
+F5/82:          	; DO WE RESET THE BLOCK COUNT?
+F5/82: 5000     	ADDI	A,0
+F5/83: F506     	BRNN	0F
+F5/85:          	
+F5/84:          	; YES, WE DO
+F5/84: 3000     	LOADI	A,0
+F5/85: A080     	STORE	[DBANK],A
+F5/86: A06E     	STORE	[BD_FREE],A
+F5/87: A06F     	STORE	[BD_FREE+1],A
+F5/89:          	
+F5/88:          	; SWITCH BACK THE WORK BANK AND CONTINUE
+F5/88: 30FF     	LOADI	A,WORK_B
+F5/89: A080     	STORE	[DBANK],A
+F5/8B:          	
+F5/8A:          	; BEFORE WE DO ANY WORK, LETS FLUSH THE EXISTING BUFFERS
+F5/8A: 38F5     0:	LOADI	C,BI
+F5/8B: BB01     	STOREF	[D+1],C
+F5/8C: 3891     	LOADI	C,@+5
+F5/8D: BB00     	STOREF	[D],C
+F5/8E: 34F6     	LOADI	B,AL0_B
+F5/8F: 3880     	LOADI	C,FLUSH
+F5/90: FF70     	JUMP	INDIR
+F5/92:          	
+F5/91:          	; SET CURRENT AB BLOCK TO 1
+F5/91: 3000     	LOADI	A,0
+F5/92: A006     	STORE	[BLK],A
+F5/93: 3001     	LOADI	A,1
+F5/95:          	
+F5/94:          	
+F5/94:          	; GRAB THE BLOCK AND START PROCESSING
+F5/94: A021     0:	STORE	[AB_CBLK],A
+F5/95: A007     	STORE	[BLK+1],A
+F5/96: 30FA     	LOADI	A,ABM_B
+F5/97: 389C     	LOADI	C,@+5
+F5/98: BB00     	STOREF	[D],C
+F5/99: 34FC     	LOADI	B,BLK0_B
+F5/9A: 388D     	LOADI	C,BLKREAD
+F5/9B: FF65     	JUMP	INDIR
+F5/9D:          	
+F5/9C:          	; INIT SEARCH
+F5/9C: 3000     	LOADI	A,0
+F5/9D: 34FA     	LOADI	B,ABM_B
+F5/9F:          	
+F5/9E:          	; SEARCH THE BITMAP
+F5/9E: A000     1:	STORE	[M0],A
+F5/9F: A401     	STORE	[M1],B
+F5/A0: A480     	STORE	[DBANK],B
+F5/A1: 9800     	LOADF	C,[A]
+F5/A2: 34FF     	LOADI	B,WORK_B
+F5/A3: A480     	STORE	[DBANK],B
+F5/A5:          	
+F5/A4:          	; GET BEHAVIOR
+F5/A4: 8002     	LOAD	A,[M2]
+F5/A5: 5000     	ADDI	A,0
+F5/A6: F627     	BRZ	7F
+F5/A7: F52A     	BRNN	8F
+F5/A9:          	
+F5/A8:          	; COUNT BITS IN C
+F5/A8: 3000     	LOADI	A,0
+F5/A9: A080     	STORE	[DBANK],A
+F5/AA: 3408     	LOADI	B,8
+F5/AC:          	
+F5/AB:          	; KEEP POPPING BITS OFF OF C TILL NONE REMAIN
+F5/AB: 4A00     2:	SHIFTL	C
+F5/AC: F001     	BRC	3F
+F5/AE:          	
+F5/AD:          	; ADD 1 TO COUNT
+F5/AD: 5001     	ADDI	A,1
+F5/AF:          	
+F5/AE:          	; ARE WE DONE?
+F5/AE: 7401     3:	SUBI	B,1
+F5/AF: F7FB     	BRNZ	2B
+F5/B1:          	
+F5/B0:          	; ADD A TO BIT COUNTER
+F5/B0: 846F     	LOAD	B,[BD_FREE+1]
+F5/B1: 4400     	ADD	B,A
+F5/B2: A46F     	STORE	[BD_FREE+1],B
+F5/B3: F103     	BRNC	4F
+F5/B4: 846E     	LOAD	B,[BD_FREE]
+F5/B5: 5401     	ADDI	B,1
+F5/B6: A46E     	STORE	[BD_FREE],B
+F5/B8:          	
+F5/B7:          	; DONE, BACK TO THE WORK BANK
+F5/B7: 30FF     4:	LOADI	A,WORK_B
+F5/B8: A080     	STORE	[DBANK],A
+F5/BA:          	
+F5/B9:          	; GET NEXT CHUNK
+F5/B9: 8000     6:	LOAD	A,[M0]
+F5/BA: 8401     	LOAD	B,[M1]
+F5/BB: 5001     	ADDI	A,1
+F5/BC: F5E1     	BRNN	1B
+F5/BD: 3000     	LOADI	A,0
+F5/BE: 5401     	ADDI	B,1
+F5/BF: 38FE     	LOADI	C,ABM_B+4
+F5/C0: D600     	CMP	B,C
+F5/C1: F7DC     	BRNZ	1B
+F5/C3:          	
+F5/C2:          	; READ THE NEXT BLOCK
+F5/C2: 8021     	LOAD	A,[AB_CBLK]
+F5/C3: 5001     	ADDI	A,1
+F5/C4: 3411     	LOADI	B,17
+F5/C5: D100     	CMP	A,B
+F5/C6: F7CD     	BRNZ	0B
+F5/C8:          	
+F5/C7:          	; WE DIDN'T FIND IT
+F5/C7:          	; OR WE ARE JUST DONE COUNTING
+F5/C7:          	; COULD BE EITHER
+F5/C7: 8402     	LOAD	B,[M2]
+F5/C8: 30FF     	LOADI	A,0xFF
+F5/C9: 5400     	ADDI	B,0
+F5/CA: F50A     	BRNN	9F	; NOPE, RIP :(
+F5/CC:          	
+F5/CB:          	; YAY, LETS DO IT AGAIN
+F5/CB: 3000     	LOADI	A,0
+F5/CC: 5C02     	ADDI	D,2
+F5/CD: FFB2     	JUMP	INDEXA
+F5/CF:          	
+F5/CE:          	; CHECK TO SEE IF CHUNK HAS AN EMPTY BLOCK
+F5/CE: 5801     7:	ADDI	C,1
+F5/CF: F6E9     	BRZ	6B
+F5/D0: 3000     	LOADI	A,0
+F5/D1: FF03     	JUMP	9F
+F5/D3:          
+F5/D2:          	; CHECK TO SEE IF CHUNK HAS A FILLED BLOCK
+F5/D2: 5800     8:	ADDI	C,0
+F5/D3: F6E5     	BRZ	6B
+F5/D4: 3000     	LOADI	A,0
+F5/D6:          
+F5/D5:          	; RESTORE STACK
+F5/D5: 5C02     9:	ADDI	D,2
+F5/D7:          
+F5/D6: 34FF     AL1DONE:LOADI	B,WORK_B
+F5/D7: A480     	STORE	[DBANK],B
+F5/D8: FF29     	JUMP	IRET
+F5/DA:          
+F5/D9:          	; BANK IS DONE, MOVE ON TO THE NEXT
+F5/D9:          BI	= BI-1
+F5/D9:          ; END.S
+F5/D9:          ; DEFINES SYMBOLS BASED ON ASSEMBLY STATE
+F5/D9:          
+F5/D9:          MAX_IB	= BI

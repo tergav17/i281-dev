@@ -1,0 +1,345 @@
+00/00:          ; DOSDEF.S
+01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          
+01/80:          ; BIOS CALLS
+01/80:          INDIR	= 1
+01/80:          IRET	= 2
+01/80:          SYSCALL	= 3
+01/80:          SYSJUMP	= 4
+01/80:          PRGM	= 5
+01/80:          HALT	= 6
+01/80:          
+01/80:          ; SYSTEM CALLS
+01/80:          S_EXIT	= 0
+01/80:          S_PUTC	= 1
+01/80:          S_GETC	= 2
+01/80:          S_STAT	= 3
+01/80:          S_PUTS	= 4
+01/80:          S_INPUT	= 5
+01/80:          S_OPEN	= 6
+01/80:          S_CLOSE	= 7
+01/80:          S_READ	= 8
+01/80:          S_WRITE	= 9
+01/80:          S_FSRCH	= 10
+01/80:          S_NEXT	= 11
+01/80:          S_DELET	= 12
+01/80:          S_CREAT	= 13
+01/80:          S_FREE	= 14
+01/80:          S_EXEC	= 15
+01/80:          
+01/80:          ; MEMORY AREAS
+01/80:          CF_NAME	= 0X60
+01/80:          CF_SIZE	= 0X68
+01/80:          CF_USR	= 0X6A
+01/80:          DFT_USR	= 0X6B
+01/80:          ARG_BNK	= 0X6C
+01/80:          BD_FREE	= 0X6E
+01/80:          MAX_IB	= 0X70
+01/80:          MAX_DB	= 0X71
+01/80:          CMDL_B	= 0X72
+01/80:          AUTO_B	= 0X73
+01/80:          KERNMEM	= 0X78
+01/80:          BIOSMEM	= 0X7C
+01/80:          
+01/80:          ; DATA BANK ADDRESS
+01/80:          DBANK	= 0X80		
+01/80:          
+01/80:          ; STAT.S
+01/80:          ; SHOW FILE SYSTEM STATISTICS
+01/80:          
+01/80:          .BANK 1
+01/80:          .TEXT
+01/80:          	; START HERE
+01/80:          	; SET OUT BANK TO BANK 0
+01/80: 3000     START:	LOADI	A,0
+01/81: A080     	STORE	[DBANK],A
+01/83:          	
+01/82:          	; SET UP STACK
+01/82: 3C5E     	LOADI	D,0X60-2
+01/84:          	
+01/83:          	; FIRST ORDER OF BUISNESS: CLOSE EXISTING FILE
+01/83:          	
+01/83:          	; SET UP SYSTEM CALL ARGUMENTS
+01/83: 3407     	LOADI	B,S_CLOSE
+01/85:          	
+01/84:          	; SET UP RETURN ADDRESS
+01/84: 3801     	LOADI	C,1	; RETURN BANK
+01/85: BB01     	STOREF	[D+1],C
+01/86: 3888     	LOADI	C,@+2	; RETURN ADDRESS
+01/88:          	
+01/87:          	; AND DO SYSCALL
+01/87: FF7B     	JUMP	SYSCALL
+01/89:          	
+01/88:          	; RESET THE TELEMETRY
+01/88: 3000     	LOADI	A,0
+01/89: A006     	STORE	[NUMFILE],A
+01/8A: A007     	STORE	[NUMFILE+1],A
+01/8B: A008     	STORE	[NUMBLK],A
+01/8C: A009     	STORE	[NUMBLK+1],A
+01/8E:          	
+01/8D:          	; COUNT NUMBER OF FILES
+01/8D: 3001     	LOADI	A,1
+01/8E: A06C     	STORE	[ARG_BNK],A
+01/8F: 3000     	LOADI	A,PATH
+01/90: 340A     	LOADI	B,S_FSRCH
+01/91: 3893     	LOADI	C,@+2
+01/92: FF70     	JUMP	SYSCALL
+01/94:          	
+01/93:          	; CHECK STATUS
+01/93: 5000     0:	ADDI	A,0
+01/94: F71B     	BRNZ	9F
+01/96:          	
+01/95:          	; UPDATE FILE COUNT
+01/95: 8007     	LOAD	A,[NUMFILE+1]
+01/96: 5001     	ADDI	A,1
+01/97: A007     	STORE	[NUMFILE+1],A
+01/98: F103     	BRNC	1F
+01/99: 8006     	LOAD	A,[NUMFILE]
+01/9A: 5001     	ADDI	A,1
+01/9B: A006     	STORE	[NUMFILE],A
+01/9D:          	
+01/9C:          	; ADD THE FILE SIZE TO THE RUNNING COUNT
+01/9C: 8009     1:	LOAD	A,[NUMBLK+1]
+01/9D: 8469     	LOAD	B,[CF_SIZE+1]
+01/9E: 4100     	ADD	A,B
+01/9F: A009     	STORE	[NUMBLK+1],A
+01/A0: 8008     	LOAD	A,[NUMBLK]
+01/A1: F101     	BRNC	2F
+01/A2: 5001     	ADDI	A,1
+01/A3: 8468     2:	LOAD	B,[CF_SIZE]
+01/A4: 4100     	ADD	A,B
+01/A5: A008     	STORE	[NUMBLK],A
+01/A6: 8009     	LOAD	A,[NUMBLK+1]
+01/A7: 5001     	ADDI	A,1
+01/A8: A009     	STORE	[NUMBLK+1],A
+01/A9: F103     	BRNC	3F
+01/AA: 8008     	LOAD	A,[NUMBLK]
+01/AB: 5001     	ADDI	A,1
+01/AC: A008     	STORE	[NUMBLK],A
+01/AE:          		
+01/AD:          	; TRY TO GET NEXT BLOCK
+01/AD: 340B     3:	LOADI	B,S_NEXT
+01/AE: 3893     	LOADI	C,0B
+01/AF: FF53     	JUMP	SYSCALL
+01/B1:          	
+01/B0:          	
+01/B0:          9:	; MOVE BD_FREE TO VALUE
+01/B0: 8006     	LOAD	A,[NUMFILE]
+01/B1: A000     	STORE	[VALUE],A
+01/B2: 8007     	LOAD	A,[NUMFILE+1]
+01/B3: A001     	STORE	[VALUE+1],A
+01/B5:          	
+01/B4:          	; PRINT IT OUT
+01/B4: 3001     	LOADI	A,1
+01/B5: 38BA     	LOADI	C,@+5
+01/B6: BB00     	STOREF	[D],C
+01/B7: 3402     	LOADI	B,2
+01/B8: 3880     	LOADI	C,PRINTD
+01/B9: FF47     	JUMP	INDIR
+01/BB:          	
+01/BA:          	; PRINT OUT STRING TOO
+01/BA: 3006     	LOADI	A,FINUSE
+01/BB: 3404     	LOADI	B,S_PUTS
+01/BC: 38BE     	LOADI	C,@+2
+01/BD: FF45     	JUMP	SYSCALL
+01/BF:          	
+01/BE:          	; MOVE BD_FREE TO VALUE
+01/BE: 8008     	LOAD	A,[NUMBLK]
+01/BF: A000     	STORE	[VALUE],A
+01/C0: 8009     	LOAD	A,[NUMBLK+1]
+01/C1: A001     	STORE	[VALUE+1],A
+01/C3:          	
+01/C2:          	; PRINT IT OUT
+01/C2: 3001     	LOADI	A,1
+01/C3: 38C8     	LOADI	C,@+5
+01/C4: BB00     	STOREF	[D],C
+01/C5: 3402     	LOADI	B,2
+01/C6: 3880     	LOADI	C,PRINTD
+01/C7: FF39     	JUMP	INDIR
+01/C9:          	
+01/C8:          	; PRINT OUT STRING TOO
+01/C8: 3016     	LOADI	A,BINUSE
+01/C9: 3404     	LOADI	B,S_PUTS
+01/CA: 38CC     	LOADI	C,@+2
+01/CB: FF37     	JUMP	SYSCALL
+01/CD:          	
+01/CC:          	; CALCULATE NUMBER OF BLOCKS FREE
+01/CC: 340E     	LOADI	B,S_FREE
+01/CD: 38CF     	LOADI	C,@+2
+01/CE: FF34     	JUMP	SYSCALL
+01/D0:          	
+01/CF:          	; MOVE BD_FREE TO VALUE
+01/CF: 806E     	LOAD	A,[BD_FREE]
+01/D0: A000     	STORE	[VALUE],A
+01/D1: 806F     	LOAD	A,[BD_FREE+1]
+01/D2: A001     	STORE	[VALUE+1],A
+01/D4:          	
+01/D3:          	; PRINT IT OUT
+01/D3: 3001     	LOADI	A,1
+01/D4: 38D9     	LOADI	C,@+5
+01/D5: BB00     	STOREF	[D],C
+01/D6: 3402     	LOADI	B,2
+01/D7: 3880     	LOADI	C,PRINTD
+01/D8: FF28     	JUMP	INDIR
+01/DA:          	
+01/D9:          	; PRINT OUT STRING TOO
+01/D9: 3027     	LOADI	A,BLKFREE
+01/DA: 3404     	LOADI	B,S_PUTS
+01/DB: 38DD     	LOADI	C,@+2
+01/DC: FF26     	JUMP	SYSCALL
+01/DE:          	
+01/DD:          	; EXIT
+01/DD: 3400     EXIT:	LOADI	B,0
+01/DE: FF25     	JUMP	SYSJUMP
+01/E0:          	
+01/DF:          .BANK	2
+01/DF:          	
+02/80:          	; PRINTS THE SIZE AS A 8 OR 16 BIT BASE-10 NUMBER
+02/80:          	; A = 0: 8 BIT 1: 16 BIT
+02/80: 7C02     PRINTD: SUBI	D,2
+02/82:          	
+02/81:          	; SET PADDING TO NULL CHARACTER AT FIRST
+02/81: 3800     	LOADI	C,0
+02/82: A803     	STORE	[PADDING],C
+02/84:          	
+02/83:          	; SEE IF WE ARE DOING 8 OR 16 BIT
+02/83: 5000     	ADDI	A,0
+02/84: F608     	BRZ	0F
+02/86:          	
+02/85:          V	= 10000
+02/85: 3027     	LOADI	A,V/256
+02/86: 3410     	LOADI	B,V%256
+02/87: 3889     	LOADI	C,@+2
+02/88: FF14     	JUMP	DOCHAR
+02/8A:          	
+02/89:          V	= 1000
+02/89: 3003     	LOADI	A,V/256
+02/8A: 34E8     	LOADI	B,V%256
+02/8B: 388D     	LOADI	C,@+2
+02/8C: FF10     	JUMP	DOCHAR
+02/8E:          	
+02/8D:          V	= 100
+02/8D: 3000     0:	LOADI	A,V/256
+02/8E: 3464     	LOADI	B,V%256
+02/8F: 3891     	LOADI	C,@+2
+02/90: FF0C     	JUMP	DOCHAR
+02/92:          	
+02/91:          V	= 10
+02/91: 3000     	LOADI	A,V/256
+02/92: 340A     	LOADI	B,V%256
+02/93: 3895     	LOADI	C,@+2
+02/94: FF08     	JUMP	DOCHAR
+02/96:          	
+02/95: 3030     	LOADI	A,'0'
+02/96: A003     	STORE	[PADDING],A
+02/98:          	
+02/97:          V	= 1
+02/97: 3000     	LOADI	A,V/256
+02/98: 3401     	LOADI	B,V%256
+02/99: 389B     	LOADI	C,@+2
+02/9A: FF02     	JUMP	DOCHAR
+02/9C:          	
+02/9B: 5C02     	ADDI	D,2 
+02/9C: FF65     	JUMP	IRET
+02/9E:          	
+02/9D:          	; A = UPPER SUB
+02/9D:          	; B = LOWER SUB
+02/9D: A804     DOCHAR:	STORE	[LEAFRET],C
+02/9E: 8803     	LOAD	C,[PADDING]	
+02/9F: A802     	STORE	[CHAR],C
+02/A1:          	
+02/A0:          	; PARK THE STACK
+02/A0: AC05     	STORE	[SPARK],D
+02/A2:          
+02/A1:          	; GET THE SIZE
+02/A1: 8800     0:	LOAD	C,[VALUE]
+02/A2: 8C01     	LOAD	D,[VALUE+1]
+02/A4:          	
+02/A3:          	; DO 16 BIT SUBTRACTION
+02/A3: 6D00     1:	SUB	D,B
+02/A4: F002     	BRC	2F
+02/A5: 7801     	SUBI	C,1
+02/A6: F10D     	BRNC	4F
+02/A7: 6800     2:	SUB	C,A
+02/A8: F10B     	BRNC	4F
+02/AA:          	
+02/A9:          	; SAVE VALUE
+02/A9: A800     	STORE	[VALUE],C
+02/AA: AC01     	STORE	[VALUE+1],D
+02/AC:          	
+02/AB:          	; GET THE CHAR AND CHECK TO SEE IF IT IS A WHITESPACE
+02/AB: 8802     	LOAD	C,[CHAR]
+02/AC: 3C20     	LOADI	D,0X20
+02/AD: DB00     	CMP	C,D
+02/AE: F802     	BRA	3F
+02/B0:          	
+02/AF:          	; SET PADDING AND CHAR TO '0'
+02/AF: 3830     	LOADI	C,'0'
+02/B0: A803     	STORE	[PADDING],C
+02/B2:          	
+02/B1: 5801     3:	ADDI	C,1
+02/B2: A802     	STORE	[CHAR],C
+02/B3: FFED     	JUMP	0B
+02/B5:          	
+02/B4:          	; RESTORE THE STACK
+02/B4: 8C05     4:	LOAD	D,[SPARK]
+02/B6:          	
+02/B5:          	; SEE IF IT IS ZERO
+02/B5: 8002     	LOAD	A,[CHAR]
+02/B6: 5000     	ADDI	A,0
+02/B7: F702     	BRNZ	5F
+02/B8: 8804     	LOAD	C,[LEAFRET]
+02/B9: FE46     	JUMPR	C
+02/BB:          	
+02/BA:          	; PRINT THE CHARACTER
+02/BA: 3401     5:	LOADI	B,S_PUTC
+02/BB: 3802     	LOADI	C,2	; RETURN BANK
+02/BC: BB01     	STOREF	[D+1],C
+02/BD: 8804     	LOAD	C,[LEAFRET]
+02/BE: FF44     	JUMP	SYSCALL
+02/C0:          	
+02/BF:          	
+02/BF:          	
+02/BF:          .BANK 1
+01/DF:          .DATA
+01/DF:          
+01/00:          	; PATH TO SEARCH ALL FILES
+01/00: 3F3A2A2E
+       2A00     .DEFL BYTE PATH		"?:*.*",0
+01/06:          
+01/06:          	; ASSORTED MESSAGES
+01/06: 2046494C
+       45532049
+       4E205553
+       450A0D00 .DEFL BYTE FINUSE	" FILES IN USE",0X0A,0X0D,0
+01/16: 20424C4F
+       434B5320
+       494E2055
+       53450A0D
+       00       .DEFL BYTE BINUSE	" BLOCKS IN USE",0X0A,0X0D,0
+01/27: 20424C4F
+       434B5320
+       46524545
+       0A0D00   .DEFL BYTE BLKFREE	" BLOCKS FREE",0X0A,0X0D,0
+01/36:          	
+01/36:          .BANK 0
+00/00:          .BSS
+00/00:          	; DEFINE SOME SPACE ON THE ZERO BANK FOR STATE INFORMATION
+00/00:          
+00/00:          	; VALUE THAT WILL BE PRINTED
+00/00: 0000     .DEFL BYTE VALUE	0,0
+00/02:          
+00/02:          	; VALUE FOR DECIMAL NUMBER PRINT
+00/02: 00       .DEFL BYTE CHAR		0
+00/03:          
+00/03:          	; PADDING FOR DECIMAL NUMBER PRINT
+00/03: 00       .DEFL BYTE PADDING	0
+00/04:          
+00/04:          	; RETURN FOR LEAF FUNCTIONS
+00/04: 00       .DEFL BYTE LEAFRET	0
+00/05:          
+00/05:          	; STACK PARKING SPACE
+00/05: 00       .DEFL BYTE SPARK	0
+00/06:          
+00/06:          	; RECORD KEEPING
+00/06: 0000     .DEFL BYTE NUMFILE	0,0
