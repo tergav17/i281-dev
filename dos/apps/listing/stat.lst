@@ -2,12 +2,15 @@
 01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
 01/80:          
 01/80:          ; BIOS CALLS
+01/80:          REBOOT	= 0
 01/80:          INDIR	= 1
 01/80:          IRET	= 2
 01/80:          SYSCALL	= 3
 01/80:          SYSJUMP	= 4
 01/80:          PRGM	= 5
-01/80:          HALT	= 6
+01/80:          IWRITE	= 6
+01/80:          
+01/80:          HALT	= 0X7F
 01/80:          
 01/80:          ; SYSTEM CALLS
 01/80:          S_EXIT	= 0

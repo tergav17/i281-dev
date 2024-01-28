@@ -1,13 +1,16 @@
 00/00:          ; COMMON.S
-01/80:          ; DOS/281 SYSTEM COMMON DEFINITIONS
+01/80:          ; SYSTEM COMMON DEFINITIONS
 01/80:          
 01/80:          ; DEFINES
+01/80:          REBOOT	= 0
 01/80:          INDIR	= 1
 01/80:          IRET	= 2
 01/80:          SYSCALL	= 3
 01/80:          SYSJUMP	= 4
 01/80:          PRGM	= 5
-01/80:          HALT	= 6
+01/80:          IWRITE	= 6
+01/80:          
+01/80:          HALT	= 0x7F
 01/80:          
 01/80:          DBANK	= 0X80		; DATA BANK ADDRESS
 01/80:          
@@ -91,7 +94,7 @@
 01/96: F6ED     	BRZ	1B
 01/98:          	
 01/97:          	; IT'S 0XFF: WE ARE OUT OF ENTRIES
-01/97: F46E     	BRN	HALT
+01/97: F4E7     	BRN	HALT
 01/99:          	
 01/98:          	; IT'S 0X01, THE RECORD IS ON THE NEXT BLOCK
 01/98: 80A3     	LOAD	A,[CF_LBA0]
@@ -113,7 +116,7 @@
 01/A2:          	
 01/A1:          	; CHECK IF FILE IS EMPTY
 01/A1: 5000     	ADDI	A,0
-01/A2: F663     	BRZ	HALT
+01/A2: F6DC     	BRZ	HALT
 01/A4:          	
 01/A3:          	; SAVE SIZE
 01/A3: A00A     1:	STORE	[SIZE],A
