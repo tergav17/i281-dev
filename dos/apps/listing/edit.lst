@@ -97,26 +97,49 @@
 01/95: 5000     	ADDI	A,0
 01/96: F604     	BRZ	2F
 01/97: D100     	CMP	A,B
-01/98: F803     	BRA	OPENARG
+01/98: F805     	BRA	OPENARG
 01/99: 5801     	ADDI	C,1
 01/9A: FFF9     	JUMP	1B
 01/9C:          	
 01/9B:          	; NO ARGUMENT, EMPTY BUFFER
-01/9B: FF00     2:	JUMP	DONE
-01/9D:          
-01/9C:          	
-01/9C:          	; THERE IS AN ARG, TRY AND OPEN IT
-01/9C:          OPENARG:
-01/9C:          
-01/9C:          
-01/9C:          	; EXIT PROGRAM
-01/9C: 3400     DONE:	LOADI	B,S_EXIT
-01/9D: FF66     	JUMP	SYSJUMP
+01/9B: 3000     2:	LOADI	A,0
+01/9C: A080     	STORE	[DBANK],A
+01/9D: FF13     	JUMP	DONE
 01/9F:          
-01/9E:          	; BANK IS DONE, MOVE ON TO THE NEXT
-01/9E:          BI	= BI+1
-01/9E:          .TEXT
-01/9E:          .BANK	BI
+01/9E:          	
+01/9E:          	; THERE IS AN ARG, TRY AND OPEN IT
+01/9E: AC02     OPENARG:STORE	[SPARK],D
+01/A0:          
+01/9F: 3C09     	LOADI	D,FNAME
+01/A0: 9200     0:	LOADF	A,[C]
+01/A1: 3400     	LOADI	B,0
+01/A2: A480     	STORE	[DBANK],B
+01/A3: B300     	STOREF	[D],A
+01/A4: 7020     	SUBI	A,0X20
+01/A5: F908     	BRBE	1F
+01/A6: 5801     	ADDI	C,1
+01/A7: 5C01     	ADDI	D,1
+01/A8: 3418     	LOADI	B,FNAME+15
+01/A9: DD00     	CMP	D,B
+01/AA: F003     	BRAE	1F
+01/AB: 8472     	LOAD	B,[CMDL_B]
+01/AC: A480     	STORE	[DBANK],B
+01/AD: FFF2     	JUMP	0B
+01/AF:          	
+01/AE:          	; TERMINATE STRING AND RETURN
+01/AE: 3000     1:	LOADI	A,0
+01/AF: B300     	STOREF	[D],A
+01/B0: 8C02     	LOAD	D,[SPARK]
+01/B2:          
+01/B1:          
+01/B1:          	; EXIT PROGRAM
+01/B1: 3400     DONE:	LOADI	B,S_EXIT
+01/B2: FF51     	JUMP	SYSJUMP
+01/B4:          
+01/B3:          	; BANK IS DONE, MOVE ON TO THE NEXT
+01/B3:          BI	= BI+1
+01/B3:          .TEXT
+01/B3:          .BANK	BI
 02/80:          MEM0_B	= BI
 02/80:          
 02/80:          	; MEMORY INIT
@@ -222,31 +245,35 @@
 03/80:          FIO0_B	= BI
 03/80:          	
 03/80:          	; READS A FILE INTO THE BUFFER
-03/80:          	; A = STRING POINTER
-03/80:          	; [ARG_BNK] = STRING BANK
+03/80:          	; [FNAME] = FILE TO OPEN
 03/80:          	; RETURNS A = 0XFF IF ERROR, A = 0X00 RETURN OTHERWISE
 03/80:          	; USES: A, B, C
 03/80: 7C02     FREAD:	SUBI	D,2
 03/82:          	
-03/81:          	; ATTEMPT TO OPEN FILE
-03/81: 3803     	LOADI	C,BI
-03/82: BB01     	STOREF	[D+1],C
-03/83: 3406     	LOADI	B,S_OPEN
-03/84: 3886     	LOADI	C,@+2
-03/85: FF7D     	JUMP	SYSCALL
-03/87:          	
-03/86:          	; CHECK RESULT OF OPERATION
-03/86: 5000     	ADDI	A,0
-03/87: F701     	BRNZ	9F
-03/89:          	
-03/88:          	; RESTORE STACK AND RETURN
-03/88: 3000     	LOADI	A,0
-03/89: 5C02     9:	ADDI	D,2
-03/8A: FF77     	JUMP	IRET
-03/8C:          
-03/8B:          
-03/8B:          	; ZERO BANK
-03/8B:          .BANK	0
+03/81:          	; SET OPEN TARGET
+03/81: 3000     	LOADI	A,0
+03/82: A06C     	STORE	[ARG_BNK],A
+03/83: 3060     	LOADI	A,0X60
+03/85:          	
+03/84:          	; ATTEMPT TO OPEN FILE
+03/84: 3803     	LOADI	C,BI
+03/85: BB01     	STOREF	[D+1],C
+03/86: 3406     	LOADI	B,S_OPEN
+03/87: 3889     	LOADI	C,@+2
+03/88: FF7A     	JUMP	SYSCALL
+03/8A:          	
+03/89:          	; CHECK RESULT OF OPERATION
+03/89: 5000     	ADDI	A,0
+03/8A: F701     	BRNZ	9F
+03/8C:          	
+03/8B:          	; RESTORE STACK AND RETURN
+03/8B: 3000     	LOADI	A,0
+03/8C: 5C02     9:	ADDI	D,2
+03/8D: FF74     	JUMP	IRET
+03/8F:          
+03/8E:          
+03/8E:          	; ZERO BANK
+03/8E:          .BANK	0
 00/80:          .BSS
 00/80:          
 00/00:          	; MISC CONTEXT INFORMATION
@@ -265,8 +292,14 @@
 00/07:          	; LINE EDITOR CONTENT
 00/07: 0000     .DEFL BYTE LINETAB	0,0
 00/09:          
-00/09:          	; START OF DEFINED MEMORY
-00/09:          .BANK	BD
+00/09:          	; CURRENT FILE NAME
+00/09: 00000000
+       00000000 .DEFL BYTE FNAME	0,0,0,0,0,0,0,0,
+00/11: 00000000
+       00000000 			0,0,0,0,0,0,0,0
+00/19:          
+00/19:          	; START OF DEFINED MEMORY
+00/19:          .BANK	BD
 01/00:          .DATA
 01/00:          STR0_B = BD	; STRING BANK
 01/00:          
