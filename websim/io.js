@@ -11,6 +11,7 @@ const upload_sav = document.getElementById("upload-sav");
 const upload_img = document.getElementById("upload-img");
 const terminal = document.getElementById("terminal");
 const readout = document.getElementById("readout");
+const dump_bank = document.getElementById("text-dump-bank");
 
 
 /*
@@ -390,12 +391,21 @@ terminal.onkeypress = function(e) {
 
 // Instruction dump function
 dump_isr.onclick = function() {
-	let content = "BANK : 0x" + (cpu_state.isr_bank).toString(16).padStart(2, '0').toUpperCase() + "\n";
+	// Grab the bank
+	let bank = cpu_state.isr_bank;
+	let manual = getManualBank();
+	if (manual >= 0 && manual <= 255) {
+		bank = manual;
+	}
 	
+	// Dump header
+	let content = "BANK : 0x" + (bank).toString(16).padStart(2, '0').toUpperCase() + "\n";
+	
+	// Dump contents
 	for (let i = 0x80; i < 0x100; i++) {
 		content += "0x" + (i).toString(16).padStart(2, '0').toUpperCase() + " : ";
 		
-		let isr = cpu_state.imem[128 * cpu_state.isr_bank + (i & 0x7F)];
+		let isr = cpu_state.imem[128 * bank + (i & 0x7F)];
 		content += (isr).toString(16).padStart(4, '0').toUpperCase() + " "
 		content += decode([], isr, [0, 0, 0, 0]);
 		content += "\n"
@@ -407,18 +417,27 @@ dump_isr.onclick = function() {
 
 // Data dump function
 dump_data.onclick = function() {
-	let content = "BANK : 0x" + (cpu_state.data_bank).toString(16).padStart(2, '0').toUpperCase() + "\n";
+	// Grab the bank
+	let bank = cpu_state.data_bank;
+	let manual = getManualBank();
+	if (manual >= 0 && manual <= 255) {
+		bank = manual;
+	}
 	
+	// Dump header
+	let content = "BANK : 0x" + (bank).toString(16).padStart(2, '0').toUpperCase() + "\n";
+	
+	// Dump contents
 	for (let i = 0; i < 0x80; i += 8) {
 		content += "0x" + (i).toString(16).padStart(2, '0').toUpperCase() + " : ";
 		
 		for (let o = 0; o < 8; o++) {
-			content += (cpu_state.dmem[cpu_state.data_bank * 128 + i + o]).toString(16).padStart(2, '0').toUpperCase() + " ";
+			content += (cpu_state.dmem[bank * 128 + i + o]).toString(16).padStart(2, '0').toUpperCase() + " ";
 		}
 		
 		content += " \"";
 		for (let o = 0; o < 8; o++) {
-			let b = cpu_state.dmem[cpu_state.data_bank * 128 + i + o];
+			let b = cpu_state.dmem[bank * 128 + i + o];
 			if (b >= 0x20 && b <= 0x7E) {
 				content += String.fromCharCode(b);
 			} else {
@@ -432,6 +451,18 @@ dump_data.onclick = function() {
 	
 	readout.value = content;
 }
+
+function getManualBank() {
+	let str = dump_bank.value.toLowerCase();
+	
+	if (str.startsWith("0x")) {
+		return parseInt(str, 16);
+	} else {
+		return parseInt(str, 10);
+	}
+}
+
+/* --- FILE LOADING STUFF --- */
 
 // Link "LOAD .SAV" button to file input
 document.getElementById("button-load-sav").onclick = function() {
