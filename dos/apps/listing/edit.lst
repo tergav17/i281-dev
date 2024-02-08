@@ -318,10 +318,32 @@
 02/D6: 8C0C     	LOAD	D,[SPARK]
 02/D7: FF2A     	JUMP	IRET
 02/D9:          	
-02/D8:          	; BANK IS DONE, MOVE ON TO THE NEXT
-02/D8:          BI	= BI+1
-02/D8:          .TEXT
-02/D8:          .BANK	BI
+02/D8:          	; GETS THE NEXT BLOCK AFTER CBLOCK
+02/D8:          	; RETURNS A=0X00 IF NEXT, 0XFF OTHERWISE
+02/D8:          	; USES: A, B, C
+02/D8: 8400     NEXT:	LOAD	B,[CBLOCK]
+02/D9: 8801     	LOAD	C,[CBLOCK+1]
+02/DA: 30FF     	LOADI	A,0XFF
+02/DB: 5400     	ADDI	B,0
+02/DC: F625     	BRZ	IRET
+02/DD: A480     	STORE	[DBANK],B
+02/DE: 9600     	LOADF	B,[C]
+02/DF: 9A01     	LOADF	C,[C+1]
+02/E0: 3000     	LOADI	A,0
+02/E1: A080     	STORE	[DBANK],A
+02/E2: 30FF     	LOADI	A,0XFF
+02/E3: 5400     	ADDI	B,0
+02/E4: F61D     	BRZ	IRET
+02/E5: A400     	STORE	[CBLOCK],B
+02/E6: A801     	STORE	[CBLOCK+1],C
+02/E7: 3000     	LOADI	A,0
+02/E8: FF19     	JUMP	IRET
+02/EA:          	
+02/E9:          	
+02/E9:          	; BANK IS DONE, MOVE ON TO THE NEXT
+02/E9:          BI	= BI+1
+02/E9:          .TEXT
+02/E9:          .BANK	BI
 03/80:          FIO0_B	= BI
 03/80:          	
 03/80:          	; READS A FILE INTO THE BUFFER
@@ -691,7 +713,7 @@
 07/80:          	; REQUESTS 1 OR 2 ARGUMENTS
 07/80: 8011     PRINTL:	LOAD	A,[STATE]
 07/81: 7001     	SUBI	A,1
-07/82: F411     	BRN	9F
+07/82: F421     	BRN	9F
 07/83: F704     	BRNZ	1F
 07/85:          	
 07/84:          	; SET ARGB = ARGA
@@ -704,29 +726,129 @@
 07/88: 8012     1:	LOAD	A,[ARGA]
 07/89: 8414     	LOAD	B,[ARGB]
 07/8A: D100     	CMP	A,B
-07/8B: F108     	BRB	9F
+07/8B: F118     	BRB	9F
 07/8C: F804     	BRA	2F
 07/8D: 8013     	LOAD	A,[ARGA+1]
 07/8E: 8415     	LOAD	B,[ARGB+1]
 07/8F: D100     	CMP	A,B
-07/90: F103     	BRB	9F
+07/90: F113     	BRB	9F
 07/92:          	
 07/91:          	; START LOOKING FOR THE LINE
-07/91:          2:	
-07/91:          	
-07/91:          	
-07/91:          	; GO BACK TO COMMAND LINE
-07/91: 3405     8:	LOADI	B,CMD0_B
-07/92: 3882     	LOADI	C,PROMPT
-07/93: FF6D     	JUMP	INDIR
-07/95:          	
-07/94:          	; ERROR
-07/94: 3405     9:	LOADI	B,CMD0_B
-07/95: 3880     	LOADI	C,ERROR
-07/96: FF6A     	JUMP	INDIR
-07/98:          	
-07/97:          	; ZERO BANK
-07/97:          .BANK	0
+07/91:          	; TEMP = ARGB
+07/91: 8014     2:	LOAD	A,[ARGB]
+07/92: 8415     	LOAD	B,[ARGB+1]
+07/93: A016     	STORE	[TEMP],A
+07/94: A417     	STORE	[TEMP+1],B
+07/95: 7C02     	SUBI	D,2
+07/96: 3807     	LOADI	C,BI
+07/97: BB01     	STOREF	[D+1],C
+07/98: 389D     	LOADI	C,@+5
+07/99: BB00     	STOREF	[D],C
+07/9A: 3408     	LOADI	B,LOP0_B
+07/9B: 3880     	LOADI	C,FINDL
+07/9C: FF64     	JUMP	INDIR
+07/9D: 5C02     	ADDI	D,2
+07/9E: 5000     	ADDI	A,0
+07/9F: F704     	BRNZ	9F
+07/A1:          	
+07/A0: FFFF     	JUMP	@
+07/A2:          	
+07/A1:          	; GO BACK TO COMMAND LINE
+07/A1: 3405     8:	LOADI	B,CMD0_B
+07/A2: 3882     	LOADI	C,PROMPT
+07/A3: FF5D     	JUMP	INDIR
+07/A5:          	
+07/A4:          	; ERROR
+07/A4: 3405     9:	LOADI	B,CMD0_B
+07/A5: 3880     	LOADI	C,ERROR
+07/A6: FF5A     	JUMP	INDIR
+07/A8:          	
+07/A7:          	; BANK IS DONE, MOVE ON TO THE NEXT
+07/A7:          BI	= BI+1
+07/A7:          .TEXT
+07/A7:          .BANK	BI
+08/80:          LOP0_B	= BI
+08/80:          
+08/80:          	; SETS [CBLOCK] AND [MB_PNTR] TO THE START OF A LINE
+08/80:          	; [MB_END] WILL ALSO BE UPDATED FOR THE CURRENT BLOCK
+08/80:          	; [TEMP] = LINE NUMBER TO FIND
+08/80:          	; RETURNS A=0X00 IF FOUND, 0XFF OTHERWISE
+08/80:          	; USES: A, B, C
+08/80: 840F     FINDL:	LOAD	B,[LINETAB]
+08/81: 8810     	LOAD	C,[LINETAB+1]
+08/82: FFFF     	JUMP	@
+08/84:          	
+08/83: A400     0:	STORE	[CBLOCK],B
+08/84: A801     	STORE	[CBLOCK+1],C
+08/85: 30FF     	LOADI	A,0XFF
+08/86: 5400     	ADDI	B,0
+08/87: F67A     	BRZ	IRET
+08/88: A480     	STORE	[DBANK],B
+08/89: 9602     	LOADF	B,[C+2]
+08/8A: 3000     	LOADI	A,0
+08/8B: A080     	STORE	[DBANK],A
+08/8C: 5400     	ADDI	B,0
+08/8D: F60D     	BRZ	2F
+08/8F:          	
+08/8E:          	; B = LINES ON BLOCK
+08/8E: 8017     	LOAD	A,[TEMP+1]
+08/8F: 2800     	MOV	C,A
+08/90: 6100     	SUB	A,B
+08/91: A017     	STORE	[TEMP+1],A
+08/92: 8416     	LOAD	B,[TEMP]
+08/93: F003     	BRC	1F
+08/94: 7401     	SUBI	B,1
+08/95: A416     	STORE	[TEMP],B
+08/96: F10C     	BRNC	3F
+08/98:          	
+08/97:          	; SEE IF TEMP = 0
+08/97: 5000     1:	ADDI	A,0
+08/98: F702     	BRNZ	2F
+08/99: 5400     	ADDI	B,0
+08/9A: F608     	BRZ	3F
+08/9C:          	
+08/9B:          	; NEXT BLOCK
+08/9B: 8400     2:	LOAD	B,[CBLOCK]
+08/9C: 8801     	LOAD	C,[CBLOCK+1]
+08/9D: A480     	STORE	[DBANK],B
+08/9E: 9600     	LOADF	B,[C]
+08/9F: 9A01     	LOADF	C,[C+1]
+08/A0: 3000     	LOADI	A,0
+08/A1: A080     	STORE	[DBANK],A
+08/A2: FFE0     	JUMP	0B
+08/A4:          
+08/A3:          	; FOUND BLOCK, FIND THE START OF LINE
+08/A3:          	; C = OFFSET
+08/A3: 8000     3:	LOAD	A,[CBLOCK]
+08/A4: 8401     	LOAD	B,[CBLOCK+1]
+08/A5: 5420     	ADDI	B,32
+08/A6: A408     	STORE	[MB_END],B
+08/A7: 8401     	LOAD	B,[CBLOCK+1]
+08/A8: 5403     	ADDI	B,3
+08/A9: A080     	STORE	[DBANK],A
+08/AA: 9100     4:	LOADF	A,[B]
+08/AB: 5000     	ADDI	A,0
+08/AC: F602     	BRZ	6F
+08/AD: 5401     5:	ADDI	B,1
+08/AE: FFFB     	JUMP	4B
+08/B0:          	
+08/AF:          	; DECREMENT AND MAYBE RETURN
+08/AF: 7801     6:	SUBI	C,1
+08/B0: F7FC     	BRNZ	5B
+08/B1: F104     	BRNC	7F
+08/B2: 3000     	LOADI	A,0
+08/B3: A080     	STORE	[DBANK],A
+08/B4: A407     	STORE	[MB_PNTR],B
+08/B5: FF4C     	JUMP	IRET
+08/B7:          	
+08/B6:          	; ERROR!
+08/B6: 3000     7:	LOADI	A,0
+08/B7: A080     	STORE	[DBANK],A
+08/B8: 30FF     	LOADI	A,0XFF
+08/B9: FF48     	JUMP	IRET
+08/BB:          	
+08/BA:          	; ZERO BANK
+08/BA:          .BANK	0
 00/80:          .BSS
 00/80:          
 00/00:          	; CURRENT BLOCK OF MEMORY TO WORK ON
