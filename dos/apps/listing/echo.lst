@@ -3,12 +3,14 @@
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          REBOOT	= 0
-01/80:          INDIR	= 1
-01/80:          IRET	= 2
-01/80:          SYSCALL	= 3
-01/80:          SYSJUMP	= 4
-01/80:          PRGM	= 5
-01/80:          IWRITE	= 6
+01/80:          AREBOOT = 1
+01/80:          INDIR	= 2
+01/80:          IRET	= 3
+01/80:          SYSCALL	= 4
+01/80:          SYSJUMP	= 5
+01/80:          PRGM	= 6
+01/80:          IWRITE	= 7
+01/80:          ZSTART	= 8
 01/80:          
 01/80:          HALT	= 0X7F
 01/80:          
@@ -99,19 +101,19 @@
 01/9B:          	; PRINT IT
 01/9B: 3404     	LOADI	B,S_PUTS
 01/9C: 389E     	LOADI	C,@+2
-01/9D: FF65     	JUMP	SYSCALL
+01/9D: FF66     	JUMP	SYSCALL
 01/9F:          
 01/9E:          	; EXIT PROGRAM
 01/9E:          	; DO CR/LF
 01/9E: 300A     EXIT:	LOADI	A,0X0A
 01/9F: 3401     	LOADI	B,S_PUTC
 01/A0: 38A2     	LOADI	C,@+2
-01/A1: FF61     	JUMP	SYSCALL
+01/A1: FF62     	JUMP	SYSCALL
 01/A3:          
 01/A2: 300D     	LOADI	A,0X0D
 01/A3: 3401     	LOADI	B,S_PUTC
 01/A4: 38A6     	LOADI	C,@+2
-01/A5: FF5D     	JUMP	SYSCALL
+01/A5: FF5E     	JUMP	SYSCALL
 01/A7:          	
 01/A6:          	; EXIT SYSCALL
 01/A6: 3400     	LOADI	B,0

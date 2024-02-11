@@ -3,12 +3,14 @@
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          REBOOT	= 0
-01/80:          INDIR	= 1
-01/80:          IRET	= 2
-01/80:          SYSCALL	= 3
-01/80:          SYSJUMP	= 4
-01/80:          PRGM	= 5
-01/80:          IWRITE	= 6
+01/80:          AREBOOT = 1
+01/80:          INDIR	= 2
+01/80:          IRET	= 3
+01/80:          SYSCALL	= 4
+01/80:          SYSJUMP	= 5
+01/80:          PRGM	= 6
+01/80:          IWRITE	= 7
+01/80:          ZSTART	= 8
 01/80:          
 01/80:          HALT	= 0X7F
 01/80:          
@@ -72,11 +74,11 @@
 01/89: 388B     	LOADI	C,@+2	; RETURN ADDRESS
 01/8B:          	
 01/8A:          	; DO SYSTEM CALL
-01/8A: FF78     	JUMP	SYSCALL
+01/8A: FF79     	JUMP	SYSCALL
 01/8C:          	
 01/8B:          	; AND EXIT
 01/8B: 3400     END:	LOADI	B,0
-01/8C: FF77     	JUMP	SYSJUMP
+01/8C: FF78     	JUMP	SYSJUMP
 01/8E:          	
 01/8D:          
 01/8D:          

@@ -3,12 +3,14 @@
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          REBOOT	= 0
-01/80:          INDIR	= 1
-01/80:          IRET	= 2
-01/80:          SYSCALL	= 3
-01/80:          SYSJUMP	= 4
-01/80:          PRGM	= 5
-01/80:          IWRITE	= 6
+01/80:          AREBOOT = 1
+01/80:          INDIR	= 2
+01/80:          IRET	= 3
+01/80:          SYSCALL	= 4
+01/80:          SYSJUMP	= 5
+01/80:          PRGM	= 6
+01/80:          IWRITE	= 7
+01/80:          ZSTART	= 8
 01/80:          
 01/80:          HALT	= 0X7F
 01/80:          
@@ -97,7 +99,7 @@
 01/9B:          	; PRINT ERROR MESSAGE
 01/9B: 3404     	LOADI	B,S_PUTS
 01/9C: 38CE     	LOADI	C,EXIT
-01/9D: FF65     	JUMP	SYSCALL
+01/9D: FF66     	JUMP	SYSCALL
 01/9F:          
 01/9E:          	
 01/9E:          	; THERE IS AN ARG, TRY AND OPEN IT
@@ -110,7 +112,7 @@
 01/A1:          	; OPEN FILE
 01/A1: 3406     	LOADI	B,S_OPEN
 01/A2: 38A4     	LOADI	C,@+2
-01/A3: FF5F     	JUMP	SYSCALL
+01/A3: FF60     	JUMP	SYSCALL
 01/A5:          	
 01/A4:          	; CHECK FOR ERRORS
 01/A4: 5000     	ADDI	A,0
@@ -124,7 +126,7 @@
 01/A9:          	; PRINT ERROR MESSAGE
 01/A9: 3404     	LOADI	B,S_PUTS
 01/AA: 38CE     	LOADI	C,EXIT
-01/AB: FF57     	JUMP	SYSCALL
+01/AB: FF58     	JUMP	SYSCALL
 01/AD:          	
 01/AC:          	; RESET STATE
 01/AC: 3002     0:	LOADI	A,2
@@ -135,7 +137,7 @@
 01/AF: A000     READF:	STORE	[COUNT],A
 01/B0: 3408     	LOADI	B,S_READ
 01/B1: 38B3     	LOADI	C,@+2
-01/B2: FF50     	JUMP	SYSCALL
+01/B2: FF51     	JUMP	SYSCALL
 01/B4:          	
 01/B3:          	; CHECK FOR ERRORS
 01/B3: 5000     	ADDI	A,0
@@ -160,7 +162,7 @@
 01/BE: A480     	STORE	[DBANK],B
 01/BF: 3401     	LOADI	B,S_PUTC
 01/C0: 38C2     	LOADI	C,@+2
-01/C1: FF41     	JUMP	SYSCALL
+01/C1: FF42     	JUMP	SYSCALL
 01/C3:          	
 01/C2:          	; NEXT CHARACTER
 01/C2: 8001     	LOAD	A,[POINTER]
@@ -180,7 +182,7 @@
 01/CF:          
 01/CE:          	; EXIT PROGRAM
 01/CE: 3400     EXIT:	LOADI	B,0
-01/CF: FF34     	JUMP	SYSJUMP
+01/CF: FF35     	JUMP	SYSJUMP
 01/D1:          
 01/D0:          
 01/D0:          .DATA

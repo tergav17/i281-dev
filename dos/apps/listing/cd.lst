@@ -3,12 +3,14 @@
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          REBOOT	= 0
-01/80:          INDIR	= 1
-01/80:          IRET	= 2
-01/80:          SYSCALL	= 3
-01/80:          SYSJUMP	= 4
-01/80:          PRGM	= 5
-01/80:          IWRITE	= 6
+01/80:          AREBOOT = 1
+01/80:          INDIR	= 2
+01/80:          IRET	= 3
+01/80:          SYSCALL	= 4
+01/80:          SYSJUMP	= 5
+01/80:          PRGM	= 6
+01/80:          IWRITE	= 7
+01/80:          ZSTART	= 8
 01/80:          
 01/80:          HALT	= 0X7F
 01/80:          
@@ -97,7 +99,7 @@
 01/9B:          	; PRINT ERROR MESSAGE
 01/9B: 3404     	LOADI	B,S_PUTS
 01/9C: 38B9     	LOADI	C,EXIT
-01/9D: FF65     	JUMP	SYSCALL
+01/9D: FF66     	JUMP	SYSCALL
 01/9F:          	
 01/9E:          	; PROCESS THE ARGUMENT
 01/9E: 3430     PROCARG:LOADI	B,'0'
@@ -135,11 +137,11 @@
 01/B6:          	; PRINT ERROR MESSAGE
 01/B6: 3404     	LOADI	B,S_PUTS
 01/B7: 38B9     	LOADI	C,EXIT
-01/B8: FF4A     	JUMP	SYSCALL
+01/B8: FF4B     	JUMP	SYSCALL
 01/BA:          
 01/B9:          	; EXIT PROGRAM
 01/B9: 3400     EXIT:	LOADI	B,0
-01/BA: FF49     	JUMP	SYSJUMP
+01/BA: FF4A     	JUMP	SYSJUMP
 01/BC:          
 01/BB:          .DATA
 01/BB:          

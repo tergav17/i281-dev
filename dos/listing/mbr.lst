@@ -1,15 +1,18 @@
 00/00:          ; COMMON.S
 01/80:          ; SYSTEM COMMON DEFINITIONS
 01/80:          
-01/80:          ; DEFINES
+01/80:          ; BIOS CALLS
 01/80:          REBOOT	= 0
-01/80:          INDIR	= 1
-01/80:          IRET	= 2
-01/80:          SYSCALL	= 3
-01/80:          SYSJUMP	= 4
-01/80:          PRGM	= 5
-01/80:          IWRITE	= 6
+01/80:          AREBOOT = 1
+01/80:          INDIR	= 2
+01/80:          IRET	= 3
+01/80:          SYSCALL	= 4
+01/80:          SYSJUMP	= 5
+01/80:          PRGM	= 6
+01/80:          IWRITE	= 7
+01/80:          ZSTART	= 8
 01/80:          
+01/80:          ; DEFINES
 01/80:          HALT	= 0x7F
 01/80:          
 01/80:          DBANK	= 0X80		; DATA BANK ADDRESS
@@ -219,7 +222,7 @@
 01/DF: 3406     	LOADI	B,ISRBLK
 01/E0: 3C01     	LOADI	D,1
 01/E1: 38E3     	LOADI	C,@+2
-01/E2: FF22     	JUMP	PRGM
+01/E2: FF23     	JUMP	PRGM
 01/E4:          	
 01/E3:          	; MOVE ON TO NEXT BLOCK OR RECORD
 01/E3:          	; CHECK IF WE ARE DONE
@@ -229,7 +232,7 @@
 01/E6: 7001     	SUBI	A,1
 01/E7: 3400     	LOADI	B,0
 01/E8: 3881     	LOADI	C,0X81
-01/E9: F617     	BRZ	INDIR
+01/E9: F618     	BRZ	INDIR
 01/EA: A00A     	STORE	[SIZE],A
 01/EC:          	
 01/EB:          	; UPDATE POINTERS AND RETURN
