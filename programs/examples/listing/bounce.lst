@@ -1,0 +1,185 @@
+00/00:          ; BOUNCE.S
+01/80:          ; A SMALL VT100 TEST PROGRAM
+01/80:          
+01/80:          ; DEFINES
+01/80:          DBANK	=	0X80
+01/80:          UART	=	0X90
+01/80:          UART_TH	=	UART+0X00
+01/80:          UART_RH	=	UART+0X00
+01/80:          UART_LS	=	UART+0X05
+01/80:          
+01/80:          
+01/80:          ; NUMBER OF BOUNCERS
+01/80:          NUM = 	10
+01/80:          
+01/80:          .BANK 1
+01/80:          .TEXT
+01/80:          
+01/80:          	; START HERE
+01/80:          	; UPDATE ALL OF THE BOUNCER POSITIONS
+01/80: 3C09     UPDATE:	LOADI	D,NUM-1
+01/82:          	
+01/81:          	; DO X POSITION FIRST
+01/81: 9300     0:	LOADF	A,[D+X]
+01/82: 9714     	LOADF	B,[D+DX]
+01/83: 7401     	SUBI	B,1
+01/84: 4100     	ADD	A,B
+01/85: F504     	BRNN	1F
+01/87:          
+01/86:          	; UNDERFLOW ON X SIDE
+01/86: 3402     	LOADI	B,2
+01/87: B714     	STOREF	[D+DX],B
+01/88: 3001     	LOADI	A,1
+01/89: FF06     	JUMP	2F
+01/8B:          	
+01/8A: 344F     1:	LOADI	B,79
+01/8B: D100     	CMP	A,B
+01/8C: F103     	BRB	2F
+01/8E:          	
+01/8D:          	; OVERFLOW ON X SIDE
+01/8D: 3400     	LOADI	B,0
+01/8E: B714     	STOREF	[D+DX],B
+01/8F: 304D     	LOADI	A,77
+01/91:          	
+01/90: B300     2:	STOREF	[D+X],A
+01/92:          
+01/91:          	; NEXT, Y POSITION
+01/91: 930A     	LOADF	A,[D+Y]
+01/92: 971E     	LOADF	B,[D+DY]
+01/93: 7401     	SUBI	B,1
+01/94: 4100     	ADD	A,B
+01/95: F504     	BRNN	1F
+01/97:          
+01/96:          	; UNDERFLOW ON Y SIDE
+01/96: 3402     	LOADI	B,2
+01/97: B71E     	STOREF	[D+DY],B
+01/98: 3001     	LOADI	A,1
+01/99: FF06     	JUMP	2F
+01/9B:          	
+01/9A: 3418     1:	LOADI	B,24
+01/9B: D100     	CMP	A,B
+01/9C: F103     	BRB	2F
+01/9E:          	
+01/9D:          	; OVERFLOW ON Y SIDE
+01/9D: 3400     	LOADI	B,0
+01/9E: B71E     	STOREF	[D+DY],B
+01/9F: 3016     	LOADI	A,22
+01/A1:          	
+01/A0: B30A     2:	STOREF	[D+Y],A
+01/A2:          
+01/A1:          
+01/A1:          	; DO THE NEXT ONE
+01/A1: 7C01     	SUBI	D,1
+01/A2: F0DE     	BRC	0B
+01/A4:          	
+01/A3:          	; NOW PRINT 'EM OFF
+01/A3:          		
+01/A3:          	; CLEAR OUT SCREEN
+01/A3: 3C29     	LOADI	D,CLRSTR
+01/A4: 38A6     	LOADI	C,@+2
+01/A5: FF21     	JUMP	PRINT
+01/A7:          	
+01/A6:          	; DRAW EACH BOUNCER
+01/A6: 3C09     	LOADI	D,NUM-1
+01/A7: AC28     DRAW:	STORE	[CURR],D
+01/A9:          	
+01/A8:          	; CONVERT THE X TO DECIMAL
+01/A8: 9700     	LOADF	B,[D+X]
+01/A9: 3030     	LOADI	A,'0'
+01/AA: 740A     0:	SUBI	B,10
+01/AB: F102     	BRNC	1F
+01/AC: 5001     	ADDI	A,1
+01/AD: FFFC     	JUMP	0B
+01/AE: 543A     1:	ADDI	B,10+'0'
+01/AF: A030     	STORE	[ARGX],A
+01/B0: A431     	STORE	[ARGX+1],B
+01/B2:          	
+01/B1:          	; CONVERT THE Y TO DECIMAL
+01/B1: 970A     	LOADF	B,[D+Y]
+01/B2: 3030     	LOADI	A,'0'
+01/B3: 740A     0:	SUBI	B,10
+01/B4: F102     	BRNC	1F
+01/B5: 5001     	ADDI	A,1
+01/B6: FFFC     	JUMP	0B
+01/B7: 543A     1:	ADDI	B,10+'0'
+01/B8: A033     	STORE	[ARGY],A
+01/B9: A434     	STORE	[ARGY+1],B
+01/BB:          	
+01/BA:          	; PRINT IT
+01/BA: 3C2E     	LOADI	D,PCHAR
+01/BB: 38BD     	LOADI	C,@+2
+01/BC: FF0A     	JUMP	PRINT
+01/BE:          	
+01/BD:          	; DO THE NEXT ONE
+01/BD: 8C28     	LOAD	D,[CURR]
+01/BE: 7C01     	SUBI	D,1
+01/BF: F0E7     	BRC	DRAW
+01/C1:          	
+01/C0:          	; NOW DELAY A LITTLE BIT AND THEN GO BACK
+01/C0: 3000     	LOADI	A,0
+01/C1: 3414     	LOADI	B,20
+01/C2: 5001     0:	ADDI	A,1
+01/C3: F7FE     	BRNZ	0B
+01/C4: 7401     	SUBI	B,1
+01/C5: F7FC     	BRNZ	0B
+01/C7:          	
+01/C6: FFB9     	JUMP	UPDATE
+01/C8:          	
+01/C7:          
+01/C7:          	; PRINTS OUT A STRING
+01/C7:          	; D = STRING TO PRINT
+01/C7:          	; USES: A, B, D
+01/C7:          	; GET LINE STATUS REGISTER
+01/C7:          	; LOAD STRING CHARACTER
+01/C7: 9300     PRINT:	LOADF	A,[D]
+01/C9:          
+01/C8:          	; MAKE SURE IT ISNT ZERO
+01/C8: 5000     	ADDI	A,0
+01/C9: F608     	BRZ	1F
+01/CB:          	
+01/CA:          	; GET LINE STATUS REGISTER
+01/CA: 8495     0:	LOAD	B,[UART_LS]
+01/CC:          	
+01/CB:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
+01/CB: 4500     	SHIFTL	B
+01/CC: 4500     	SHIFTL	B
+01/CD: 4500     	SHIFTL	B
+01/CE: F1FB     	BRNC	0B
+01/D0:          	
+01/CF:          	; TRANSMIT BYTE
+01/CF: A090     	STORE	[UART_TH],A
+01/D1:          	
+01/D0:          	; INCREMENT POINTER AND REDO
+01/D0: 5C01     	ADDI	D,1
+01/D1: FFF5     	JUMP	PRINT
+01/D3:          	
+01/D2:          	; RETURN
+01/D2: FE2D     1:	JUMPR	C
+01/D4:          
+01/D3:          
+01/D3:          .DATA
+01/D3:          
+01/00:          ; BOUNCER POSITION AND SPEED
+01/00: 4D171F30
+       16091208
+       042F     .DEFL BYTE X	77,23,31,48,22,9,18,8,4,47
+01/0A: 16030910
+       15140D02
+       0805     .DEFL BYTE Y	22,3,9,16,21,20,13,2,8,5
+01/14: 02000000
+       02020202
+       0000     .DEFL BYTE DX	2,0,0,0,2,2,2,2,0,0
+01/1E: 02000000
+       02020000
+       0202     .DEFL BYTE DY	2,0,0,0,2,2,0,0,2,2
+01/28:          
+01/28:          ; CURRENT BOUNCER BEING PROCESSED
+01/28: 00       .DEFL BYTE CURR		0
+01/29:          
+01/29:          ; VARIOUS STRINGS
+01/29: 1B5B324A
+       00       .DEFL BYTE CLRSTR	0X1B,"[2J",0
+01/2E: 1B5B     .DEFL BYTE PCHAR	0X1B,"["
+01/30: 30303B   .DEFL BYTE ARGX		"00;"
+01/33: 303048   .DEFL BYTE ARGY		"00H"
+01/36: 3A3300   .DEFL BYTE CHAR		":3",0
