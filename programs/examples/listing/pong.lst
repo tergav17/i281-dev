@@ -1,0 +1,73 @@
+01/80:          .DATA
+01/00: 00000000 .DEFL BYTE EMPTY	0 ,   0 ,  0 ,  0    
+01/04: 40000004 .DEFL BYTE DISPLAY	64 ,  0 ,  0 ,  4    
+01/08:          
+01/08: 40084001 .DEFL BYTE SHAPE	64 ,  8 ,  64 ,  1    
+01/0C:          
+01/0C: 01       .DEFL BYTE INCDEC	1               
+01/0D: 000003   .DEFL BYTE SWITCH	0 ,  0 ,  3         
+01/10:          
+01/10:          .TEXT
+01/80: 2000     	NOOP
+01/81: 2000     	NOOP
+01/82: 3000     	LOADI  A ,  0                    
+01/83: 3400     	LOADI  B ,  0                    
+01/84: 3C04     	LOADI  D ,  4                    
+01/85: AC0E     	STORE   [ SWITCH + 1 ]  ,  D
+01/86: 8807     LOOP:   LOAD   C ,   [ DISPLAY + 3 ]           
+01/87: 8C0E     	LOAD   D ,   [ SWITCH + 1 ] 
+01/88: 6B00     ERASEP: SUB    C ,  D
+01/89: A807     	STORE   [ DISPLAY + 3 ]  ,  C
+01/8A: 120E     READ:   INPUTD  [ SWITCH + 1 ]               
+01/8B: 8C0E     	LOAD   D ,   [ SWITCH + 1 ] 
+01/8C: 7C40     	SUBI   D ,  64                   
+01/8D: F602     	BRE    UP
+01/8E: 3C04     DOWN:   LOADI  D ,  4                    
+01/8F: FF01     	JUMP   DRAWP
+01/90: 3C02     UP:     LOADI  D ,  2                                
+01/91: AC0E     DRAWP:  STORE   [ SWITCH + 1 ]  ,  D
+01/92: 4B00     	ADD    C ,  D                    
+01/93: A807     	STORE   [ DISPLAY + 3 ]  ,  C          
+01/94: 9804     ERASEB: LOADF  C ,   [A+DISPLAY]           
+01/95: 9D08     	LOADF  D ,   [B+SHAPE]             
+01/96: 6B00     	SUB    C ,  D
+01/97: B804     	STOREF  [A+DISPLAY]  ,  C          
+01/98: 5401     VPOS:   ADDI   B ,  1                    
+01/99: 3C04     	LOADI  D ,  4
+01/9A: D700     	CMP    B ,  D
+01/9B: F701     	BRNE   HPOS
+01/9C: 3400     	LOADI  B ,  0                    
+01/9D: 8C0C     HPOS:   LOAD   D ,   [ INCDEC ]              
+01/9E: 4300     	ADD    A ,  D
+01/9F: 9F0E     	LOADF  D ,   [D+SWITCH+1]          
+01/A0: D300     	CMP    A ,  D
+01/A1: F704     	BRNE   DRAWB
+01/A2: 3C00     REVDIR: LOADI  D ,  0                    
+01/A3: 880C     	LOAD   C ,   [ INCDEC ] 
+01/A4: 6E00     	SUB    D ,  C
+01/A5: AC0C     	STORE   [ INCDEC ]  ,  D             
+01/A6: 9804     DRAWB:  LOADF  C ,   [A+DISPLAY]           
+01/A7: 9D08     	LOADF  D ,   [B+SHAPE]             
+01/A8: 4B00     	ADD    C ,  D                                
+01/A9: B804     	STOREF  [A+DISPLAY]  ,  C          
+01/AA: 3C05     CHECK:  LOADI  D ,  5                    
+01/AB: 8807     	LOAD   C ,   [ DISPLAY + 3 ] 
+01/AC: DB00     	CMP    C ,  D
+01/AD: F60A     	BRE    PRINT
+01/AE: 4F00     	SHIFTL D                       
+01/AF: DB00     	CMP    C ,  D
+01/B0: F607     	BRE    PRINT                   
+01/B1: 3C00     	LOADI  D ,  256  
+01/B2: 380A     	LOADI	C,10
+01/B3: 7C01     DELAY:  SUBI   D ,  1
+01/B4: F7FE     	BRNE   DELAY
+01/B5: 7801     	SUBI	C,1
+01/B6: F7FC     	BRNE	DELAY
+01/B7: FFCE     	JUMP   LOOP
+01/B8: 3879     PRINT:  LOADI  C ,  121                  
+01/B9: A804     	STORE   [ DISPLAY + 0 ]  ,  C
+01/BA: 3854     	LOADI  C ,  84                   
+01/BB: A805     	STORE   [ DISPLAY + 1 ]  ,  C
+01/BC: 385E     	LOADI  C ,  94                   
+01/BD: A806     	STORE   [ DISPLAY + 2 ]  ,  C
+01/BE: FFFF     EXIT:   JUMP   EXIT

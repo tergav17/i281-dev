@@ -1,0 +1,40 @@
+01/80:          .TEXT
+01/80: 3000     	LOADI	A,0              
+01/81: 8408     LOOP:	LOAD	B,[TEXT+0] 
+01/82: B400     	STOREF	[A+DISPLAY+0],B
+01/83: 8409             LOAD	B,[TEXT+1] 
+01/84: B401     	STOREF  [A+DISPLAY+1],B
+01/85: 840A             LOAD	B,[TEXT+2] 
+01/86: B402             STOREF  [A+DISPLAY+2],B
+01/87: 840B     	LOAD	B,[TEXT+3] 
+01/88: B403     	STOREF	[A+DISPLAY+3],B
+01/89: 3C00     	LOADI	D,0
+01/8A: 1210     	INPUTD	[TEMP]
+01/8B: 8410     	LOAD	B,[TEMP]
+01/8C: 7401     DELAY:  SUBI	B,1
+01/8D: F103     	BRNC	1F
+01/8E: 7C01     0:	SUBI	D,1
+01/8F: F7FE     	BRNE	0B 
+01/90: FFFB     	JUMP	DELAY
+01/91: BC00     1:	STOREF  [A+DISPLAY+0],D  
+01/92: BC01     	STOREF  [A+DISPLAY+1],D
+01/93: BC02     	STOREF  [A+DISPLAY+2],D
+01/94: BC03     	STOREF  [A+DISPLAY+3],D
+01/95: 8C0C     	LOAD	D,[INCDEC] 
+01/96: 4300     	ADD    A,D
+01/97: 9F0E     	LOADF  D,[D+MINMAX+1]    
+01/98: D300     	CMP    A,D
+01/99: F601     	BRE    REVDIR
+01/9A: FFE6     	JUMP   LOOP
+01/9B: 3C00     REVDIR:	LOADI  D,0
+01/9C: 880C     	LOAD   C,[INCDEC] 
+01/9D: 6E00     	SUB    D,C              
+01/9E: AC0C     	STORE  [INCDEC], D       
+01/9F: FFE1     	JUMP   LOOP
+01/A1:          
+01/A0:          .DATA
+01/00: 00000000
+       00000000 .DEFL BYTE DISPLAY	0,0,0,0,0,0,0,0   
+01/08: 045B7F06 .DEFL BYTE TEXT		4,91,127,6                   
+01/0C: 01       .DEFL BYTE INCDEC	1                                
+01/0D: 000004   .DEFL BYTE MINMAX	0,0,4
