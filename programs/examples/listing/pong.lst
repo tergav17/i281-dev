@@ -14,7 +14,7 @@
 01/83: 3400     	LOADI  B ,  0                    
 01/84: 3C04     	LOADI  D ,  4                    
 01/85: AC0E     	STORE   [ SWITCH + 1 ]  ,  D
-01/86: 8807     LOOP:   LOAD   C ,   [ DISPLAY + 3 ]           
+01/86: 8807     LOOP:   LOAD   C ,   [ DISPLAY + 3 ]  
 01/87: 8C0E     	LOAD   D ,   [ SWITCH + 1 ] 
 01/88: 6B00     ERASEP: SUB    C ,  D
 01/89: A807     	STORE   [ DISPLAY + 3 ]  ,  C

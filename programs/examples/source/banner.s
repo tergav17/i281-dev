@@ -32,7 +32,7 @@ REVDIR:	LOADI  D,0
 	STORE  [INCDEC], D       
 	JUMP   LOOP
 	
-	JUMP	0X75
+
 	
 
 .DATA

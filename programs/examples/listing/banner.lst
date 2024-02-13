@@ -31,7 +31,10 @@
 01/9D: 6E00     	SUB    D,C              
 01/9E: AC0C     	STORE  [INCDEC], D       
 01/9F: FFE1     	JUMP   LOOP
-01/A1:          
+01/A1:          	
+01/A0:          
+01/A0:          	
+01/A0:          
 01/A0:          .DATA
 01/00: 00000000
        00000000 .DEFL BYTE DISPLAY	0,0,0,0,0,0,0,0   
