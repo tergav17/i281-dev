@@ -712,21 +712,28 @@
 06/88: 3883     	LOADI	C,DOFREAD
 06/89: F678     	BRZ	INDIR
 06/8B:          	
-06/8A:          	; CAN'T FIND COMMAND
-06/8A: 3405     	LOADI	B,CMD0_B
-06/8B: 3880     	LOADI	C,ERROR
-06/8C: FF75     	JUMP	INDIR
-06/8E:          	
-06/8D:          	; GO BACK TO COMMAND LINE
-06/8D: 3405     9:	LOADI	B,CMD0_B
-06/8E: 3882     	LOADI	C,PROMPT
-06/8F: FF72     	JUMP	INDIR
-06/91:          
-06/90:          		; BANK IS DONE, MOVE ON TO THE NEXT
-06/90:          BI	= BI+1
+06/8A:          	; APPEND LINES
+06/8A: 3441     	LOADI	B,'A'
+06/8B: D100     	CMP	A,B
+06/8C: 3407     	LOADI	B,UOP0_B
+06/8D: 3880     	LOADI	C,APPEND
+06/8E: F673     	BRZ	INDIR
 06/90:          	
-06/90:          	; ZERO BANK
-06/90:          .BANK	0
+06/8F:          	; CAN'T FIND COMMAND
+06/8F: 3405     	LOADI	B,CMD0_B
+06/90: 3880     	LOADI	C,ERROR
+06/91: FF70     	JUMP	INDIR
+06/93:          	
+06/92:          	; GO BACK TO COMMAND LINE
+06/92: 3405     9:	LOADI	B,CMD0_B
+06/93: 3882     	LOADI	C,PROMPT
+06/94: FF6D     	JUMP	INDIR
+06/96:          
+06/95:          		; BANK IS DONE, MOVE ON TO THE NEXT
+06/95:          BI	= BI+1
+06/95:          	
+06/95:          	; ZERO BANK
+06/95:          .BANK	0
 00/80:          .BSS
 00/80:          
 00/00:          	; CURRENT BLOCK OF MEMORY TO WORK ON
@@ -803,8 +810,8 @@
 07/80:          
 07/80:          
 07/80:          	; APPENDS LINES INTO THE TEXT BUFFER
-07/80: 340A     INSERT:	LOADI	B,UOP3_B
-07/81: 3880     	LOADI	C,INSERTA
+07/80: 340A     APPEND:	LOADI	B,UOP3_B
+07/81: 3880     	LOADI	C,APPENDA
 07/82: FF7F     	JUMP	INDIR
 07/84:          
 07/83:          	; EXECUTE A FILE READ
@@ -1050,14 +1057,14 @@
 09/92:          .BANK	BI
 0A/80:          UOP3_B	= BI
 0A/80:          
-0A/80:          	; SHADOW OF INSERT
-0A/80: 8011     INSERTA:LOAD	A,[STATE]
+0A/80:          	; SHADOW OF APPEND
+0A/80: 8011     APPENDA:LOAD	A,[STATE]
 0A/81: 7001     	SUBI	A,1
 0A/82: F710     	BRNZ	9F
-0A/84:          	
-0A/83:          	; FIND THE LINE
-0A/83: 8014     	LOAD	A,[ARGB]
-0A/84: 8415     	LOAD	B,[ARGB+1]
+0A/84:          
+0A/83:          	; GO LOOK FOR THE FILE
+0A/83: 8012     	LOAD	A,[ARGA]
+0A/84: 8413     	LOAD	B,[ARGA+1]
 0A/85: A016     	STORE	[TEMP],A
 0A/86: A417     	STORE	[TEMP+1],B
 0A/87: 380A     	LOADI	C,BI
@@ -1070,7 +1077,6 @@
 0A/8E: 5000     	ADDI	A,0
 0A/8F: F703     	BRNZ	9F
 0A/91:          
-0A/90:          
 0A/90:          	; GO BACK TO COMMAND LINE
 0A/90: 3405     8:	LOADI	B,CMD0_B
 0A/91: 3882     	LOADI	C,PROMPT
