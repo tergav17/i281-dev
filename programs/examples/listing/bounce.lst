@@ -6,6 +6,7 @@
 01/80:          UART	=	0X90
 01/80:          UART_TH	=	UART+0X00
 01/80:          UART_RH	=	UART+0X00
+01/80:          UART_LC	=	UART+0X03
 01/80:          UART_LS	=	UART+0X05
 01/80:          
 01/80:          
@@ -140,7 +141,7 @@
 01/CE:          
 01/CD:          	; MAKE SURE IT ISNT ZERO
 01/CD: 5000     	ADDI	A,0
-01/CE: F608     	BRZ	1F
+01/CE: F60A     	BRZ	1F
 01/D0:          	
 01/CF:          	; GET LINE STATUS REGISTER
 01/CF: 8495     0:	LOAD	B,[UART_LS]
@@ -152,18 +153,20 @@
 01/D3: F1FB     	BRNC	0B
 01/D5:          	
 01/D4:          	; TRANSMIT BYTE
-01/D4: A090     	STORE	[UART_TH],A
-01/D6:          	
-01/D5:          	; INCREMENT POINTER AND REDO
-01/D5: 5C01     	ADDI	D,1
-01/D6: FFF5     	JUMP	PRINT
+01/D4: 3403     	LOADI	B,0X03
+01/D5: A493     	STORE	[UART_LC],B
+01/D6: A090     	STORE	[UART_TH],A
 01/D8:          	
-01/D7:          	; RETURN
-01/D7: FE28     1:	JUMPR	C
-01/D9:          
-01/D8:          
-01/D8:          .DATA
-01/D8:          
+01/D7:          	; INCREMENT POINTER AND REDO
+01/D7: 5C01     	ADDI	D,1
+01/D8: FFF3     	JUMP	PRINT
+01/DA:          	
+01/D9:          	; RETURN
+01/D9: FE26     1:	JUMPR	C
+01/DB:          
+01/DA:          
+01/DA:          .DATA
+01/DA:          
 01/00:          ; BOUNCER POSITION AND SPEED
 01/00: 4D171F30
        16091208

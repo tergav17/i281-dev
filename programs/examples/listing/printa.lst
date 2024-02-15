@@ -1,0 +1,25 @@
+00/00:          ; PRINTA.S
+01/80:          ; PRINTS 'A' ON THE TERMINAL
+01/80:          
+01/80:          ; DEFINES
+01/80:          UART	=	0X90
+01/80:          UART_TH	=	UART+0X00
+01/80:          UART_LS	=	UART+0X05
+01/80:          
+01/80:          .TEXT
+01/80:          	; START HERE
+01/80:          	; LET A BE THE CHARATER WE PRINT
+01/80: 3041     START:	LOADI	A,'A'
+01/82:          	
+01/81:          	; GET LINE STATUS REGISTER
+01/81: 8495     PRINT:	LOAD	B,[UART_LS]
+01/83:          	
+01/82:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
+01/82: 4500     	SHIFTL	B
+01/83: 4500     	SHIFTL	B
+01/84: 4500     	SHIFTL	B
+01/85: F1FB     	BRNC	PRINT
+01/87:          	
+01/86:          	; TRANSMIT BYTE
+01/86: A090     	STORE	[UART_TH],A
+01/87: FFF9     	JUMP	PRINT
