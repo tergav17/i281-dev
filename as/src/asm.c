@@ -1010,7 +1010,7 @@ uint16_t asm_bracket(char nofail)
  */
 void asm_emit(uint16_t value, uint8_t size)
 {
-	int i;
+	uint8_t i;
 	
 
 	// text segment?
