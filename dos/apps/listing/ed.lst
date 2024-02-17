@@ -1271,50 +1271,121 @@
 0C/A0: 3C00     5:	LOADI	D,0
 0C/A1: AC80     	STORE	[DBANK],D
 0C/A2: 8C0C     	LOAD	D,[SPARK]
-0C/A4:          
-0C/A3:          	; GRT A LINE
-0C/A3:          	; DO CR/LF
-0C/A3: 380C     0:	LOADI	C,BI
-0C/A4: BB01     	STOREF	[D+1],C
-0C/A5: 300A     	LOADI	A,0X0A
-0C/A6: 3401     	LOADI	B,S_PUTC
-0C/A7: 38A9     	LOADI	C,@+2
-0C/A8: FF5B     	JUMP	SYSCALL
-0C/A9: 300D     	LOADI	A,0X0D
-0C/AA: 3401     	LOADI	B,S_PUTC
-0C/AB: 38AD     	LOADI	C,@+2
-0C/AC: FF57     	JUMP	SYSCALL
-0C/AE:          	
-0C/AD:          	; GET USER INPUT
-0C/AD: 3402     	LOADI	B,BUF_B
-0C/AE: A46C     	STORE	[ARG_BNK],B
-0C/AF: 3405     	LOADI	B,S_INPUT
-0C/B0: 38B2     	LOADI	C,@+2
-0C/B1: FF52     	JUMP	SYSCALL
-0C/B3:          	
-0C/B2:          	; SEE IF THE USER WANTS TO BE DONE
-0C/B2: 3802     	LOADI	C,BUF_B
-0C/B3: A880     	STORE	[DBANK],C
-0C/B4: 8000     	LOAD	A,[0]
-0C/B5: 8401     	LOAD	B,[1]
-0C/B6: 702E     	SUBI	A,'.'
-0C/B7: F702     	BRNZ	1F
-0C/B8: 5400     	ADDI	B,0
-0C/B9: F603     	BRZ	7F
-0C/BA: 3800     1:	LOADI	C,0
-0C/BB: A880     	STORE	[DBANK],C
-0C/BD:          
-0C/BC:          	; PLACE LINE IN BUFFER
-0C/BC: FFE6     	JUMP	0B
-0C/BE:          
-0C/BD:          	; SET STATUS
-0C/BD: 3000     7:	LOADI	A,0
-0C/BF:          
-0C/BE:          	; EXIT
-0C/BE: 3800     8:	LOADI	C,0
-0C/BF: A880     	STORE	[DBANK],C
-0C/C0: 5C02     	ADDI	D,2
-0C/C1: FF41     	JUMP	IRET
-0C/C3:          	
-0C/C2:          	; ERROR!
-0C/C2: 30FF     9:	LOADI	A,0XFF
+0C/A4:          	
+0C/A3:          	; INDIRECT JUMP
+0C/A3: 340D     	LOADI	B,LOP2_B
+0C/A4: 3880     	LOADI	C,0F
+0C/A5: FF5C     	JUMP	INDIR
+0C/A7:          	
+0C/A6:          	; BANK IS DONE, MOVE ON TO THE NEXT
+0C/A6:          BI	= BI+1
+0C/A6:          .TEXT
+0C/A6:          .BANK	BI
+0D/80:          LOP2_B	= BI
+0D/80:          
+0D/80:          
+0D/80:          	; GRT A LINE
+0D/80:          	; DO CR/LF
+0D/80: 380D     0:	LOADI	C,BI
+0D/81: BB01     	STOREF	[D+1],C
+0D/82: 300A     	LOADI	A,0X0A
+0D/83: 3401     	LOADI	B,S_PUTC
+0D/84: 3886     	LOADI	C,@+2
+0D/85: FF7E     	JUMP	SYSCALL
+0D/86: 300D     	LOADI	A,0X0D
+0D/87: 3401     	LOADI	B,S_PUTC
+0D/88: 388A     	LOADI	C,@+2
+0D/89: FF7A     	JUMP	SYSCALL
+0D/8B:          	
+0D/8A:          	; GET USER INPUT
+0D/8A: 3402     	LOADI	B,BUF_B
+0D/8B: A46C     	STORE	[ARG_BNK],B
+0D/8C: 3405     	LOADI	B,S_INPUT
+0D/8D: 388F     	LOADI	C,@+2
+0D/8E: FF75     	JUMP	SYSCALL
+0D/90:          	
+0D/8F:          	; SEE IF THE USER WANTS TO BE DONE
+0D/8F: 3802     	LOADI	C,BUF_B
+0D/90: A880     	STORE	[DBANK],C
+0D/91: 8000     	LOAD	A,[0]
+0D/92: 8401     	LOAD	B,[1]
+0D/93: 702E     	SUBI	A,'.'
+0D/94: F702     	BRNZ	1F
+0D/95: 5400     	ADDI	B,0
+0D/96: F628     	BRZ	7F
+0D/97: 3800     1:	LOADI	C,0
+0D/98: A880     	STORE	[DBANK],C
+0D/9A:          
+0D/99:          	; PLACE LINE IN BUFFER
+0D/99:          	; SET POINTER FOR BUFFER
+0D/99: 3000     	LOADI	A,0
+0D/9A: A006     	STORE	[POINTER],A
+0D/9C:          	
+0D/9B:          	; FIRST, WE MOVE ANY EXISTING TEXT OUT OF THE WAY
+0D/9B: 8000     	LOAD	A,[CBLOCK]
+0D/9C: 8407     	LOAD	B,[MB_PNTR]
+0D/9D: 8808     	LOAD	C,[MB_END]
+0D/9F:          	
+0D/9E:          	; INCREMENT, AND SEE IF WE ARE AT THE END OF THE BLOCK
+0D/9E:          	; IF SO, ALLOCATE A NEW BLOCK 
+0D/9E: 5401     	ADDI	B,1
+0D/9F: D600     	CMP	B,C
+0D/A0: F623     	BRZ	9F
+0D/A2:          
+0D/A1:          	; CHECK TO SEE IF THERE IS A LINE HERE
+0D/A1: A080     	STORE	[DBANK],A
+0D/A2: 9100     	LOADF	A,[B]
+0D/A3: 5000     	ADDI	A,0
+0D/A4: 3000     	LOADI	A,0
+0D/A5: A080     	STORE	[DBANK],A
+0D/A7:          	
+0D/A6:          	; NOPE, WE ARE CLEAR TO ENTER DATA
+0D/A6: F716     	BRNZ	4F
+0D/A8:          
+0D/A7:          	; COPY REST OF BUFFER TO BUF_B+1
+0D/A7: AC0C     	STORE	[SPARK],D
+0D/A8: 3C00     	LOADI	D,0
+0D/A9: 8000     2:	LOAD	A,[CBLOCK]
+0D/AA: 8801     	LOAD	C,[CBLOCK+1]
+0D/AB: A080     	STORE	[DBANK],A
+0D/AC: 9100     	LOADF	A,[B]
+0D/AD: 5000     	ADDI	A,0
+0D/AE: F704     	BRNZ	3F
+0D/B0:          	
+0D/AF:          	; SUBTRACT ONE FROM THE LINE COUNT
+0D/AF: 9202     	LOADF	A,[C+2]
+0D/B0: 7001     	SUBI	A,1
+0D/B1: B202     	STOREF	[C+2],A
+0D/B2: 9100     	LOADF	A,[B]
+0D/B4:          	
+0D/B3:          	; GO STORE IT
+0D/B3: 3803     3:	LOADI	C,BUF_B+1
+0D/B4: A880     	STORE	[DBANK],C
+0D/B5: B300     	STOREF	[D],A
+0D/B6: 3800     	LOADI	C,0
+0D/B7: A880     	STORE	[DBANK],C
+0D/B9:          	
+0D/B8:          	; NEXT CHARACTER
+0D/B8: 5401     	ADDI	B,1
+0D/B9: 8008     	LOAD	A,[MB_END]
+0D/BA: D100     	CMP	A,B
+0D/BB: F7ED     	BRNZ	2B
+0D/BC: 8C0C     	LOAD	D,[SPARK]
+0D/BE:          	
+0D/BD:          	; START LOADING
+0D/BD: 8407     4:	LOAD	B,[MB_PNTR]
+0D/BE: 8808     	LOAD	C,[MB_END]
+0D/C0:          	
+0D/BF:          
+0D/BF:          
+0D/BF:          	; SET STATUS
+0D/BF: 3000     7:	LOADI	A,0
+0D/C1:          
+0D/C0:          	; EXIT
+0D/C0: 3800     8:	LOADI	C,0
+0D/C1: A880     	STORE	[DBANK],C
+0D/C2: 5C02     	ADDI	D,2
+0D/C3: FF3F     	JUMP	IRET
+0D/C5:          	
+0D/C4:          	; ERROR!
+0D/C4: 30FF     9:	LOADI	A,0XFF
