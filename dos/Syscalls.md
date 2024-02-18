@@ -29,8 +29,8 @@ The procedure to execute a system call is as follows:
 | 9         | S_WRITE | A = Block to write \ [ARG_BNK] = Source of data | A = 0x00 if successful, 0xFF otherwise | If a file is open, a block is written from 4 consecutive data banks |
 | 10        | S_FSRCH | A = String address \ [ARG_BNK] = String bank | A = 0x00 if file is found, 0xFF otherwise | Starts a search for a file. See file path format for more information. Current file must be closed |
 | 11        | S_NEXT  | None      | A = 0x00 if file is found, 0xFF otherwise | Searches for the next file |
-| 12        | S_DELET | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Deletes a file. If the path is a glob, the first file found will be deleted |
-| 13        | S_CREAT | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Creates a new file, the operation will fail if the file already exists |
+| 12        | S_DELET | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Deletes a file. If the path is a glob, the first file found will be deleted. |
+| 13        | S_CREAT | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Creates a new file, if the file already exists it will be replaced. File will then be opened. |
 | 14        | S_FREE  | None      | [BD_FREE] = Remaining free blocks | Calculates the remaining free blocks on the block device. Should be run after a file close | 
 | 15        | S_EXEC  | None      | None              | Takes the content in the argument buffer and attempts to execute it |
 

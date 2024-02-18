@@ -1,3 +1,4 @@
 other/* eol=crlf
 source/* eol=crlf
 apps/source/* eol=crlf
+apps/dosdef.s eol=crlf
