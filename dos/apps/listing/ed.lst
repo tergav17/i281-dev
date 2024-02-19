@@ -1427,7 +1427,7 @@
 0B/97: 5400     	ADDI	B,0
 0B/98: 3800     1:	LOADI	C,0
 0B/99: A880     	STORE	[DBANK],C
-0B/9A: F65E     	BRZ	9F
+0B/9A: F660     	BRZ	9F
 0B/9C:          
 0B/9B:          	; PLACE LINE IN BUFFER
 0B/9B:          	; SET POINTER FOR BUFFER
@@ -1443,7 +1443,7 @@
 0B/A0:          	; IF SO, ALLOCATE A NEW BLOCK 
 0B/A0: 5401     	ADDI	B,1
 0B/A1: D100     	CMP	A,B
-0B/A2: F61E     	BRZ	4F
+0B/A2: F619     	BRZ	4F
 0B/A4:          
 0B/A3:          	; CHECK TO SEE IF THERE IS A LINE HERE
 0B/A3: A880     	STORE	[DBANK],C
@@ -1453,7 +1453,7 @@
 0B/A7: A880     	STORE	[DBANK],C
 0B/A9:          	
 0B/A8:          	; NOPE, WE ARE CLEAR TO ENTER DATA
-0B/A8: F718     	BRNZ	4F
+0B/A8: F71A     	BRNZ	5F
 0B/AA:          
 0B/A9:          	; COPY REST OF BUFFER TO BUF_B+1
 0B/A9: AC0C     	STORE	[SPARK],D
@@ -1481,100 +1481,102 @@
 0B/BB: A880     	STORE	[DBANK],C
 0B/BD:          	
 0B/BC:          	; NEXT CHARACTER
-0B/BC: 5401     	ADDI	B,1
+0B/BC: 5401     4:	ADDI	B,1
 0B/BD: 5C01     	ADDI	D,1
-0B/BE: 8008     	LOAD	A,[MB_END]
-0B/BF: D100     	CMP	A,B
-0B/C0: F7EA     	BRNZ	2B
-0B/C2:          	
-0B/C1:          	; START COPYING
-0B/C1: 8407     4:	LOAD	B,[MB_PNTR]
-0B/C2: 3800     	LOADI	C,0
-0B/C3: FF0B     	JUMP	1F
-0B/C5:          	
-0B/C4:          	; GRAB A CHARACTER FROM THE BUFFER
-0B/C4: 3002     0:	LOADI	A,BUF_B
-0B/C5: 8806     	LOAD	C,[POINTER]
-0B/C6: 5801     	ADDI	C,1
-0B/C7: A806     	STORE	[POINTER],C
-0B/C8: A080     	STORE	[DBANK],A
-0B/C9: 9AFF     	LOADF	C,[C+0-1]
-0B/CA: 3000     	LOADI	A,0
-0B/CB: A080     	STORE	[DBANK],A
-0B/CD:          	
-0B/CC:          	; CHECK IF ITS ZERO
-0B/CC: 5800     	ADDI	C,0
-0B/CD: 8008     	LOAD	A,[MB_END]
-0B/CE: F61D     	BRZ	5F
-0B/D0:          	
-0B/CF:          	; DO WE HAVE SPACE TO STORE IT?
-0B/CF: 5401     1:	ADDI	B,1
-0B/D0: D100     	CMP	A,B
-0B/D1: F60C     	BRZ	4F
-0B/D3:          	
-0B/D2:          	; STORE IT
-0B/D2: 8000     2:	LOAD	A,[CBLOCK]
-0B/D3: 8C01     	LOAD	D,[CBLOCK+1]
-0B/D4: A080     	STORE	[DBANK],A
-0B/D5: B900     	STOREF	[B],C
-0B/D7:          	
-0B/D6:          	; IF ITS ZERO, WE INCREMENT THE LINE COUNTER
-0B/D6: 5800     	ADDI	C,0
-0B/D7: F703     	BRNZ	3F
-0B/D8: 9B02     	LOADF	C,[D+2]
-0B/D9: 5801     	ADDI	C,1
-0B/DA: BB02     	STOREF	[D+2],C
-0B/DC:          
-0B/DB:          	; TAKE IT FROM THE TOP
-0B/DB: 3000     3:	LOADI	A,0
-0B/DC: A080     	STORE	[DBANK],A
-0B/DD: FFE6     	JUMP	0B
-0B/DF:          	
-0B/DE:          	; WE ARE OUT OF MEMORY ON THIS BLOCK, MOVE ON TO THE NEXT
-0B/DE:          	; DO A MALLOC
-0B/DE: A80A     4:	STORE	[CHAR],C
-0B/DF: 8C0C     	LOAD	D,[SPARK]
-0B/E0: 38E5     	LOADI	C,@+5
-0B/E1: BB00     	STOREF	[D],C
-0B/E2: 340D     	LOADI	B,MEM0_B
-0B/E3: 38A1     	LOADI	C,MALLOC
-0B/E4: FF1D     	JUMP	INDIR
-0B/E6:          	
-0B/E5:          	; DID IT WORK?
-0B/E5: 5000     	ADDI	A,0
-0B/E6: F712     	BRNZ	9F
+0B/BE: 8808     	LOAD	C,[MB_END]
+0B/BF: D900     	CMP	C,B
+0B/C0: 5000     	ADDI	A,0
+0B/C1: F4FA     	BRN	4B
+0B/C2: F7E8     	BRNZ	2B
+0B/C4:          	
+0B/C3:          	; START COPYING
+0B/C3: 8407     5:	LOAD	B,[MB_PNTR]
+0B/C4: 3800     	LOADI	C,0
+0B/C5: FF0B     	JUMP	1F
+0B/C7:          	
+0B/C6:          	; GRAB A CHARACTER FROM THE BUFFER
+0B/C6: 3002     0:	LOADI	A,BUF_B
+0B/C7: 8806     	LOAD	C,[POINTER]
+0B/C8: 5801     	ADDI	C,1
+0B/C9: A806     	STORE	[POINTER],C
+0B/CA: A080     	STORE	[DBANK],A
+0B/CB: 9AFF     	LOADF	C,[C+0-1]
+0B/CC: 3000     	LOADI	A,0
+0B/CD: A080     	STORE	[DBANK],A
+0B/CF:          	
+0B/CE:          	; CHECK IF ITS ZERO
+0B/CE: 5800     	ADDI	C,0
+0B/CF: 8008     	LOAD	A,[MB_END]
+0B/D0: F61D     	BRZ	5F
+0B/D2:          	
+0B/D1:          	; DO WE HAVE SPACE TO STORE IT?
+0B/D1: 5401     1:	ADDI	B,1
+0B/D2: D100     	CMP	A,B
+0B/D3: F60C     	BRZ	4F
+0B/D5:          	
+0B/D4:          	; STORE IT
+0B/D4: 8000     2:	LOAD	A,[CBLOCK]
+0B/D5: 8C01     	LOAD	D,[CBLOCK+1]
+0B/D6: A080     	STORE	[DBANK],A
+0B/D7: B900     	STOREF	[B],C
+0B/D9:          	
+0B/D8:          	; IF ITS ZERO, WE INCREMENT THE LINE COUNTER
+0B/D8: 5800     	ADDI	C,0
+0B/D9: F703     	BRNZ	3F
+0B/DA: 9B02     	LOADF	C,[D+2]
+0B/DB: 5801     	ADDI	C,1
+0B/DC: BB02     	STOREF	[D+2],C
+0B/DE:          
+0B/DD:          	; TAKE IT FROM THE TOP
+0B/DD: 3000     3:	LOADI	A,0
+0B/DE: A080     	STORE	[DBANK],A
+0B/DF: FFE6     	JUMP	0B
+0B/E1:          	
+0B/E0:          	; WE ARE OUT OF MEMORY ON THIS BLOCK, MOVE ON TO THE NEXT
+0B/E0:          	; DO A MALLOC
+0B/E0: A80A     4:	STORE	[CHAR],C
+0B/E1: 8C0C     	LOAD	D,[SPARK]
+0B/E2: 38E7     	LOADI	C,@+5
+0B/E3: BB00     	STOREF	[D],C
+0B/E4: 340D     	LOADI	B,MEM0_B
+0B/E5: 38A1     	LOADI	C,MALLOC
+0B/E6: FF1B     	JUMP	INDIR
 0B/E8:          	
-0B/E7:          	; SET MB POINTERS AND GO
-0B/E7: 8407     	LOAD	B,[MB_PNTR]
-0B/E8: 3800     	LOADI	C,0
-0B/E9: B9FF     	STOREF	[B+0-1],C
-0B/EA: 880A     	LOAD	C,[CHAR]
-0B/EB: FFE6     	JUMP	2B
-0B/ED:          
-0B/EC:          	; WRAP THINGS UP AND MOVE ON TO THE FINAL STAGE
-0B/EC: A407     5:	STORE	[MB_PNTR],B
-0B/ED: 7001     	SUBI	A,1
-0B/EE: D100     	CMP	A,B
-0B/EF: F606     	BRZ	6F
-0B/F0: 8000     	LOAD	A,[CBLOCK]
-0B/F1: A080     	STORE	[DBANK],A
-0B/F2: 30FF     	LOADI	A,0XFF
-0B/F3: B101     	STOREF	[B+1],A
-0B/F4: 3000     	LOADI	A,0
-0B/F5: A080     	STORE	[DBANK],A
-0B/F7:          	
-0B/F6: 340A     6:	LOADI	B,LOP1_B
-0B/F7: 38B2     	LOADI	C,INPUTLC
-0B/F8: FF09     	JUMP	INDIR
-0B/FA:          
-0B/F9:          	; EXIT
-0B/F9: 5C02     9:	ADDI	D,2
-0B/FA: FF08     	JUMP	IRET
-0B/FC:          	
-0B/FB:          	; BANK IS DONE, MOVE ON TO THE NEXT
-0B/FB:          BI	= BI+1
-0B/FB:          .TEXT
-0B/FB:          .BANK	BI
+0B/E7:          	; DID IT WORK?
+0B/E7: 5000     	ADDI	A,0
+0B/E8: F712     	BRNZ	9F
+0B/EA:          	
+0B/E9:          	; SET MB POINTERS AND GO
+0B/E9: 8407     	LOAD	B,[MB_PNTR]
+0B/EA: 3800     	LOADI	C,0
+0B/EB: B9FF     	STOREF	[B+0-1],C
+0B/EC: 880A     	LOAD	C,[CHAR]
+0B/ED: FFE6     	JUMP	2B
+0B/EF:          
+0B/EE:          	; WRAP THINGS UP AND MOVE ON TO THE FINAL STAGE
+0B/EE: A407     5:	STORE	[MB_PNTR],B
+0B/EF: 7001     	SUBI	A,1
+0B/F0: D100     	CMP	A,B
+0B/F1: F606     	BRZ	6F
+0B/F2: 8000     	LOAD	A,[CBLOCK]
+0B/F3: A080     	STORE	[DBANK],A
+0B/F4: 30FF     	LOADI	A,0XFF
+0B/F5: B101     	STOREF	[B+1],A
+0B/F6: 3000     	LOADI	A,0
+0B/F7: A080     	STORE	[DBANK],A
+0B/F9:          	
+0B/F8: 340A     6:	LOADI	B,LOP1_B
+0B/F9: 38B2     	LOADI	C,INPUTLC
+0B/FA: FF07     	JUMP	INDIR
+0B/FC:          
+0B/FB:          	; EXIT
+0B/FB: 5C02     9:	ADDI	D,2
+0B/FC: FF06     	JUMP	IRET
+0B/FE:          	
+0B/FD:          	; BANK IS DONE, MOVE ON TO THE NEXT
+0B/FD:          BI	= BI+1
+0B/FD:          .TEXT
+0B/FD:          .BANK	BI
 0C/80:          LOP3_B	= BI
 0C/80:          
 0C/80:          	; SHADOW OF ERASEL
@@ -2352,4 +2354,3 @@
 10/EB:          
 10/EA:          	; BANK IS DONE, MOVE ON TO THE NEXT
 10/EA:          BI	= BI+1
-10/EA:          

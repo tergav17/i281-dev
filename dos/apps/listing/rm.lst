@@ -180,3 +180,4 @@
 00/00: 00       .DEFL BYTE FIRST	0
 00/01:          
 00/01:          	; POINTER TO ARGUMENT
+00/01: 00       .DEFL BYTE POINTER	0
