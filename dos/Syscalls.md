@@ -54,6 +54,7 @@ type of system calls can be executes at a given time.
 - S_READ
 - S_WRITE
 - S_DELET
+- S_CREAT
 
 ## File Paths
 
