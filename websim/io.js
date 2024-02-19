@@ -125,6 +125,9 @@ function cfCommand(cf, val) {
 			cf.left = cf.count * 512;
 			cf.buffer = [];
 			cf.rdwri = 1;
+			
+			let wpointer = (cf.lba0 << 9) + (cf.lba1 << 17);
+			console.log("Write starting at: " + wpointer + " (Block " + (wpointer / 512) + ")");
 			break;
 			
 		default:
@@ -145,7 +148,7 @@ function cfWrite(cf, register, val) {
 			// Data Write
 			if (cf.left > 0 && cf.rdwri == 1) {
 				// Place byte into buffer
-				buffer.push(val)
+				cf.buffer.push(val)
 				
 				// Decrement the number of bytes to write
 				cf.left--;
@@ -154,7 +157,7 @@ function cfWrite(cf, register, val) {
 				if (cf.left == 0) {
 					let pointer = (cf.lba0 << 9) + (cf.lba1 << 17);
 					for (let i = 0; i < cf.buffer.length; i++) {
-						cf.data[pointer] = buffer[i];
+						cf.data[pointer] = cf.buffer[i];
 						pointer = (pointer + 1) & 0x1FFFFFF;
 					}
 				}
