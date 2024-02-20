@@ -1484,9 +1484,9 @@
 0B/BC: 5401     4:	ADDI	B,1
 0B/BD: 5C01     	ADDI	D,1
 0B/BE: 8808     	LOAD	C,[MB_END]
-0B/BF: D900     	CMP	C,B
-0B/C0: 5000     	ADDI	A,0
-0B/C1: F4FA     	BRN	4B
+0B/BF: 5000     	ADDI	A,0
+0B/C0: F4FB     	BRN	4B
+0B/C1: D900     	CMP	C,B
 0B/C2: F7E8     	BRNZ	2B
 0B/C4:          	
 0B/C3:          	; START COPYING
