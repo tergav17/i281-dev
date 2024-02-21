@@ -52,132 +52,195 @@
 01/80:          ; RM.S
 01/80:          ; REMOVE A FILE
 01/80:          
+01/80:          ; MAXIMUM ARGUMENTS
+01/80:          MAXARGS	= 1
+01/80:          
 01/80:          	; START BY PROCESSING THE ARGUMENTS
 01/80: 3000     START:	LOADI	A,0
 01/81: A080     	STORE	[DBANK],A
 01/83:          	
-01/82:          	; SET UP STACK
-01/82: 3C5E     	LOADI	D,0X60-2
+01/82:          	; RESET ARG STATE
+01/82: A000     	STORE	[ARGC],A
 01/84:          	
 01/83:          	; SET FIRST FLAG
 01/83: 30FF     	LOADI	A,0XFF
-01/84: A000     	STORE	[FIRST],A 
+01/84: A003     	STORE	[FIRST],A
 01/86:          	
-01/85:          	; SYSCALL RETURN BANK
-01/85: 3801     	LOADI	C,1	
-01/86: BB01     	STOREF	[D+1],C
-01/88:          	
-01/87:          	; GO TO ARGUMENT BANK
-01/87: 8072     	LOAD	A,[CMDL_B]
-01/88: A080     	STORE	[DBANK],A
+01/85:          	; SET UP STACK
+01/85: 3C5E     	LOADI	D,0X60-2
+01/87:          	
+01/86:          	; SYSCALL RETURN BANK
+01/86: 3801     	LOADI	C,1	
+01/87: BB01     	STOREF	[D+1],C
+01/89:          	
+01/88:          	; SET UP POINTER
+01/88: 3800     	LOADI	C,0
 01/8A:          	
-01/89:          	; SET UP POINTER
-01/89: 3800     	LOADI	C,0
-01/8B:          	
-01/8A:          	; SKIP THE INITIAL COMMAND
-01/8A: 9200     0:	LOADF	A,[C]
-01/8B: 3420     	LOADI	B,0X20
-01/8C: D100     	CMP	A,B
-01/8D: F902     	BRBE	1F
-01/8E: 5801     	ADDI	C,1
-01/8F: FFFA     	JUMP	0B
-01/91:          
-01/90:          	; LOOK FOR THE FIRST ARGUMENT
-01/90: 9200     1:	LOADF	A,[C]
-01/91: 5000     	ADDI	A,0
-01/92: F604     	BRZ	2F
-01/93: D100     	CMP	A,B
-01/94: F80A     	BRA	RMARG
-01/95: 5801     	ADDI	C,1
-01/96: FFF9     	JUMP	1B
-01/98:          	
-01/97:          	; NO ARGUMENT, ERROR
-01/97: 3000     2:	LOADI	A,0
-01/98: A080     	STORE	[DBANK],A
-01/9A:          	
-01/99: 3001     	LOADI	A,1
-01/9A: A06C     	STORE	[ARG_BNK],A
-01/9B: 3000     	LOADI	A,ERROR0
+01/89:          	; GO TO ARGUMENT BANK
+01/89: 8072     0:	LOAD	A,[CMDL_B]
+01/8A: A06C     	STORE	[ARG_BNK],A
+01/8B: A080     	STORE	[DBANK],A
+01/8D:          
+01/8C:          	; SKIP THE CURRENT ARGUMENT
+01/8C: 9200     1:	LOADF	A,[C]
+01/8D: 3420     	LOADI	B,0X20
+01/8E: D100     	CMP	A,B
+01/8F: F902     	BRBE	2F
+01/90: 5801     	ADDI	C,1
+01/91: FFFA     	JUMP	1B
+01/93:          
+01/92:          	; LOOK FOR AN ARGUMENT
+01/92: 9200     2:	LOADF	A,[C]
+01/93: 5000     	ADDI	A,0
+01/94: F62B     	BRZ	ARGDONE
+01/95: D100     	CMP	A,B
+01/96: F802     	BRA	3F
+01/97: 5801     	ADDI	C,1
+01/98: FFF9     	JUMP	2B
+01/9A:          
+01/99:          	; IS IT A FLAG?
+01/99: 342D     3:	LOADI	B,'-'
+01/9A: D100     	CMP	A,B
+01/9B: F711     	BRNZ	5F
 01/9D:          	
-01/9C:          	; PRINT ERROR MESSAGE
-01/9C: 3404     	LOADI	B,S_PUTS
-01/9D: 38BB     	LOADI	C,EXIT
-01/9E: FF65     	JUMP	SYSCALL
-01/A0:          
-01/9F:          	
-01/9F:          	; THERE IS AN ARG, TRY AND OPEN IT
-01/9F: 3000     RMARG:	LOADI	A,0
-01/A0: A080     	STORE	[DBANK],A
-01/A2:          	
-01/A1:          	; C = FILE STRING START
-01/A1: A801     	STORE	[POINTER],C
-01/A3:          	
-01/A2:          	; SET ARGUMENTS
-01/A2: 8072     0:	LOAD	A,[CMDL_B]
-01/A3: A06C     	STORE	[ARG_BNK],A
-01/A4: 8001     	LOAD	A,[POINTER]
+01/9C:          	; HANDLE FLAGS HERE	
+01/9C: 5801     4:	ADDI	C,1
+01/9D: 9200     	LOADF	A,[C]
+01/9E: 5000     	ADDI	A,0
+01/9F: F620     	BRZ	ARGDONE
+01/A0: 3420     	LOADI	B,0X20
+01/A1: D100     	CMP	A,B
+01/A2: F9EF     	BRBE	2B
+01/A4:          	
+01/A3:          	; REGISTER THE FLAG
+01/A3: 3400     	LOADI	B,0
+01/A4: A480     	STORE	[DBANK],B
 01/A6:          	
-01/A5:          	; OPEN FILE
-01/A5: 3406     	LOADI	B,S_OPEN
-01/A6: 38A8     	LOADI	C,@+2
-01/A7: FF5C     	JUMP	SYSCALL
-01/A9:          	
-01/A8:          	; CHECK FOR ERRORS
-01/A8: 5000     	ADDI	A,0
-01/A9: F705     	BRNZ	1F
-01/AB:          	
-01/AA:          	; REMOVE FILE
-01/AA: 340C     	LOADI	B,S_DELET
-01/AB: 38AD     	LOADI	C,@+2
-01/AC: FF57     	JUMP	SYSCALL
+01/A5:          	; IS IT A RECOGNIZED FLAG?
+01/A5: 5400     	ADDI	B,0
+01/A6: F60F     	BRZ	ARGBAD
+01/A7: 3001     	LOADI	A,1
+01/A8: B100     	STOREF	[B],A
+01/AA:          
+01/A9:          	; THERE MAY BE ANOTHER FLAG
+01/A9: 8472     	LOAD	B,[CMDL_B]
+01/AA: A46C     	STORE	[ARG_BNK],B
+01/AB: A480     	STORE	[DBANK],B
+01/AC: FFEF     	JUMP	4B
 01/AE:          
-01/AD:          	; CHECK FOR ERRORS
-01/AD: 5000     	ADDI	A,0
-01/AE: F609     	BRZ	2F
-01/B0:          	
-01/AF:          	; IS THIS THE FIRST?
-01/AF: 8000     1:	LOAD	A,[FIRST]
-01/B0: 5000     	ADDI	A,0
-01/B1: F609     	BRZ	EXIT
-01/B3:          	
-01/B2:          	; ERROR MESSAGE ARGS
-01/B2: 3001     	LOADI	A,1
-01/B3: A06C     	STORE	[ARG_BNK],A
-01/B4: 300E     	LOADI	A,ERROR1
-01/B6:          	
-01/B5:          	; PRINT ERROR MESSAGE
-01/B5: 3404     	LOADI	B,S_PUTS
-01/B6: 38BB     	LOADI	C,EXIT
-01/B7: FF4C     	JUMP	SYSCALL
+01/AD:          	; SAVE THE ARGUMENT
+01/AD: 3400     5:	LOADI	B,0
+01/AE: A480     	STORE	[DBANK],B
+01/AF: 8400     	LOAD	B,[ARGC]
+01/B0: B901     	STOREF	[B+ARGV],C
+01/B2:          	
+01/B1:          	; DID WE EXCEED THE ALLOWED NUMBER OF ARGUMENTS
+01/B1: 7401     	SUBI	B,MAXARGS
+01/B2: F003     	BRC	ARGBAD
+01/B3: 5402     	ADDI	B,MAXARGS+1
+01/B4: A400     	STORE	[ARGC],B
+01/B5: FFD3     	JUMP	0B
+01/B7:          	
+01/B6:          	; BAD ARGUMENT
+01/B6: 3000     ARGBAD:	LOADI	A,0
+01/B7: A080     	STORE	[DBANK],A
 01/B9:          	
-01/B8:          	; RESET FIRST FLAG
-01/B8: 3000     2:	LOADI	A,0
-01/B9: A000     	STORE	[FIRST],A
-01/BA: FFE7     	JUMP	0B
-01/BC:          
-01/BB:          	; EXIT PROGRAM
-01/BB: 3400     EXIT:	LOADI	B,0
-01/BC: FF48     	JUMP	SYSJUMP
-01/BE:          
-01/BD:          
-01/BD:          .DATA
-01/BD:          
+01/B8: 3001     	LOADI	A,STR_B
+01/B9: A06C     	STORE	[ARG_BNK],A
+01/BA: 3000     	LOADI	A,ERROR0
+01/BC:          	
+01/BB:          	; PRINT ERROR MESSAGE
+01/BB: 3404     	LOADI	B,S_PUTS
+01/BC: 38DE     	LOADI	C,EXIT
+01/BD: FF46     	JUMP	SYSCALL	
+01/BF:          
+01/BE:          	; EXIT PROGRAM
+01/BE: 3400     EXIT:	LOADI	B,0
+01/BF: FF45     	JUMP	SYSJUMP
+01/C1:          	
+01/C0:          	; ARGUMENT PROCESSING DONE
+01/C0: 3000     ARGDONE:LOADI	A,0
+01/C1: A080     	STORE	[DBANK],A
+01/C3:          	
+01/C2:          	; CHECK ARG COUNT
+01/C2: 8000     	LOAD	A,[ARGC]
+01/C3: 7001     	SUBI	A,1
+01/C4: F7F1     	BRNZ	ARGBAD
+01/C6:          	
+01/C5:          	; SET ARGUMENTS
+01/C5: 8072     0:	LOAD	A,[CMDL_B]
+01/C6: A06C     	STORE	[ARG_BNK],A
+01/C7: 8001     	LOAD	A,[ARGV]
+01/C9:          	
+01/C8:          	; OPEN FILE
+01/C8: 3406     	LOADI	B,S_OPEN
+01/C9: 38CB     	LOADI	C,@+2
+01/CA: FF39     	JUMP	SYSCALL
+01/CC:          	
+01/CB:          	; CHECK FOR ERRORS
+01/CB: 5000     	ADDI	A,0
+01/CC: F705     	BRNZ	1F
+01/CE:          	
+01/CD:          	; REMOVE FILE
+01/CD: 340C     	LOADI	B,S_DELET
+01/CE: 38D0     	LOADI	C,@+2
+01/CF: FF34     	JUMP	SYSCALL
+01/D1:          
+01/D0:          	; CHECK FOR ERRORS
+01/D0: 5000     	ADDI	A,0
+01/D1: F609     	BRZ	2F
+01/D3:          	
+01/D2:          	; IS THIS THE FIRST?
+01/D2: 8003     1:	LOAD	A,[FIRST]
+01/D3: 5000     	ADDI	A,0
+01/D4: F609     	BRZ	EXIT
+01/D6:          	
+01/D5:          	; ERROR MESSAGE ARGS
+01/D5: 3001     	LOADI	A,STR_B
+01/D6: A06C     	STORE	[ARG_BNK],A
+01/D7: 3024     	LOADI	A,ERROR1
+01/D9:          	
+01/D8:          	; PRINT ERROR MESSAGE
+01/D8: 3404     	LOADI	B,S_PUTS
+01/D9: 38DE     	LOADI	C,EXIT
+01/DA: FF29     	JUMP	SYSCALL
+01/DC:          	
+01/DB:          	; RESET FIRST FLAG
+01/DB: 3000     2:	LOADI	A,0
+01/DC: A003     	STORE	[FIRST],A
+01/DD: FFE7     	JUMP	0B
+01/DF:          
+01/DE:          	; EXIT PROGRAM
+01/DE: 3400     EXIT:	LOADI	B,0
+01/DF: FF25     	JUMP	SYSJUMP
+01/E1:          
+01/E0:          
+01/E0:          .DATA
+01/00:          STR_B	= 1
+01/00:          
 01/00:          	; ERROR MESSAGES
-01/00: 4E4F2041
-       5247554D
-       454E540A
-       0D00     .DEFL BYTE ERROR0	"NO ARGUMENT",0X0A,0X0D,0
-01/0E: 43414E27
+01/00: 494E5641
+       4C494420
+       41524755
+       4D454E54
+       530A0D   .DEFL BYTE ERROR0	"INVALID ARGUMENTS",0X0A,0X0D,
+01/13: 55534147
+       453A2052
+       4D204649
+       4C450A0D
+       00       			"USAGE: RM FILE",0X0A,0X0D,0
+01/24: 43414E27
        54205245
        4D4F5645
        2046494C
        450A0D00 .DEFL BYTE ERROR1	"CAN'T REMOVE FILE",0X0A,0X0D,0
-01/22:          
-01/22:          .BANK	0
+01/38:          
+01/38:          .BANK	0
 00/00:          .BSS
 00/00:          
-00/00:          	; IS THIS THE FIRST ATTEMPT AT REMOVING?
-00/00: 00       .DEFL BYTE FIRST	0
-00/01:          
-00/01:          	; POINTER TO ARGUMENT
-00/01: 00       .DEFL BYTE POINTER	0
+00/00:          	; COMMAND LINE ARGUMENTS
+00/00: 00       .DEFL BYTE ARGC		0
+00/01: 0000     .DEFL BYTE ARGV		0,0
+00/03:          
+00/03:          	; IS THIS THE FIRST ATTEMPT AT REMOVING?
+00/03: 00       .DEFL BYTE FIRST	0
