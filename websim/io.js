@@ -326,6 +326,8 @@ function uartInput(ch) {
  */
 function uartOutput(ch) {
 	
+	console.log(ch);
+	
 	switch (ch) {
 		case 0x08:
 			// Backspace
