@@ -1,0 +1,529 @@
+00/00:          ; DOSDEF.S
+01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          
+01/80:          ; BIOS CALLS
+01/80:          REBOOT	= 0
+01/80:          AREBOOT = 1
+01/80:          INDIR	= 2
+01/80:          IRET	= 3
+01/80:          SYSCALL	= 4
+01/80:          SYSJUMP	= 5
+01/80:          PRGM	= 6
+01/80:          IWRITE	= 7
+01/80:          ZSTART	= 8
+01/80:          
+01/80:          HALT	= 0X7F
+01/80:          
+01/80:          ; SYSTEM CALLS
+01/80:          S_EXIT	= 0
+01/80:          S_PUTC	= 1
+01/80:          S_GETC	= 2
+01/80:          S_STAT	= 3
+01/80:          S_PUTS	= 4
+01/80:          S_INPUT	= 5
+01/80:          S_OPEN	= 6
+01/80:          S_CLOSE	= 7
+01/80:          S_READ	= 8
+01/80:          S_WRITE	= 9
+01/80:          S_FSRCH	= 10
+01/80:          S_NEXT	= 11
+01/80:          S_DELET	= 12
+01/80:          S_CREAT	= 13
+01/80:          S_FREE	= 14
+01/80:          S_EXEC	= 15
+01/80:          
+01/80:          ; MEMORY AREAS
+01/80:          CF_NAME	= 0X60
+01/80:          CF_SIZE	= 0X68
+01/80:          CF_USR	= 0X6A
+01/80:          DFT_USR	= 0X6B
+01/80:          ARG_BNK	= 0X6C
+01/80:          BD_FREE	= 0X6E
+01/80:          MAX_IB	= 0X70
+01/80:          MAX_DB	= 0X71
+01/80:          CMDL_B	= 0X72
+01/80:          AUTO_B	= 0X73
+01/80:          KERNMEM	= 0X78
+01/80:          BIOSMEM	= 0X7C
+01/80:          
+01/80:          ; DATA BANK ADDRESS
+01/80:          DBANK	= 0X80		
+01/80:          
+01/80:          ; HDUMP.S
+01/80:          ; DUMP OUT FILE BLOCKS IN HEXADEMIMAL FORMAT
+01/80:          
+01/80:          ; MAXIMUM ARGUMENTS
+01/80:          MAXARGS	= 3
+01/80:          
+01/80:          ; BLOCK BUFFER
+01/80:          BUFFER	= 2
+01/80:          
+01/80:          
+01/80:          	; START BY PROCESSING THE ARGUMENTS
+01/80: 3000     START:	LOADI	A,0
+01/81: A080     	STORE	[DBANK],A
+01/83:          	
+01/82:          	; RESET ARG STATE
+01/82: A000     	STORE	[ARGC],A
+01/84:          	
+01/83:          	; SET UP STACK
+01/83: 3C5E     	LOADI	D,0X60-2
+01/85:          	
+01/84:          	; SYSCALL RETURN BANK
+01/84: 3801     	LOADI	C,1	
+01/85: BB01     	STOREF	[D+1],C
+01/87:          	
+01/86:          	; SET UP POINTER
+01/86: 3800     	LOADI	C,0
+01/88:          	
+01/87:          	; GO TO ARGUMENT BANK
+01/87: 8072     0:	LOAD	A,[CMDL_B]
+01/88: A06C     	STORE	[ARG_BNK],A
+01/89: A080     	STORE	[DBANK],A
+01/8B:          
+01/8A:          	; SKIP THE CURRENT ARGUMENT
+01/8A: 9200     1:	LOADF	A,[C]
+01/8B: 3420     	LOADI	B,0X20
+01/8C: D100     	CMP	A,B
+01/8D: F902     	BRBE	2F
+01/8E: 5801     	ADDI	C,1
+01/8F: FFFA     	JUMP	1B
+01/91:          
+01/90:          	; LOOK FOR AN ARGUMENT
+01/90: 9200     2:	LOADF	A,[C]
+01/91: 5000     	ADDI	A,0
+01/92: F62B     	BRZ	ARGDONE
+01/93: D100     	CMP	A,B
+01/94: F802     	BRA	3F
+01/95: 5801     	ADDI	C,1
+01/96: FFF9     	JUMP	2B
+01/98:          
+01/97:          	; IS IT A FLAG?
+01/97: 342D     3:	LOADI	B,'-'
+01/98: D100     	CMP	A,B
+01/99: F711     	BRNZ	5F
+01/9B:          	
+01/9A:          	; HANDLE FLAGS HERE	
+01/9A: 5801     4:	ADDI	C,1
+01/9B: 9200     	LOADF	A,[C]
+01/9C: 5000     	ADDI	A,0
+01/9D: F620     	BRZ	ARGDONE
+01/9E: 3420     	LOADI	B,0X20
+01/9F: D100     	CMP	A,B
+01/A0: F9EF     	BRBE	2B
+01/A2:          	
+01/A1:          	; REGISTER THE FLAG
+01/A1: 3400     	LOADI	B,0
+01/A2: A480     	STORE	[DBANK],B
+01/A4:          	
+01/A3:          	; IS IT A RECOGNIZED FLAG?
+01/A3: 5400     	ADDI	B,0
+01/A4: F60F     	BRZ	ARGBAD
+01/A5: 3001     	LOADI	A,1
+01/A6: B100     	STOREF	[B],A
+01/A8:          
+01/A7:          	; THERE MAY BE ANOTHER FLAG
+01/A7: 8472     	LOAD	B,[CMDL_B]
+01/A8: A46C     	STORE	[ARG_BNK],B
+01/A9: A480     	STORE	[DBANK],B
+01/AA: FFEF     	JUMP	4B
+01/AC:          
+01/AB:          	; SAVE THE ARGUMENT
+01/AB: 3400     5:	LOADI	B,0
+01/AC: A480     	STORE	[DBANK],B
+01/AD: 8400     	LOAD	B,[ARGC]
+01/AE: B901     	STOREF	[B+ARGV],C
+01/B0:          	
+01/AF:          	; DID WE EXCEED THE ALLOWED NUMBER OF ARGUMENTS
+01/AF: 7403     	SUBI	B,MAXARGS
+01/B0: F003     	BRC	ARGBAD
+01/B1: 5404     	ADDI	B,MAXARGS+1
+01/B2: A400     	STORE	[ARGC],B
+01/B3: FFD3     	JUMP	0B
+01/B5:          	
+01/B4:          	; BAD ARGUMENT
+01/B4: 3000     ARGBAD:	LOADI	A,0
+01/B5: A080     	STORE	[DBANK],A
+01/B7:          	
+01/B6: 3001     	LOADI	A,STR_B
+01/B7: A06C     	STORE	[ARG_BNK],A
+01/B8: 3000     	LOADI	A,ERROR0
+01/BA:          	
+01/B9:          	; PRINT ERROR MESSAGE
+01/B9: 3404     	LOADI	B,S_PUTS
+01/BA: 38FD     	LOADI	C,EXIT
+01/BB: FF48     	JUMP	SYSCALL	
+01/BD:          
+01/BC:          	; EXIT PROGRAM
+01/BC: 3400     EXIT:	LOADI	B,0
+01/BD: FF47     	JUMP	SYSJUMP
+01/BF:          	
+01/BE:          	; ARGUMENT PROCESSING DONE
+01/BE: 3000     ARGDONE:LOADI	A,0
+01/BF: A080     	STORE	[DBANK],A
+01/C1:          	
+01/C0:          	; SET DEFAULT BLOCK RANGES
+01/C0: A009     	STORE	[BLOCK],A
+01/C1: 30FF     	LOADI	A,255
+01/C2: A00A     	STORE	[ENDBLK],A
+01/C4:          	
+01/C3:          	; CHECK ARG COUNT
+01/C3: 8000     	LOAD	A,[ARGC]
+01/C4: 5000     	ADDI	A,0
+01/C5: F6EE     	BRZ	ARGBAD
+01/C6: 7001     	SUBI	A,1
+01/C7: F614     	BRZ	9F
+01/C9:          	
+01/C8:          	; PROCESS FIRST NUMBER
+01/C8: 8802     	LOAD	C,[ARGV+1]
+01/C9: 30CC     	LOADI	A,@+3
+01/CA: B300     	STOREF	[D],A
+01/CB: FF13     	JUMP	CONVARG
+01/CD:          	
+01/CC:          	; STORE IN AS START AND END
+01/CC: A009     	STORE	[BLOCK],A
+01/CD: A00A     	STORE	[ENDBLK],A
+01/CF:          	
+01/CE:          	; CHECK ARG COUNT
+01/CE: 8000     	LOAD	A,[ARGC]
+01/CF: 7002     	SUBI	A,2
+01/D0: F60B     	BRZ	9F
+01/D2:          	
+01/D1:          	; PROCESS SECOND NUMBER
+01/D1: 8803     	LOAD	C,[ARGV+2]
+01/D2: 30D5     	LOADI	A,@+3
+01/D3: B300     	STOREF	[D],A
+01/D4: FF0A     	JUMP	CONVARG
+01/D6:          	
+01/D5:          	; STORE IN END
+01/D5: A00A     	STORE	[ENDBLK],A
+01/D7:          	
+01/D6:          	; ALSO CHECK TO MAKE SURE BOUNDS ARE VALID
+01/D6: 8409     	LOAD	B,[BLOCK]
+01/D7: D100     	CMP	A,B
+01/D8: F1DB     	BRB	ARGBAD
+01/DA:          	
+01/D9:          	; CHECK ARG COUNT
+01/D9: 8000     	LOAD	A,[ARGC]
+01/DA: 7003     	SUBI	A,3
+01/DB: F7D8     	BRNZ	ARGBAD
+01/DD:          	
+01/DC:          	; WE HAVE OUR RANGES, LETS START DUMPING
+01/DC: 3402     9:	LOADI	B,DUMP_B
+01/DD: 3880     	LOADI	C,DUMP
+01/DE: FF23     	JUMP	INDIR
+01/E0:          
+01/DF:          	; CONVERT AN ARGUMENT FROM TEXT TO DECIMAL
+01/DF:          	; C = POINTER TO STRING
+01/DF:          	; VALUE RETURNED IN A
+01/DF: 3000     CONVARG:LOADI	A,0
+01/E1:          
+01/E0:          	; GET A CHARACTER
+01/E0: 8472     	LOAD	B,[CMDL_B]
+01/E1: A480     	STORE	[DBANK],B
+01/E2: 9600     0:	LOADF	B,[C]
+01/E3: 7420     	SUBI	B,0X20
+01/E4: F915     	BRBE	1F
+01/E5: 7410     	SUBI	B,'0'-0X20
+01/E6: F1CD     	BRB	ARGBAD
+01/E7: 740A     	SUBI	B,10
+01/E8: F0CB     	BRAE	ARGBAD
+01/EA:          	
+01/E9:          	; MULTIPLY A BY 10
+01/E9: 2400     	MOV	B,A
+01/EA: 4000     	SHIFTL	A
+01/EB: F0C8     	BRC	ARGBAD
+01/EC: 4000     	SHIFTL	A
+01/ED: F0C6     	BRC	ARGBAD
+01/EE: 4000     	SHIFTL	A
+01/EF: F0C4     	BRC	ARGBAD
+01/F0: 4100     	ADD	A,B
+01/F1: F0C2     	BRC	ARGBAD
+01/F2: 4100     	ADD	A,B
+01/F3: F0C0     	BRC	ARGBAD
+01/F5:          	
+01/F4:          	; ADD CHARACTER TO A 
+01/F4: 9600     	LOADF	B,[C]
+01/F5: 7430     	SUBI	B,'0'
+01/F6: 4100     	ADD	A,B
+01/F7: F0BC     	BRC	ARGBAD
+01/F9:          	
+01/F8:          	; INCREMENT AND REPEAT
+01/F8: 5801     	ADDI	C,1
+01/F9: FFE8     	JUMP	0B
+01/FB:          	
+01/FA:          	; WE ARE DONE, RETURN
+01/FA: 3400     1:	LOADI	B,0
+01/FB: A480     	STORE	[DBANK],B
+01/FC: FF06     	JUMP	IRET
+01/FE:          	
+01/FD:          	
+01/FD:          	; EXIT PROGRAM
+01/FD: 3400     EXIT:	LOADI	B,0
+01/FE: FF06     	JUMP	SYSJUMP
+01/100:          	
+01/FF:          .TEXT
+01/FF:          .BANK	2
+02/80:          DUMP_B	= 2
+02/80:          	
+02/80:          	; MAIN DUMP OPERATION
+02/80:          	; SYSCALL RETURN BANK
+02/80: 3802     DUMP:	LOADI	C,2	
+02/81: BB01     	STOREF	[D+1],C
+02/83:          	
+02/82:          	; OPEN THE FILE
+02/82: 8072     	LOAD	A,[CMDL_B]
+02/83: A06C     	STORE	[ARG_BNK],A
+02/84: 8001     	LOAD	A,[ARGV]
+02/85: 3406     	LOADI	B,S_OPEN
+02/86: 3888     	LOADI	C,@+2
+02/87: FF7C     	JUMP	SYSCALL
+02/88: 5000     	ADDI	A,0
+02/89: F606     	BRZ	READB
+02/8B:          	
+02/8A:          	; ERROR!
+02/8A: 3001     	LOADI	A,STR_B
+02/8B: A06C     	STORE	[ARG_BNK],A
+02/8C: 303D     	LOADI	A,ERROR1
+02/8D: 3404     	LOADI	B,S_PUTS
+02/8E: 38C9     	LOADI	C,9F
+02/8F: FF74     	JUMP	SYSCALL
+02/91:          	
+02/90:          	; SET ARG_BNK
+02/90: 3802     READB:	LOADI	C,2	
+02/91: BB01     	STOREF	[D+1],C
+02/92: 3002     	LOADI	A,BUFFER
+02/93: A06C     	STORE	[ARG_BNK],A
+02/95:          	
+02/94:          	; READ THE BLOCK
+02/94: 8009     	LOAD	A,[BLOCK]
+02/95: 3408     	LOADI	B,S_READ
+02/96: 3898     	LOADI	C,@+2
+02/97: FF6C     	JUMP	SYSCALL
+02/98: 5000     	ADDI	A,0
+02/99: F72F     	BRNZ	9F
+02/9B:          	
+02/9A:          	; RESET BANK
+02/9A: 3002     	LOADI	A,BUFFER
+02/9B: A008     	STORE	[BANK],A
+02/9D:          	
+02/9C:          	; RESET POINTER
+02/9C: 3000     	LOADI	A,0
+02/9D: A007     	STORE	[POINTER],A
+02/9F:          	
+02/9E:          	; RESET COUNTB
+02/9E: 3408     PHEAD: LOADI	B,8
+02/9F: A406     	STORE	[COUNTB],B
+02/A1:          	
+02/A0:          	; PRINT OFF HEADER
+02/A0: 8409     	LOAD	B,[BLOCK]
+02/A1: 4500     	SHIFTL	B
+02/A2: 3001     	LOADI	A,1
+02/A3: F001     	BRC	@+2
+02/A4: 3000     	LOADI	A,0
+02/A5: 38AA     	LOADI	C,@+5
+02/A6: BB00     	STOREF	[D],C
+02/A7: 3403     	LOADI	B,PRINT_B
+02/A8: 38C6     	LOADI	C,PNYBBLE
+02/A9: FF58     	JUMP	INDIR
+02/AB:          	
+02/AA: 8009     	LOAD	A,[BLOCK]
+02/AB: 4000     	SHIFTL	A
+02/AC: 8408     	LOAD	B,[BANK]
+02/AD: 7404     	SUBI	B,BUFFER+2
+02/AE: F101     	BRB	@+2
+02/AF: 5001     	ADDI	A,1
+02/B0: 38B5     	LOADI	C,@+5
+02/B1: BB00     	STOREF	[D],C
+02/B2: 3403     	LOADI	B,PRINT_B
+02/B3: 38B4     	LOADI	C,PBYTE
+02/B4: FF4D     	JUMP	INDIR
+02/B6:          	
+02/B5: 8007     	LOAD	A,[POINTER]
+02/B6: 8408     	LOAD	B,[BANK]
+02/B7: 7402     	SUBI	B,BUFFER
+02/B8: C500     	SHIFTR	B
+02/B9: F101     	BRNC	@+2
+02/BA: 5080     	ADDI	A,0X80
+02/BB: 38C0     	LOADI	C,@+5
+02/BC: BB00     	STOREF	[D],C
+02/BD: 3403     	LOADI	B,PRINT_B
+02/BE: 38B4     	LOADI	C,PBYTE
+02/BF: FF42     	JUMP	INDIR
+02/C1:          	
+02/C0:          	; PRINT THE ": "
+02/C0: 3001     	LOADI	A,STR_B
+02/C1: A06C     	STORE	[ARG_BNK],A
+02/C2: 304F     	LOADI	A,HEADER
+02/C3: 3404     	LOADI	B,S_PUTS
+02/C4: 38C6     	LOADI	C,@+2
+02/C5: FF3E     	JUMP	SYSCALL
+02/C7:          	
+02/C6:          	; PRINT THE REST OF THE LINE
+02/C6: 3403     	LOADI	B,PRINT_B
+02/C7: 3880     	LOADI	C,DOPRINT
+02/C8: FF39     	JUMP	INDIR
+02/CA:          	
+02/C9:          	; END OF OPERATION
+02/C9: 3401     9:	LOADI	B,1
+02/CA: 38FD     	LOADI	C,EXIT
+02/CB: FF36     	JUMP	INDIR
+02/CD:          	
+02/CC:          .TEXT
+02/CC:          .BANK	3
+03/80:          PRINT_B	= 3
+03/80:          	
+03/80:          	; PREPARE TO PRINT
+03/80: 3803     DOPRINT:LOADI	C,3	
+03/81: BB01     	STOREF	[D+1],C
+03/82: 3004     0:	LOADI	A,4
+03/83: A005     	STORE	[COUNTA],A
+03/85:          
+03/84:          	; PRINT A BYTE
+03/84: 8407     1:	LOAD	B,[POINTER]
+03/85: 8808     	LOAD	C,[BANK]
+03/86: A880     	STORE	[DBANK],C
+03/87: 9100     	LOADF	A,[B]
+03/88: 3800     	LOADI	C,0
+03/89: A880     	STORE	[DBANK],C
+03/8A: 388D     	LOADI	C,@+3
+03/8B: BB00     	STOREF	[D],C
+03/8C: FF27     	JUMP	PBYTE
+03/8E:          	
+03/8D:          	; INCREMENT POINTER AND DECREMENT COUNTER A
+03/8D: 8407     	LOAD	B,[POINTER]
+03/8E: 5401     	ADDI	B,1
+03/8F: A407     	STORE	[POINTER],B
+03/90: F412     	BRN	3F
+03/91: 8005     	LOAD	A,[COUNTA]
+03/92: 7001     	SUBI	A,1
+03/93: A005     	STORE	[COUNTA],A
+03/94: F7EF     	BRNZ	1B
+03/96:          	
+03/95:          	; PRINT A SPACE
+03/95: 3020     	LOADI	A,0X20
+03/96: 3401     	LOADI	B,S_PUTC
+03/97: 3899     	LOADI	C,@+2
+03/98: FF6B     	JUMP	SYSCALL
+03/9A:          	
+03/99:          	; DECREMENT COUNTER B
+03/99: 8006     	LOAD	A,[COUNTB]
+03/9A: 7001     	SUBI	A,1
+03/9B: A006     	STORE	[COUNTB],A
+03/9C: F7E5     	BRNZ	0B
+03/9E:          
+03/9D:          	; PRINT A CRLF
+03/9D: 3802     2:	LOADI	C,DUMP_B
+03/9E: BB01     	STOREF	[D+1],C
+03/9F: 304C     	LOADI	A,CRLF
+03/A0: 3404     	LOADI	B,S_PUTS
+03/A1: 389E     	LOADI	C,PHEAD
+03/A2: FF61     	JUMP	SYSCALL
+03/A4:          
+03/A3:          	; MOVE UP A BANK
+03/A3: 3000     3:	LOADI	A,0
+03/A4: A007     	STORE	[POINTER],A
+03/A5: 8008     	LOAD	A,[BANK]
+03/A6: 7005     	SUBI	A,BUFFER+3
+03/A7: F603     	BRZ	4F
+03/A8: 5006     	ADDI	A,BUFFER+4
+03/A9: A008     	STORE	[BANK],A
+03/AA: FFF2     	JUMP	2B
+03/AC:          
+03/AB:          	; WE ARE DONE WITH THIS BLOCK
+03/AB: 8009     4:	LOAD	A,[BLOCK]
+03/AC: 840A     	LOAD	B,[ENDBLK]
+03/AD: D100     	CMP	A,B
+03/AE: F61E     	BRZ	9F
+03/AF: 5001     	ADDI	A,1
+03/B0: A009     	STORE	[BLOCK],A
+03/B1: 3402     	LOADI	B,DUMP_B
+03/B2: 3890     	LOADI	C,READB
+03/B3: FF4E     	JUMP	INDIR
+03/B5:          	
+03/B4:          	
+03/B4:          	; PRINT A BYTE
+03/B4:          	; A = BYTE TO PRINT
+03/B4: 7C02     PBYTE:	SUBI	D,2
+03/B5: A00B     	STORE	[TEMP],A
+03/B6: C100     	SHIFTR	A
+03/B7: C100     	SHIFTR	A
+03/B8: C100     	SHIFTR	A
+03/B9: C100     	SHIFTR	A
+03/BA: 3803     	LOADI	C,PRINT_B
+03/BB: BB01     	STOREF	[D+1],C
+03/BC: 38BF     	LOADI	C,@+3
+03/BD: BB00     	STOREF	[D],C
+03/BE: FF07     	JUMP	PNYBBLE
+03/BF: 5C02     	ADDI	D,2
+03/C0: 800B     	LOAD	A,[TEMP]
+03/C1: 3410     	LOADI	B,16
+03/C2: D100     0:	CMP	A,B
+03/C3: F102     	BRB	PNYBBLE
+03/C4: 7010     	SUBI	A,16
+03/C5: FFFC     	JUMP	0B
+03/C7:          	
+03/C6:          	; PUT A NYBBLE ON THE TERMINAL
+03/C6:          	; A = NYBBLE TO OUTPUT
+03/C6: 340A     PNYBBLE:LOADI	B,10
+03/C7: D100     	CMP	A,B
+03/C8: F101     	BRB	0F
+03/C9: 5007     	ADDI	A,'A'-'0'-10
+03/CA: 5030     0:	ADDI	A,'0'
+03/CB: 3401     	LOADI	B,S_PUTC
+03/CC: FF38     	JUMP	SYSJUMP
+03/CE:          	
+03/CD:          	
+03/CD:          	; END OF OPERATION
+03/CD: 3401     9:	LOADI	B,1
+03/CE: 38FD     	LOADI	C,EXIT
+03/CF: FF32     	JUMP	INDIR
+03/D1:          	
+03/D0:          
+03/D0:          .DATA
+03/00:          .BANK	1
+01/00:          STR_B	= 1
+01/00:          
+01/00:          	; ERROR MESSAGES
+01/00: 494E5641
+       4C494420
+       41524755
+       4D454E54
+       530A0D   .DEFL BYTE ERROR0	"INVALID ARGUMENTS",0X0A,0X0D,
+01/13: 55534147
+       453A2048
+       44554D50
+       2046494C
+       45207B53
+       54415254
+       20424C4B
+       7D207B45
+       4E442042
+       4C4B7D0A
+       0D00     			"USAGE: HDUMP FILE {START BLK} {END BLK}",0X0A,0X0D,0
+01/3D: 43414E27
+       54204F50
+       454E2046
+       494C45   .DEFL BYTE ERROR1	"CAN'T OPEN FILE"
+01/4C: 0A0D00   .DEFL BYTE CRLF		0X0A,0X0D,0
+01/4F: 3A2000   .DEFL BYTE HEADER	": ",0
+01/52:          
+01/52:          .BANK	0
+00/00:          .BSS
+00/00:          
+00/00:          	; COMMAND LINE ARGUMENTS
+00/00: 00       .DEFL BYTE ARGC		0
+00/01: 00000000 .DEFL BYTE ARGV		0,0,0,0
+00/05:          
+00/05:          	; VARIOUS COUNTERS
+00/05: 00       .DEFL BYTE COUNTA	0
+00/06: 00       .DEFL BYTE COUNTB	0
+00/07:          
+00/07:          	; INFORMATION ON WHAT CHARACTER IS BEING PRINTED
+00/07: 00       .DEFL BYTE POINTER	0
+00/08: 00       .DEFL BYTE BANK		0
+00/09: 00       .DEFL BYTE BLOCK	0
+00/0A: 00       .DEFL BYTE ENDBLK	0
+00/0B:          
+00/0B:          
+00/0B:          	; TEMPORARY VALUES
