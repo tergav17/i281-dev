@@ -583,7 +583,7 @@
 05/80:          	; SHADOW OF PRINTL
 05/80: 8011     PRINTLA:LOAD	A,[STATE]
 05/81: 7001     	SUBI	A,1
-05/82: F459     	BRN	9F
+05/82: F45A     	BRN	9F
 05/83: F704     	BRNZ	1F
 05/85:          	
 05/84:          	; SET ARGB = ARGA
@@ -596,12 +596,12 @@
 05/88: 8012     1:	LOAD	A,[ARGA]
 05/89: 8414     	LOAD	B,[ARGB]
 05/8A: D100     	CMP	A,B
-05/8B: F150     	BRB	9F
+05/8B: F151     	BRB	9F
 05/8C: F804     	BRA	2F
 05/8D: 8013     	LOAD	A,[ARGA+1]
 05/8E: 8415     	LOAD	B,[ARGB+1]
 05/8F: D100     	CMP	A,B
-05/90: F14B     	BRB	9F
+05/90: F14C     	BRB	9F
 05/92:          	
 05/91:          	; START LOOKING FOR THE LINE
 05/91:          	; TEMP = ARGB
@@ -617,7 +617,7 @@
 05/9A: 3886     	LOADI	C,FINDL
 05/9B: FF66     	JUMP	INDIR
 05/9C: 5000     	ADDI	A,0
-05/9D: F73E     	BRNZ	9F
+05/9D: F73F     	BRNZ	9F
 05/9F:          	
 05/9E:          	; START PRINTING OFF LINES
 05/9E: 8800     3:	LOAD	C,[CBLOCK]
@@ -656,7 +656,7 @@
 05/B8:          	
 05/B7:          	; MAKE SURE IT ISN'T ZERO
 05/B7: 5000     	ADDI	A,0
-05/B8: F620     	BRZ	8F
+05/B8: F621     	BRZ	8F
 05/BA:          	
 05/B9:          	; SET CBLOCK AND UPDATE MB_PNTR AND MB_END
 05/B9: A000     	STORE	[CBLOCK],A
@@ -672,12 +672,12 @@
 05/C0: 8012     6:	LOAD	A,[ARGA]
 05/C1: 8414     	LOAD	B,[ARGB]
 05/C2: D100     	CMP	A,B
-05/C3: F115     	BRB	8F
+05/C3: F116     	BRB	8F
 05/C4: F804     	BRA	7F
 05/C5: 8013     	LOAD	A,[ARGA+1]
 05/C6: 8415     	LOAD	B,[ARGB+1]
 05/C7: D100     	CMP	A,B
-05/C8: F110     	BRB	8F
+05/C8: F111     	BRB	8F
 05/CA:          	
 05/C9:          	; INCREMENT ARGB
 05/C9: 8015     7:	LOAD	A,[ARGB+1]
@@ -687,32 +687,33 @@
 05/CD: 8014     	LOAD	A,[ARGB]
 05/CE: 5001     	ADDI	A,1
 05/CF: A014     	STORE	[ARGB],A
-05/D0: F008     	BRC	8F
+05/D0: F009     	BRC	8F
 05/D2:          	
 05/D1:          	; PRINT CR/LF
 05/D1: 300A     7:	LOADI	A,0X0A
 05/D2: 3401     	LOADI	B,S_PUTC
 05/D3: 38D5     	LOADI	C,@+2
 05/D4: FF2F     	JUMP	SYSCALL
-05/D5: 300D     	LOADI	A,0X0D
-05/D6: 3401     	LOADI	B,S_PUTC
-05/D7: 38AA     	LOADI	C,4B
-05/D8: FF2B     	JUMP	SYSCALL
-05/DA:          	
-05/D9:          	; GO BACK TO COMMAND LINE
-05/D9: 3402     8:	LOADI	B,CMD0_B
-05/DA: 3882     	LOADI	C,PROMPT
-05/DB: FF26     	JUMP	INDIR
-05/DD:          	
-05/DC:          	; ERROR
-05/DC: 3402     9:	LOADI	B,CMD0_B
-05/DD: 3880     	LOADI	C,ERROR
-05/DE: FF23     	JUMP	INDIR
-05/E0:          	
-05/DF:          	; BANK IS DONE, MOVE ON TO THE NEXT
-05/DF:          BI	= BI+1
-05/DF:          .TEXT
-05/DF:          .BANK	BI
+05/D5: 2000     	NOOP
+05/D6: 300D     	LOADI	A,0X0D
+05/D7: 3401     	LOADI	B,S_PUTC
+05/D8: 38AA     	LOADI	C,4B
+05/D9: FF2A     	JUMP	SYSCALL
+05/DB:          	
+05/DA:          	; GO BACK TO COMMAND LINE
+05/DA: 3402     8:	LOADI	B,CMD0_B
+05/DB: 3882     	LOADI	C,PROMPT
+05/DC: FF25     	JUMP	INDIR
+05/DE:          	
+05/DD:          	; ERROR
+05/DD: 3402     9:	LOADI	B,CMD0_B
+05/DE: 3880     	LOADI	C,ERROR
+05/DF: FF22     	JUMP	INDIR
+05/E1:          	
+05/E0:          	; BANK IS DONE, MOVE ON TO THE NEXT
+05/E0:          BI	= BI+1
+05/E0:          .TEXT
+05/E0:          .BANK	BI
 06/80:          UOP2_B	= BI
 06/80:          	
 06/80:          	; SHADOW OF DOFREAD
@@ -781,7 +782,7 @@
 06/B0: 8012     	LOAD	A,[ARGA]
 06/B1: 7001     	SUBI	A,1
 06/B2: A412     	STORE	[ARGA],B
-06/B3: F128     	BRNC	9B
+06/B3: F129     	BRNC	9B
 06/B5:          	
 06/B4: FFD8     1:	JUMP	APPENDA
 06/B6:          
