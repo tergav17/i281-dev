@@ -518,7 +518,7 @@ FD/81: A093     	STORE	[UART_LC],A
 FD/83:          	
 FD/82:          	; DIVISOR = 12
 FD/82:          	; FOR 9600B @ 1.843, 19200B @ 3.604
-FD/82: 3018     	LOADI	A,24
+FD/82: 300C     	LOADI	A,12
 FD/83: A090     	STORE	[UART_DL],A
 FD/84: 3000     	LOADI	A,0
 FD/85: A091     	STORE	[UART_DH],A
