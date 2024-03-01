@@ -8,6 +8,7 @@ dos281.img: binary/mbr.sav binary/kernel.sav apps/binary/* other/*
 	python3 AddFile.py dos281.img 1 other/*
 	python3 AddFile.py dos281.img 2 apps/source/* apps/dosdef.s
 	python3 AddFile.py dos281.img 3 source/*
+	python3 AddFile.py dos281.img 4 ../programs/examples/binary/*
 
 binary/%.sav: source/*.s
 	cd source; ../$(I281_ASM) -o ../mbr common.s mbr.s

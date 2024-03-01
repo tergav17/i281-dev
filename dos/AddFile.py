@@ -57,6 +57,13 @@ def main():
             else:
                 image[record+o+2] = ord(' ')
                 
+                
+        # Preprocess file extensions
+        if filename[1].upper() == "SAV":
+            filename[1] = "SV";
+        if filename[1].upper() == "TXT":
+            filename[1] = "TX";
+        
         # Insert file extension
         for o in range(2):
             if o < len(filename[1]):
