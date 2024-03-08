@@ -609,7 +609,7 @@
 05/8F: BB01     	STOREF	[D+1],C
 05/90: 8008     	LOAD	A,[DIRTY]
 05/91: 5000     	ADDI	A,0
-05/92: F606     	BRZ	9F
+05/92: F617     	BRZ	9F
 05/94:          	
 05/93:          	; WRITE OUT THE CBLOCK
 05/93: 3007     	LOADI	A,WORK_B
@@ -619,23 +619,43 @@
 05/97: 3899     	LOADI	C,@+2
 05/98: FF6B     	JUMP	SYSCALL
 05/9A:          	
-05/99:          	; READ IN A NEW BLOCK
-05/99: 8009     9:	LOAD	A,[ADDRESS]
-05/9A: 389F     	LOADI	C,@+5
-05/9B: BB00     	STOREF	[D],C
-05/9C: 3407     	LOADI	B,BIO_B
-05/9D: 3880     	LOADI	C,BREAD
-05/9E: FF63     	JUMP	INDIR
-05/A0:          	
-05/9F:          	; GO BACK TO PROMPT
-05/9F: 3402     	LOADI	B,CMD0_B
-05/A0: 3882     	LOADI	C,PROMPT
-05/A1: FF60     	JUMP	INDIR
-05/A3:          
-05/A2:          	; BANK IS DONE, MOVE ON TO THE NEXT
-05/A2:          BI	= BI+1
-05/A2:          .TEXT
-05/A2:          .BANK	BI
+05/99:          	; ALLOCATE BLOCK ON MAP
+05/99: 8807     	LOAD	C,[CBLOCK]
+05/9A: 3407     	LOADI	B,WORK_B
+05/9B: A480     	STORE	[DBANK],B
+05/9C: 8002     	LOAD	A,[2]
+05/9D: 3403     	LOADI	B,BTAB_B
+05/9E: 4000     	SHIFTL	A
+05/9F: F101     	BRNC	0F
+05/A0: 5401     	ADDI	B,1
+05/A1: C100     0:	SHIFTR	A
+05/A2: A480     	STORE	[DBANK],B
+05/A3: B800     	STOREF	[A],C
+05/A4: 5402     	ADDI	B,2
+05/A5: A480     	STORE	[DBANK],B
+05/A6: 38FF     	LOADI	C,0XFF
+05/A7: B800     	STOREF	[A],C
+05/A8: 3400     	LOADI	B,0
+05/A9: A480     	STORE	[DBANK],B
+05/AB:          	
+05/AA:          	
+05/AA:          	; READ IN A NEW BLOCK
+05/AA: 8009     9:	LOAD	A,[ADDRESS]
+05/AB: 38B0     	LOADI	C,@+5
+05/AC: BB00     	STOREF	[D],C
+05/AD: 3407     	LOADI	B,BIO_B
+05/AE: 3880     	LOADI	C,BREAD
+05/AF: FF52     	JUMP	INDIR
+05/B1:          	
+05/B0:          	; GO BACK TO PROMPT
+05/B0: 3402     	LOADI	B,CMD0_B
+05/B1: 3882     	LOADI	C,PROMPT
+05/B2: FF4F     	JUMP	INDIR
+05/B4:          
+05/B3:          	; BANK IS DONE, MOVE ON TO THE NEXT
+05/B3:          BI	= BI+1
+05/B3:          .TEXT
+05/B3:          .BANK	BI
 06/80:          FIO_B	= BI
 06/80:          
 06/80:          	; READS IN THE INITIAL SAVE FILE
