@@ -2,8 +2,8 @@
 01/80:          ; SYSTEM COMMON DEFINITIONS
 01/80:          
 01/80:          ; BIOS CALLS
-01/80:          REBOOT	= 0
-01/80:          AREBOOT = 1
+01/80:          BOOT	= 0
+01/80:          ALTBOOT = 1
 01/80:          INDIR	= 2
 01/80:          IRET	= 3
 01/80:          SYSCALL	= 4
