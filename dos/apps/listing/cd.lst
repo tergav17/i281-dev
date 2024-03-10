@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; CD.S
 01/80:          ; CHANGE DEFAULT USER AREA
 01/80:          
@@ -156,3 +157,8 @@
        44205B30
        2E2E395D
        3A0A0D00 			"USAGE: CD [0..9]:",0X0A,0X0D,0
+01/27: 494E5641
+       4C494420
+       55534552
+       20415245
+       410A0D00 .DEFL BYTE ERROR1	"INVALID USER AREA",0X0A,0X0D,0

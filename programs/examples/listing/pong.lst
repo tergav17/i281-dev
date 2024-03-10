@@ -71,3 +71,4 @@
 01/BC: 385E     	LOADI  C ,  94                   
 01/BD: A806     	STORE   [ DISPLAY + 2 ]  ,  C
 01/BE: FFFF     EXIT:   JUMP   EXIT
+01/C0:          

@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; XMODEM.S
 01/80:          ; SEND OR RECIEVE A FILE VIA XMODEM
 01/80:          
@@ -488,3 +489,4 @@
 00/0B: 00       .DEFL BYTE LASTB	0
 00/0C:          
 00/0C:          	; STACK PARKING SPACE
+00/0C: 00       .DEFL BYTE SPARK	0

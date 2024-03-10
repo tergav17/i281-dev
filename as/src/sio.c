@@ -45,6 +45,9 @@ FILE *sio_fout;
 /* listing file */
 FILE *sio_lst;
 
+/* do we need to insert an extra line break */
+int sio_putnl;
+
 /* buffers */
 char lbuff[SIO_BUFFER_LENGTH];
 uint8_t dbuff[256];
@@ -140,6 +143,8 @@ void sio_close()
  */
 char sio_peek()
 {
+	if (sio_putnl)
+		return '\n';
 	return (sio_argi < sio_argc) ? sio_buf[sio_bufi] : -1;
 }
 
@@ -151,21 +156,27 @@ char sio_next()
 	int i, o;
 	char out;
 	
-	// nothing more to read, return -1
-	if (sio_argi >= sio_argc)
-		return -1;
-	
-	out = sio_buf[sio_bufi];
-	
-	// if there is still bytes is the buffer, find the next one
-	
-	if (++sio_bufi >= sio_bufc) {
-			// attempt to read the next block
-			if (0 < (sio_bufc = fread(sio_buf, 1, 512, sio_curr))) {
-				sio_bufi = 0;
-			} else {
-				sio_nextfile();
-			}
+	if (sio_putnl) {
+		out = '\n';
+		sio_putnl = 0;
+	} else {
+		// nothing more to read, return -1
+		if (sio_argi >= sio_argc)
+			return -1;
+		
+		out = sio_buf[sio_bufi];
+		
+		// if there is still bytes is the buffer, find the next one
+		
+		if (++sio_bufi >= sio_bufc) {
+				// attempt to read the next block
+				if (0 < (sio_bufc = fread(sio_buf, 1, 512, sio_curr))) {
+					sio_bufi = 0;
+				} else {
+					sio_nextfile();
+					sio_putnl = 1;
+				}
+		}
 	}
 	
 	// if we have just passed a line break, increment the pointer
@@ -213,6 +224,7 @@ void sio_rewind()
 	sio_datai = 0;
 	sio_address = 0;
 	sio_bank = 0;
+	sio_putnl = 0;
 	sio_pass++;
 	
 	sio_nextfile();

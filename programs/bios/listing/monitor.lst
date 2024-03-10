@@ -213,3 +213,4 @@
 00/78: FFD2     	JUMP	SCHAR
 00/79: 503A     3:	ADDI	A,'0'+10
 00/7A: FFD0     	JUMP	SCHAR
+00/7C:          

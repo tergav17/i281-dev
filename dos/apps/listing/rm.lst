@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; RM.S
 01/80:          ; REMOVE A FILE
 01/80:          
@@ -244,3 +245,4 @@
 00/03:          
 00/03:          	; IS THIS THE FIRST ATTEMPT AT REMOVING?
 00/03: 00       .DEFL BYTE FIRST	0
+00/04:          

@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; STAT.S
 01/80:          ; SHOW FILE SYSTEM STATISTICS
 01/80:          
@@ -348,3 +349,4 @@
 00/06:          
 00/06:          	; RECORD KEEPING
 00/06: 0000     .DEFL BYTE NUMFILE	0,0
+00/08: 0000     .DEFL BYTE NUMBLK	0,0

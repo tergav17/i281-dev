@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; AS0.S
 01/80:          ; ASSEMBLER CORE AND PARSER
 01/80:          
@@ -194,6 +195,8 @@
 00/11:          
 00/11:          	; COMMAND LINE FLAGS
 00/11: 00       .DEFL BYTE LFLAG	0
+00/12:          
+00/12:          	; TOKEN
 00/12:          
 00/12:          .BANK	BD
 01/00:          .DATA

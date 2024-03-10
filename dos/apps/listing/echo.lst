@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; ECHO.S
 01/80:          ; COMMAND LINE ECHO
 01/80:          
@@ -116,3 +117,4 @@
 01/A7:          	
 01/A6:          	; EXIT PROGRAM
 01/A6: 3400     EXIT:	LOADI	B,0
+01/A7: FF5D     	JUMP	SYSJUMP

@@ -46,6 +46,7 @@
 01/80:          CF_WRIT = 0X30		; WRITE COMMAND
 01/80:          CF_SETF	= 0XEF		; SET FEATURE COMMAND
 01/80:          
+01/80:          
 01/80:          ; LOW.S
 01/80:          ; LOW MEMORY OF THE DOS/281 SYSTEM
 01/80:          ; HANDLES SYSCALLS
@@ -128,6 +129,7 @@
 00/6C:          	; HOW MUCH FREE MEMORY USER PROGRAMS HAVE
 00/6C:          BI	= 255
 00/6C:          BD	= 255
+00/6C:          
 00/6C:          
 00/6C:          ; CORE.S
 00/6C:          ; MAIN 'GUTS' OF DOS/281
@@ -529,6 +531,7 @@ FF/6F:          KBUF_B	= BD
 FF/6F:          
 FF/6F:          	; BANK IS DONE, MOVE ON TO THE NEXT
 FF/6F:          BD	= BD-1
+FF/6F:          
 FF/6F:          ; TTY.S
 FF/6F:          ; SERIAL CONSOLE DRIVER
 FF/6F:          
@@ -768,6 +771,7 @@ FD/EF: FF13     	JUMP	IRET
 FD/F1:          
 FD/F0:          	; BANK IS DONE, MOVE ON TO THE NEXT
 FD/F0:          BI	= BI-1
+FD/F0:          
 FD/F0:          ; BLK.S
 FD/F0:          ; BLOCK DEVICE DRIVER
 FD/F0:          ; (COMPACT FLASH VERSION)
@@ -929,6 +933,7 @@ FC/C9: FF39     	JUMP	IRET
 FC/CB:          
 FC/CA:          	; BANK IS DONE, MOVE ON TO THE NEXT
 FC/CA:          BI	= BI-1
+FC/CA:          
 FC/CA:          ; FS.S
 FC/CA:          ; FILE SYSTEM HANDLING ROUTINES
 FC/CA:          
@@ -1522,6 +1527,7 @@ F9/E4:
 F9/E3:          
 F9/E3:          	; BANK IS DONE, MOVE ON TO THE NEXT
 F9/E3:          BI	= BI-1
+F9/E3:          
 F9/E3:          ; SYS.S
 F9/E3:          ; USER SYSTEM CALL HANDLER
 F9/E3:          
@@ -1908,6 +1914,7 @@ F6/BB: FF47     	JUMP	IRET
 F6/BD:          
 F6/BC:          	; BANK IS DONE, MOVE ON TO THE NEXT
 F6/BC:          BI	= BI-1
+F6/BC:          
 F6/BC:          ; ALLOC.S
 F6/BC:          ; BLOCK ALLOCATION MANAGEMENT
 F6/BC:          
@@ -2603,7 +2610,9 @@ F0/B9: FF49     	JUMP	IRET
 F0/BB:          
 F0/BA:          	; BANK IS DONE, MOVE ON TO THE NEXT
 F0/BA:          BI	= BI-1
+F0/BA:          
 F0/BA:          ; END.S
 F0/BA:          ; DEFINES SYMBOLS BASED ON ASSEMBLY STATE
 F0/BA:          
 F0/BA:          MAX_IB	= BI
+F0/BA:          MAX_DB	= BD

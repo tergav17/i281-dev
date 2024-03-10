@@ -41,3 +41,4 @@
 01/08: 045B7F06 .DEFL BYTE TEXT		4,91,127,6                   
 01/0C: 01       .DEFL BYTE INCDEC	1                                
 01/0D: 000004   .DEFL BYTE MINMAX	0,0,4
+01/10: 00       .DEFL BYTE TEMP		0

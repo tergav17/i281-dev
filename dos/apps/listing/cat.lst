@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; CAT.S
 01/80:          ; TYPE OUT FILES ONTO THE CONSOLE
 01/80:          
@@ -297,3 +298,4 @@
 00/13:          
 00/13:          	; INFORMATION ON WHAT CHARACTER IS BEING PRINTED
 00/13: 00       .DEFL BYTE POINTER	0
+00/14: 00       .DEFL BYTE BANK		0

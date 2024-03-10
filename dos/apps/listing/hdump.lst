@@ -49,6 +49,7 @@
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
 01/80:          
+01/80:          
 01/80:          ; HDUMP.S
 01/80:          ; DUMP OUT FILE BLOCKS IN HEXADEMIMAL FORMAT
 01/80:          
@@ -531,3 +532,4 @@
 00/0B:          
 00/0B:          
 00/0B:          	; TEMPORARY VALUES
+00/0B: 00       .DEFL BYTE TEMP		0

@@ -299,3 +299,4 @@
 00/7D:          	; HALT AT THE END OF THE ROM
 00/7D:          .ORG	0x7F
 00/7F: FFFF     HALT:	JUMP	HALT
+00/81:          

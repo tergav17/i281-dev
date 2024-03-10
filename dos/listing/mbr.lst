@@ -46,6 +46,7 @@
 01/80:          CF_WRIT = 0X30		; WRITE COMMAND
 01/80:          CF_SETF	= 0XEF		; SET FEATURE COMMAND
 01/80:          
+01/80:          
 01/80:          ; MBR.S
 01/80:          ; MASTER BOOT RECORD (2ND STAGE BOOTLOADER)
 01/80:          
@@ -299,3 +300,4 @@
        5359     .DEFL BYTE FNAME	0XFF,'0',"KERNEL","SY"
 01/0A: 00       .DEFL BYTE SIZE		0
 01/0B: 00       .DEFL BYTE CBANK	0
+01/0C: 00       .DEFL BYTE CRECORD	0
