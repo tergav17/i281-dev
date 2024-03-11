@@ -7,8 +7,8 @@ binary/ed.sv: dosdef.s source/ed0.s source/ed1.s source/ed2.s source/ed3.s
 	mv ed.sav binary/ed.sv
 	mv ed.lst listing
 	
-binary/as.sv: dosdef.s source/as0.s source/as1.s
-	$(I281_ASM) -o as dosdef.s source/as0.s source/as1.s
+binary/as.sv: dosdef.s source/as0.s source/as1.s source/as2.s
+	$(I281_ASM) -o as dosdef.s source/as0.s source/as1.s source/as2.s
 	mv as.sav binary/as.sv
 	mv as.lst listing
 
