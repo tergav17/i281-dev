@@ -152,7 +152,7 @@ char asm_alpha(char in)
 }
 
 /*
- * tests if a character is a alpha
+ * tests if a character is an alpha
  *
  * in = character to test
  * returns true (1) or false (0)
