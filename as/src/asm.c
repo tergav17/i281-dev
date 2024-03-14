@@ -1445,7 +1445,19 @@ char asm_doisr(struct instruct *isr) {
 		if (src >= 4)
 			return 1;
 		
-		asm_emit_isr(isr->opcode + (dst<<2) + src, 0x00);
+		// peek to see if we need to include an immediate
+		value = 0;
+		if (sio_peek() == '+') {
+			// consume "+" symbol
+			asm_token_read();
+			
+			// evaluate expression
+			type = asm_evaluate(&value, 0);
+			if (type == 0 && asm_pass)
+				asm_error("undefined expression");
+		}
+		
+		asm_emit_isr(isr->opcode + (dst<<2) + src, value & 0xFF);
 	}
 	
 	// immediate operation
@@ -1653,8 +1665,20 @@ char asm_doisr(struct instruct *isr) {
 		if (dst != 2)
 			return 1;
 		
+		// peek to see if we need to include an immediate
+		value = 0;
+		if (sio_peek() == '+') {
+			// consume "+" symbol
+			asm_token_read();
+			
+			// evaluate expression
+			type = asm_evaluate(&value, 0);
+			if (type == 0 && asm_pass)
+				asm_error("undefined expression");
+		}
+		
 		// generate instruction
-		asm_emit_isr(isr->opcode, (~asm_address) & 0xFF);
+		asm_emit_isr(isr->opcode, (((~asm_address) & 0xFF) + value) & 0xFF);
 	}
 	
 	// cache operation
