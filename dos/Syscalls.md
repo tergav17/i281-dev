@@ -92,6 +92,21 @@ during a program load, but after the program executes it can be accessed.
 | 0x70      | MAX_IB   | Maximum instruction bank available to use                   |
 | 0x71      | MAX_DB   | Maximum data bank available to use                          |
 | 0x72      | CMDL_B   | Bank which contains arguments used to invoke the program    |
-| 0x73      | AUTO_B   | Bank which contains information to script execution         |
+| 0x73      | AUTO_B   | Bank which contains information for script execution        |
 | 0x78-0x7B | KERNMEM  | Reserved for kernel use                                     |
-| 0x7C-0x7F | BIOSMEM  | Reserved for BIOS use                                       |
+| 0x7C-0x7F | BIOSMEM  | Reserved for BIOS use           
+
+The AUTO_B bank contains information used by the kernel the allow for automated script
+execution. When the kernel is in AUTO mode, the CMDL_B buffer will be constantly filled
+by the script file until the end of file is reached. Control will then be passed back to
+the user.
+
+| Address   | Name     | Description                                                 |
+| --------- | -------- | ------------------------------------------------------------|
+| 0x00      | AU_RUN   | Is set to 0xFF if auto mode is on                           |
+| 0x01      | AU_PNTR  | Sub-bank pointer of script file (0-127)                     |
+| 0x02      | AU_BANK  | Bank of script file (0-3)                                   |
+| 0x03      | AU_BLK   | Block of script file (0-255)                                |
+| 0x04      | AU_UA    | Default user area at script invoke                          |
+| 0x05-0x17 | AU_FILE  | File name of script (zero terminated)                       |
+| 0X18-0X7F | AU_MISC  | Useful as state data for the running script                 |
