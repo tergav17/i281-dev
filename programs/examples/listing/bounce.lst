@@ -1,5 +1,7 @@
 00/00:          ; BOUNCE.S
 01/80:          ; A SMALL VT100 TEST PROGRAM
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; DEFINES
 01/80:          DBANK	=	0X80

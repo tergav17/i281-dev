@@ -319,6 +319,9 @@ PARSEXD:SUBI	A,'+'-'('
 	
 1:	SUBI	A,'>'-')'
 
+
+	5:
+	
 BI	= BI+1
 .TEXT
 .BANK	BI

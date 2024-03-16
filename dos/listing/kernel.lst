@@ -1,5 +1,7 @@
 00/00:          ; COMMON.S
 01/80:          ; SYSTEM COMMON DEFINITIONS
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          BOOT	= 0
@@ -50,6 +52,8 @@
 01/80:          ; LOW.S
 01/80:          ; LOW MEMORY OF THE DOS/281 SYSTEM
 01/80:          ; HANDLES SYSCALLS
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; EQUATES
 01/80:          KMEM_ST	= 0X78	; KERNEL MEMORY STACK SAVE SLOT
@@ -133,6 +137,8 @@
 00/6C:          
 00/6C:          ; CORE.S
 00/6C:          ; MAIN 'GUTS' OF DOS/281
+00/6C:          ; GAVIN TERSTEEG, 2024
+00/6C:          ; SDMAY24-14
 00/6C:          
 00/6C:          .BANK BI
 FF/00:          CORE0_B	= BI
@@ -534,6 +540,8 @@ FF/6F:          BD	= BD-1
 FF/6F:          
 FF/6F:          ; TTY.S
 FF/6F:          ; SERIAL CONSOLE DRIVER
+FF/6F:          ; GAVIN TERSTEEG, 2024
+FF/6F:          ; SDMAY24-14
 FF/6F:          
 FF/6F:          .BANK BI
 FD/00:          TTY0_B	= BI
@@ -775,6 +783,8 @@ FD/F0:
 FD/F0:          ; BLK.S
 FD/F0:          ; BLOCK DEVICE DRIVER
 FD/F0:          ; (COMPACT FLASH VERSION)
+FD/F0:          ; GAVIN TERSTEEG, 2024
+FD/F0:          ; SDMAY24-14
 FD/F0:          
 FD/F0:          .BANK BI
 FC/80:          BLK0_B	= BI
@@ -936,6 +946,8 @@ FC/CA:          BI	= BI-1
 FC/CA:          
 FC/CA:          ; FS.S
 FC/CA:          ; FILE SYSTEM HANDLING ROUTINES
+FC/CA:          ; GAVIN TERSTEEG, 2024
+FC/CA:          ; SDMAY24-14
 FC/CA:          
 FC/CA:          .BANK BI
 FB/80:          FS0_B	= BI
@@ -1530,6 +1542,8 @@ F9/E3:          BI	= BI-1
 F9/E3:          
 F9/E3:          ; SYS.S
 F9/E3:          ; USER SYSTEM CALL HANDLER
+F9/E3:          ; GAVIN TERSTEEG, 2024
+F9/E3:          ; SDMAY24-14
 F9/E3:          
 F9/E3:          .BANK BI
 F8/80:          SYS0_B	= BI
@@ -1917,6 +1931,8 @@ F6/BC:          BI	= BI-1
 F6/BC:          
 F6/BC:          ; ALLOC.S
 F6/BC:          ; BLOCK ALLOCATION MANAGEMENT
+F6/BC:          ; GAVIN TERSTEEG, 2024
+F6/BC:          ; SDMAY24-14
 F6/BC:          
 F6/BC:          .BANK BI
 F5/80:          AL0_B	= BI
@@ -2613,6 +2629,8 @@ F0/BA:          BI	= BI-1
 F0/BA:          
 F0/BA:          ; END.S
 F0/BA:          ; DEFINES SYMBOLS BASED ON ASSEMBLY STATE
+F0/BA:          ; GAVIN TERSTEEG, 2024
+F0/BA:          ; SDMAY24-14
 F0/BA:          
 F0/BA:          MAX_IB	= BI
 F0/BA:          MAX_DB	= BD

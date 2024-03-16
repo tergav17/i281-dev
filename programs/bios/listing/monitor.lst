@@ -1,5 +1,7 @@
 00/00:          ; MONITOR.S
 01/00:          ; PUNY MEMORY MONITOR
+01/00:          ; GAVIN TERSTEEG, 2024
+01/00:          ; SDMAY24-14
 01/00:          
 01/00:          ; DEFINES
 01/00:          DBANK	= 0X80		; DATA BANK ADDRESS

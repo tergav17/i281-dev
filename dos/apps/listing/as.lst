@@ -1,5 +1,7 @@
 00/00:          ; DOSDEF.S
 01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          BOOT	= 0
@@ -1150,18 +1152,17 @@
 07/80:          	; SHADOW OF PARSEX
 07/80: 7C02     PARSEXA:SUBI	D,2
 07/82:          
-07/81:          	; SET RETURN ADDRESS
-07/81: 3807     	LOADI	C,BI
-07/82: BB01     	STOREF	[D+1],C
-07/84:          
-07/83:          	; RESET VALUE AND EXPRESSION STACKS
-07/83: 3023     	LOADI	A,VSTACK
-07/84: A030     	STORE	[VINDEX],A
-07/85: 301D     	LOADI	A,ESTACK
-07/86: A02F     	STORE	[EINDEX],A
-07/88:          	
-07/87:          	; PROCESS TOKEN (VALUES AND LEFT PARATHESIS)
-07/87: 8031     0:	LOAD	A,[TOKEN]
+07/81:          	; RESET VALUE AND EXPRESSION STACKS
+07/81: 3023     	LOADI	A,VSTACK
+07/82: A030     	STORE	[VINDEX],A
+07/83: 301D     	LOADI	A,ESTACK
+07/84: A02F     	STORE	[EINDEX],A
+07/86:          	
+07/85:          	; PROCESS TOKEN (VALUES AND LEFT PARATHESIS)
+07/85:          	; ALSO SET RETURN ADDRESS
+07/85: 3807     0:	LOADI	C,BI
+07/86: BB01     	STOREF	[D+1],C
+07/87: 8031     	LOAD	A,[TOKEN]
 07/89:          
 07/88:          	; IS IT A NUMERIC?
 07/88: 7081     	SUBI	A,NUMERIC
@@ -1246,34 +1247,67 @@
 07/C1: FF40     	JUMP	INDIR
 07/C3:          
 07/C2:          	; GET THE NEXT TOKEN
-07/C2: 38C7     PARSEXC:LOADI	C,@+5
-07/C3: BB00     	STOREF	[D],C
-07/C4: 3404     	LOADI	B,TOK0_B
-07/C5: 3880     	LOADI	C,NEXTTOK
-07/C6: FF3B     	JUMP	INDIR
-07/C8:          	
-07/C7:          	; LOOK FOR SPECIAL VALUES
-07/C7: 8031     	LOAD	A,[TOKEN]
-07/C8: 7081     	SUBI	A,NUMERIC
-07/C9: F6BD     	BRZ	0B
-07/CA: 70FF     	SUBI	A,SYMBOL-NUMERIC
-07/CB: F6BB     	BRZ	0B
-07/CC: 70C0     	SUBI	A,'@'-SYMBOL
-07/CD: F6B9     	BRZ	0B
-07/CE: 70E8     	SUBI	A,'('-'@'
-07/CF: F6B7     	BRZ	0B
-07/D1:          	
-07/D0: 5C02     9:	ADDI	D,2
-07/D1: FF30     	JUMP	INDIR
-07/D3:          
-07/D2:          BI	= BI+1
-07/D2:          .TEXT
-07/D2:          .BANK	BI
+07/C2: 3807     PARSEXC:LOADI	C,BI
+07/C3: BB01     	STOREF	[D+1],C
+07/C4: 38C9     	LOADI	C,@+5
+07/C5: BB00     	STOREF	[D],C
+07/C6: 3404     	LOADI	B,TOK0_B
+07/C7: 3880     	LOADI	C,NEXTTOK
+07/C8: FF39     	JUMP	INDIR
+07/CA:          	
+07/C9:          	; LOOK FOR SPECIAL VALUES
+07/C9: 8031     	LOAD	A,[TOKEN]
+07/CA: 7081     	SUBI	A,NUMERIC
+07/CB: F6B9     	BRZ	0B
+07/CC: 70FF     	SUBI	A,SYMBOL-NUMERIC
+07/CD: F6B7     	BRZ	0B
+07/CE: 70C0     	SUBI	A,'@'-SYMBOL
+07/CF: F6B5     	BRZ	0B
+07/D0: 70E8     	SUBI	A,'('-'@'
+07/D1: F6B3     	BRZ	0B
+07/D3:          	
+07/D2:          	; THIS IS SOME SORT OPERATION
+07/D2: 3408     	LOADI	B,EXP2_B
+07/D3: 3880     	LOADI	C,PARSEXD
+07/D4: FF2D     	JUMP	INDIR
+07/D6:          
+07/D5:          BI	= BI+1
+07/D5:          .TEXT
+07/D5:          .BANK	BI
 08/80:          EXP2_B	= BI
 08/80:          
-08/80:          BI	= BI+1
-08/80:          .TEXT
-08/80:          .BANK	BI
+08/80:          	; HANDLE OTHER CHARACTERS IN EXPRESSION
+08/80: 7003     PARSEXD:SUBI	A,'+'-'('
+08/81: F613     	BRZ	5F
+08/82: 7002     	SUBI	A,'-'-'+'
+08/83: F611     	BRZ	5F
+08/84: 70FD     	SUBI	A,'*'-'-'
+08/85: F60F     	BRZ	5F
+08/86: 7005     	SUBI	A,'/'-'*'
+08/87: F60D     	BRZ	5F
+08/88: 70F7     	SUBI	A,'&'-'/'
+08/89: F60B     	BRZ	5F
+08/8A: 7056     	SUBI	A,'|'-'&'
+08/8B: F609     	BRZ	5F
+08/8C: 70A9     	SUBI	A,'%'-'|'
+08/8D: F607     	BRZ	5F
+08/8E: 70FC     	SUBI	A,'!'-'%'
+08/8F: F605     	BRZ	5F
+08/90: 7039     	SUBI	A,'^'-'%'
+08/91: F603     	BRZ	5F
+08/92: 70CB     	SUBI	A,')'-'^'
+08/93: F700     	BRNZ	1F
+08/95:          	
+08/94:          	; TODO: PROCESS RIGHT PARATHESIS
+08/94:          	
+08/94: 7015     1:	SUBI	A,'>'-')'
+08/96:          
+08/95:          
+08/95:          	5:
+08/95:          	
+08/95:          BI	= BI+1
+08/95:          .TEXT
+08/95:          .BANK	BI
 09/80:          MATH0_B	= BI
 09/80:          
 09/80:          	; MULTIPLY [VALUE] AND [OPERAND]

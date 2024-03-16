@@ -1,5 +1,7 @@
 00/00:          ; DOSDEF.S
 01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          BOOT	= 0
@@ -52,6 +54,8 @@
 01/80:          
 01/80:          ; DEBUG.S
 01/80:          ; MODIFY A .SAV RECORD
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; BANK ALLOCATION STUFF
 01/80:          BI	= 1

@@ -1,5 +1,7 @@
 00/00:          ; HELLO.S
 01/80:          ; THE CLASSIC "HELLO WORLD" PROGRAM
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; DEFINES
 01/80:          UART	=	0X90

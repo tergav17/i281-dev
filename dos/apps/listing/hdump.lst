@@ -1,5 +1,7 @@
 00/00:          ; DOSDEF.S
 01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          BOOT	= 0
@@ -52,6 +54,8 @@
 01/80:          
 01/80:          ; HDUMP.S
 01/80:          ; DUMP OUT FILE BLOCKS IN HEXADEMIMAL FORMAT
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; MAXIMUM ARGUMENTS
 01/80:          MAXARGS	= 3

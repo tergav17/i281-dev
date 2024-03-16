@@ -1,5 +1,7 @@
 00/00:          ; DOSDEF.S
 01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; BIOS CALLS
 01/80:          BOOT	= 0
@@ -53,6 +55,8 @@
 01/80:          ; ED0.S
 01/80:          ; SIMPLE TEXT EDITOR
 01/80:          ; USER INTERFACE AND MEMORY MANAGEMENT
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; BANK ALLOCATION STUFF
 01/80:          BI	= 1
@@ -473,6 +477,8 @@
 01/07:          ; ED1.S
 01/07:          ; SIMPLE TEXT EDITOR
 01/07:          ; USER OPERATIONS
+01/07:          ; GAVIN TERSTEEG, 2024
+01/07:          ; SDMAY24-14
 01/07:          
 01/07:          .TEXT
 01/C4:          .BANK	BI
@@ -1101,6 +1107,8 @@
 08/D4:          ; ED2.S
 08/D4:          ; SIMPLE TEXT EDITOR
 08/D4:          ; LINE OPERATIONS
+08/D4:          ; GAVIN TERSTEEG, 2024
+08/D4:          ; SDMAY24-14
 08/D4:          
 08/D4:          .TEXT
 08/D4:          .BANK	BI
@@ -1763,6 +1771,8 @@
 0C/EF:          ; ED3.S
 0C/EF:          ; SIMPLE TEXT EDITOR
 0C/EF:          ; MEMORY AND FILE OPERATIONS
+0C/EF:          ; GAVIN TERSTEEG, 2024
+0C/EF:          ; SDMAY24-14
 0C/EF:          
 0C/EF:          
 0C/EF:          .TEXT

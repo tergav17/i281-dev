@@ -1,5 +1,7 @@
 00/00:          ; MERGE.S
 01/80:          ; MERGE SORT WITH RECURSIVE SUBROUTINES AND STACK
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
 01/80:          
 01/80:          ; DEFINES
 01/80:          ARRSIZE	=	8	; ARRAY SIZE
