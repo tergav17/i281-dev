@@ -1985,7 +1985,7 @@ F6/86:
 F6/85:          	; CHECK TO MAKE SURE THE FILE IS CLOSED
 F6/85: 8415     	LOAD	B,[OF_OPEN]
 F6/86: 5400     	ADDI	B,0
-F6/87: F73E     	BRNZ	SYSERR1
+F6/87: F740     	BRNZ	SYSERR1
 F6/89:          	
 F6/88:          	; GET THE DEFAULT USER AREA
 F6/88: 3800     	LOADI	C,0
@@ -2010,7 +2010,7 @@ F6/95: FF6C     	JUMP	INDIR
 F6/97:          	
 F6/96:          	; CHECK TO MAKE SURE IT RETURNS 0X00
 F6/96: 5000     	ADDI	A,0
-F6/97: F72E     	BRNZ	SYSERR1
+F6/97: F730     	BRNZ	SYSERR1
 F6/99:          	
 F6/98:          	; AND SEARCH FOR IT
 F6/98: 3000     	LOADI	A,0
@@ -2075,24 +2075,28 @@ F6/BE: FF43     	JUMP	INDIR
 F6/C0:          	
 F6/BF:          	; 15: S_EXEC
 F6/BF: 7401     9:	SUBI	B,1
-F6/C0: F703     	BRNZ	9F
+F6/C0: F705     	BRNZ	9F
 F6/C2:          	
-F6/C1: 34FF     	LOADI	B,CORE0_B
-F6/C2: 3880     	LOADI	C,EXEC
-F6/C3: FF3E     	JUMP	INDIR
-F6/C5:          	
-F6/C4:          	; UNKNOWN SYSCALL
-F6/C4: 30FF     9:	LOADI	A,0XFF
-F6/C5: FF3D     	JUMP	IRET
-F6/C7:          
-F6/C6:          	; SYSCALL ERROR
-F6/C6: 5C03     SYSERR1:ADDI	D,3
-F6/C7: 30FF     	LOADI	A,0XFF
-F6/C8: FF3A     	JUMP	IRET
-F6/CA:          	
-F6/C9:          	; BANK IS DONE, MOVE ON TO THE NEXT
-F6/C9:          BI	= BI-1
-F6/C9:          .BANK BI
+F6/C1:          	; SET WORKING USER AREA TO COMMAND LINE BANK
+F6/C1: 30FE     	LOADI	A,CMDL_B
+F6/C2: A008     	STORE	[WRK_USR],A
+F6/C4:          	
+F6/C3: 34FF     	LOADI	B,CORE0_B
+F6/C4: 3880     	LOADI	C,EXEC
+F6/C5: FF3C     	JUMP	INDIR
+F6/C7:          	
+F6/C6:          	; UNKNOWN SYSCALL
+F6/C6: 30FF     9:	LOADI	A,0XFF
+F6/C7: FF3B     	JUMP	IRET
+F6/C9:          
+F6/C8:          	; SYSCALL ERROR
+F6/C8: 5C03     SYSERR1:ADDI	D,3
+F6/C9: 30FF     	LOADI	A,0XFF
+F6/CA: FF38     	JUMP	IRET
+F6/CC:          	
+F6/CB:          	; BANK IS DONE, MOVE ON TO THE NEXT
+F6/CB:          BI	= BI-1
+F6/CB:          .BANK BI
 F5/80:          SYS2_B	= BI
 F5/80:          .TEXT
 F5/80:          
