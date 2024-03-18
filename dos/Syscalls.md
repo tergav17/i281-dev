@@ -108,5 +108,5 @@ the user.
 | 0x02      | AU_BANK  | Bank of script file (0-3)                                   |
 | 0x03      | AU_BLK   | Block of script file (0-255)                                |
 | 0x04      | AU_UA    | Default user area at script invoke                          |
-| 0x05-0x17 | AU_FILE  | File name of script (zero terminated)                       |
+| 0x06-0x17 | AU_FILE  | File name of script (zero terminated)                       |
 | 0X18-0X7F | AU_MISC  | Useful as state data for the running script                 |

@@ -509,7 +509,7 @@ FD/8E:
 FD/8D:          	; ATTEMPT TO SET PARAMETERS FOR SEARCH
 FD/8D: 30FD     	LOADI	A,AUTO_B
 FD/8E: A004     	STORE	[SRC_BNK],A
-FD/8F: 3005     	LOADI	A,AU_FILE
+FD/8F: 3006     	LOADI	A,AU_FILE
 FD/90: 3895     	LOADI	C,@+5
 FD/91: BB00     	STOREF	[D],C
 FD/93:          	
@@ -764,39 +764,40 @@ FD/01: 00       .DEFL BYTE AU_PNTR	0
 FD/02: 00       .DEFL BYTE AU_BANK	0
 FD/03: 00       .DEFL BYTE AU_BLK	0
 FD/04: 00       .DEFL BYTE AU_UA	0
-FD/05: 313A4155
+FD/05: 00       .DEFL BYTE AU_DRV	0
+FD/06: 313A4155
        544F2E53
        4800     .DEFL BYTE AU_FILE	"1:AUTO.SH",0
-FD/0F:          
-FD/0F:          AU_MISC	= 0X18
-FD/0F:          
-FD/0F:          	; BANK IS DONE, MOVE ON TO THE NEXT
-FD/0F:          BD	= BD-4
-FD/0F:          	
-FD/0F:          	; ALLOCATION BITMAP BUFFER
-FD/0F:          ABM_B	= BD
-FD/0F:          
-FD/0F:          	; BANK IS DONE, MOVE ON TO THE NEXT
-FD/0F:          BD	= BD-4
-FD/0F:          
-FD/0F:          	; FILE BLOCK TABLE
-FD/0F:          FBT_B	= BD
-FD/0F:          
-FD/0F:          	; BANK IS DONE, MOVE ON TO THE NEXT
-FD/0F:          BD	= BD-4
-FD/0F:          
-FD/0F:          	; KERNEL BUFFER
-FD/0F:          KBUF_B	= BD
-FD/0F:          
-FD/0F:          	; BANK IS DONE, MOVE ON TO THE NEXT
-FD/0F:          BD	= BD-1
-FD/0F:          
-FD/0F:          ; TTY.S
-FD/0F:          ; SERIAL CONSOLE DRIVER
-FD/0F:          ; GAVIN TERSTEEG, 2024
-FD/0F:          ; SDMAY24-14
-FD/0F:          
-FD/0F:          .BANK BI
+FD/10:          
+FD/10:          AU_MISC	= 0X18
+FD/10:          
+FD/10:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FD/10:          BD	= BD-4
+FD/10:          	
+FD/10:          	; ALLOCATION BITMAP BUFFER
+FD/10:          ABM_B	= BD
+FD/10:          
+FD/10:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FD/10:          BD	= BD-4
+FD/10:          
+FD/10:          	; FILE BLOCK TABLE
+FD/10:          FBT_B	= BD
+FD/10:          
+FD/10:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FD/10:          BD	= BD-4
+FD/10:          
+FD/10:          	; KERNEL BUFFER
+FD/10:          KBUF_B	= BD
+FD/10:          
+FD/10:          	; BANK IS DONE, MOVE ON TO THE NEXT
+FD/10:          BD	= BD-1
+FD/10:          
+FD/10:          ; TTY.S
+FD/10:          ; SERIAL CONSOLE DRIVER
+FD/10:          ; GAVIN TERSTEEG, 2024
+FD/10:          ; SDMAY24-14
+FD/10:          
+FD/10:          .BANK BI
 FC/00:          TTY0_B	= BI
 FC/00:          .TEXT
 FC/00:          

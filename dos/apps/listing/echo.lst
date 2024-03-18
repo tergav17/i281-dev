@@ -47,6 +47,13 @@
 01/80:          AUTO_B	= 0X73
 01/80:          KERNMEM	= 0X78
 01/80:          BIOSMEM	= 0X7C
+01/80:          AU_RUN	= 0X00
+01/80:          AU_PNTR	= 0X01
+01/80:          AU_BANK	= 0X02
+01/80:          AU_BLK	= 0X03
+01/80:          AU_UA	= 0X04
+01/80:          AU_FILE	= 0X06
+01/80:          AU_MISC	= 0X18
 01/80:          
 01/80:          ; DATA BANK ADDRESS
 01/80:          DBANK	= 0X80		
