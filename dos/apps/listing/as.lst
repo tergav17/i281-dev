@@ -205,10 +205,10 @@
 01/D1:          	
 01/D0:          	; DO AN ERROR
 01/D0:          	; A = ERROR #
-01/D0:          ERRNO	= VALUE
+01/D0:          ERRNO	= OPERAND
 01/D0: 3400     ERROR:	LOADI	B,0
 01/D1: A480     	STORE	[DBANK],B
-01/D2: A014     	STORE	[ERRNO],A
+01/D2: A016     	STORE	[ERRNO],A
 01/D3: 3403     	LOADI	B,PRNT0_B
 01/D4: 3880     	LOADI	C,PERHEAD
 01/D5: FF2C     	JUMP	INDIR
@@ -322,7 +322,7 @@
 03/A5: FF5E     	JUMP	SYSCALL
 03/A7:          	
 03/A6:          	; LOOKUP ERROR ON TABLE
-03/A6: 8014     	LOAD	A,[ERRNO]
+03/A6: 8016     	LOAD	A,[ERRNO]
 03/A7: 7080     	SUBI	A,0X80
 03/A8: 4000     	SHIFTL	A
 03/A9: 5034     	ADDI	A,ETABLE
@@ -1326,7 +1326,7 @@
 08/9A: 7015     1:	SUBI	A,'>'-')'
 08/9B: F602     	BRZ	2F
 08/9C: 70FE     	SUBI	A,'<'-'>'
-08/9D: F713     	BRNZ	9F
+08/9D: F715     	BRNZ	9F
 08/9F:          
 08/9E:          	; IT'S A '<<' OR '>>' (HOPEFULLY)
 08/9E:          	; GET THE NEXT TOKEN TO CONFIRM
@@ -1353,24 +1353,25 @@
 08/AF:          
 08/AE:          	; WE HAVE A SPECIAL CHARACTER
 08/AE:          	; C = PRECEDENCE
-08/AE:          5:
-08/AE:          
-08/AE:          	; GET THE NEXT TOKEN
-08/AE: 3407     	LOADI	B,EXP1_B
-08/AF: 38C2     	LOADI	C,PARSEXC
-08/B0: FF51     	JUMP	INDIR
-08/B2:          	
+08/AE: 8030     5:	LOAD	A,[TOKEN]
+08/AF: FFFF     	JUMP	@
 08/B1:          
-08/B1:          	; AND WE ARE DONE
-08/B1: 3000     9:	LOADI	A,0
-08/B2: 5C02     	ADDI	D,2
-08/B3: FF4F     	JUMP	IRET
-08/B5:          
-08/B4:          	; CAN'T RECOGNIZE CHARACTER, END OF EXPRESSION
+08/B0:          	; GET THE NEXT TOKEN
+08/B0: 3407     	LOADI	B,EXP1_B
+08/B1: 38C2     	LOADI	C,PARSEXC
+08/B2: FF4F     	JUMP	INDIR
 08/B4:          	
-08/B4:          BI	= BI+1
-08/B4:          .TEXT
-08/B4:          .BANK	BI
+08/B3:          
+08/B3:          	; AND WE ARE DONE
+08/B3: 3000     9:	LOADI	A,0
+08/B4: 5C02     	ADDI	D,2
+08/B5: FF4D     	JUMP	IRET
+08/B7:          
+08/B6:          	; CAN'T RECOGNIZE CHARACTER, END OF EXPRESSION
+08/B6:          	
+08/B6:          BI	= BI+1
+08/B6:          .TEXT
+08/B6:          .BANK	BI
 09/80:          MATH0_B	= BI
 09/80:          
 09/80:          	; MULTIPLY [VALUE] AND [OPERAND]
