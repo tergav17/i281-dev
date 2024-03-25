@@ -455,6 +455,7 @@
 00/11: 00       .DEFL BYTE LFLAG	0
 00/12:          
 00/12:          	; VARIOUS MISC VARIABLES
+00/12:          	; TO BE USED IN LEAF-FUNCTIONS
 00/12: 00       .DEFL BYTE SPARK	0
 00/13: 00       .DEFL BYTE CHAR		0
 00/14:          
@@ -525,19 +526,21 @@
 01/38: 022F     			ERR1_B,ERROR12,	; ERROR 0X82: UNDEFINED EXPRESSION
 01/3A: 0246     			ERR1_B,ERROR13,	; ERROR 0X83: UNEXPECTED TOKEN
 01/3C: 0259     			ERR1_B,ERROR14,	; ERROR 0X84: VALUE STACK OVERFLOW
-01/3E: 0300     			ERR2_B,ERROR20	; ERROR 0X85: EXPRESSION STACK OVERFLOW
-01/40:          	; ERROR VALUES
-01/40:          E_COPEN	= 0X80
-01/40:          E_UXNUM	= 0X81
-01/40:          E_UDEFX = 0X82
-01/40:          E_UXTOK	= 0X83
-01/40:          E_VSTKO = 0X84
-01/40:          E_ESTKO = 0X85
-01/40:          
-01/40:          BD	= BD+1	
-01/40:          	
-01/40:          	; ERROR BANK 1
-01/40:          .BANK	BD
+01/3E: 0300     			ERR2_B,ERROR20,	; ERROR 0X85: EXPRESSION STACK OVERFLOW
+01/40: 031C     			ERR2_B,ERROR21,	; ERROR 0X86: EXPRESSION STACK DEPLETION
+01/42: 0339     			ERR2_B,ERROR22	; ERROR 0X87: VALUE STACK DEPLETION
+01/44:          	; ERROR VALUES
+01/44:          E_COPEN	= 0X80
+01/44:          E_UXNUM	= 0X81
+01/44:          E_UDEFX = 0X82
+01/44:          E_UXTOK	= 0X83
+01/44:          E_VSTKO = 0X84
+01/44:          E_ESTKO = 0X85
+01/44:          
+01/44:          BD	= BD+1	
+01/44:          	
+01/44:          	; ERROR BANK 1
+01/44:          .BANK	BD
 02/00:          .DATA
 02/00:          ERR1_B	= BD
 02/00:          
@@ -587,11 +590,25 @@
        204F5645
        52464C4F
        570A0D00 .DEFL BYTE ERROR20	"EXPRESSION STACK OVERFLOW",0X0A,0X0D,0
-03/1C:          
-03/1C:          BD	= BD+1
-03/1C:          
-03/1C:          	; SOURCE READ BUFFER
-03/1C:          .BANK	BD
+03/1C: 45585052
+       45535349
+       4F4E2053
+       5441434B
+       20444550
+       4C455449
+       4F4E0A0D
+       00       .DEFL BYTE ERROR21	"EXPRESSION STACK DEPLETION",0X0A,0X0D,0
+03/39: 56414C55
+       45205354
+       41434B20
+       4445504C
+       4554494F
+       4E0A0D00 .DEFL BYTE ERROR22	"VALUE STACK DEPLETION",0X0A,0X0D,0
+03/51:          
+03/51:          BD	= BD+1
+03/51:          
+03/51:          	; SOURCE READ BUFFER
+03/51:          .BANK	BD
 04/00:          .DATA
 04/00:          SRC_B	= BD
 04/00:          
@@ -1010,6 +1027,7 @@
 06/80:          	; IF PARSING IS SUCCESSFUL, THE RESULT WILL BE PLACED IN [VALUE]
 06/80:          	; IF A SYMBOL IS UNDEFINED, AN ERROR CODE WILL BE RETURNED IN
 06/80:          	; REGISTER A, OTHERWISE A = 0X00 WILL BE RETURNED.
+06/80:          PRECED	= CHAR
 06/80: 3407     PARSEX: LOADI	B,EXP1_B
 06/81: 3880     	LOADI	C,PARSEXA
 06/82: FF7F     	JUMP	INDIR
@@ -1230,109 +1248,113 @@
 07/A7: 3029     	LOADI	A,VSTACK+STACKSZ
 07/A8: D400     	CMP	B,A
 07/A9: 3084     	LOADI	A,E_VSTKO
-07/AA: F014     	BRAE	8F	; ERROR!
+07/AA: F017     	BRAE	8F	; ERROR!
 07/AB: 8014     	LOAD	A,[VALUE]
 07/AC: B100     	STOREF	[B],A
 07/AD: 8015     	LOAD	A,[VALUE+1]
 07/AE: B101     	STOREF	[B+1],A
 07/AF: 5402     	ADDI	B,2
 07/B0: A42F     	STORE	[VINDEX],B
-07/B1: FF10     	JUMP	PARSEXC
+07/B1: FF13     	JUMP	PARSEXC
 07/B3:          	
 07/B2:          	; IS IT A '('?
 07/B2: 70E8     7:	SUBI	A,'('-'@'
-07/B3: F70A     	BRNZ	7F
+07/B3: F70D     	BRNZ	7F
 07/B5:          	
-07/B4:          	; PLACE LEFT PARATHESIS ON ESTACK
-07/B4: 842E     PARSEXB:LOAD	B,[EINDEX]
-07/B5: 301F     	LOADI	A,ESTACK+STACKSZ
-07/B6: D400     	CMP	B,A
-07/B7: 3085     	LOADI	A,E_ESTKO
-07/B8: F006     	BRAE	8F	; ERROR!
-07/B9: 8030     	LOAD	A,[TOKEN]
-07/BA: B100     	STOREF	[B],A
-07/BB: 5401     	ADDI	B,1
-07/BC: A42F     	STORE	[VINDEX],B
-07/BD: FF04     	JUMP	PARSEXC
-07/BF:          	
-07/BE:          	; ERROR!
-07/BE: 3083     7:	LOADI	A,E_UXTOK
-07/BF: 3401     8:	LOADI	B,CORE0_B
-07/C0: 38D0     	LOADI	C,ERROR
-07/C1: FF40     	JUMP	INDIR
-07/C3:          
-07/C2:          	; GET THE NEXT TOKEN
-07/C2: 3807     PARSEXC:LOADI	C,BI
-07/C3: BB01     	STOREF	[D+1],C
-07/C4: 38C9     	LOADI	C,@+5
-07/C5: BB00     	STOREF	[D],C
-07/C6: 3404     	LOADI	B,TOK0_B
-07/C7: 3880     	LOADI	C,NEXTTOK
-07/C8: FF39     	JUMP	INDIR
-07/CA:          	
-07/C9:          	; LOOK FOR SPECIAL VALUES
-07/C9: 8030     	LOAD	A,[TOKEN]
-07/CA: A013     	STORE	[CHAR],A
-07/CB: 7081     	SUBI	A,NUMERIC
-07/CC: F6B8     	BRZ	0B
-07/CD: 70FF     	SUBI	A,SYMBOL-NUMERIC
-07/CE: F6B6     	BRZ	0B
-07/CF: 70C0     	SUBI	A,'@'-SYMBOL
-07/D0: F6B4     	BRZ	0B
-07/D1: 70E8     	SUBI	A,'('-'@'
-07/D2: F6B2     	BRZ	0B
-07/D4:          	
-07/D3:          	; THIS IS SOME SORT OPERATION
-07/D3: 3408     	LOADI	B,EXP2_B
-07/D4: 3880     	LOADI	C,PARSEXD
-07/D5: FF2C     	JUMP	INDIR
-07/D7:          
-07/D6:          BI	= BI+1
-07/D6:          .TEXT
-07/D6:          .BANK	BI
+07/B4: A013     	STORE	[PRECED],A
+07/B6:          	
+07/B5:          	; PLACE LEFT PARATHESIS ON ESTACK
+07/B5: 842E     PARSEXB:LOAD	B,[EINDEX]
+07/B6: 301F     	LOADI	A,ESTACK+STACKSZ
+07/B7: D400     	CMP	B,A
+07/B8: 3085     	LOADI	A,E_ESTKO
+07/B9: F008     	BRAE	8F	; ERROR!
+07/BA: 8030     	LOAD	A,[TOKEN]
+07/BB: B100     	STOREF	[B],A
+07/BC: 8013     	LOAD	A,[PRECED]
+07/BD: B101     	STOREF	[B+1],A
+07/BE: 5402     	ADDI	B,2
+07/BF: A42E     	STORE	[EINDEX],B
+07/C0: FF04     	JUMP	PARSEXC
+07/C2:          	
+07/C1:          	; ERROR!
+07/C1: 3083     7:	LOADI	A,E_UXTOK
+07/C2: 3401     8:	LOADI	B,CORE0_B
+07/C3: 38D0     	LOADI	C,ERROR
+07/C4: FF3D     	JUMP	INDIR
+07/C6:          
+07/C5:          	; GET THE NEXT TOKEN
+07/C5: 3807     PARSEXC:LOADI	C,BI
+07/C6: BB01     	STOREF	[D+1],C
+07/C7: 38CC     	LOADI	C,@+5
+07/C8: BB00     	STOREF	[D],C
+07/C9: 3404     	LOADI	B,TOK0_B
+07/CA: 3880     	LOADI	C,NEXTTOK
+07/CB: FF36     	JUMP	INDIR
+07/CD:          	
+07/CC:          	; LOOK FOR SPECIAL VALUES
+07/CC: 8030     	LOAD	A,[TOKEN]
+07/CD: A013     	STORE	[CHAR],A
+07/CE: 7081     	SUBI	A,NUMERIC
+07/CF: F6B5     	BRZ	0B
+07/D0: 70FF     	SUBI	A,SYMBOL-NUMERIC
+07/D1: F6B3     	BRZ	0B
+07/D2: 70C0     	SUBI	A,'@'-SYMBOL
+07/D3: F6B1     	BRZ	0B
+07/D4: 70E8     	SUBI	A,'('-'@'
+07/D5: F6AF     	BRZ	0B
+07/D7:          	
+07/D6:          	; THIS IS SOME SORT OPERATION
+07/D6: 3408     	LOADI	B,EXP2_B
+07/D7: 3880     	LOADI	C,PARSEXD
+07/D8: FF29     	JUMP	INDIR
+07/DA:          
+07/D9:          BI	= BI+1
+07/D9:          .TEXT
+07/D9:          .BANK	BI
 08/80:          EXP2_B	= BI
 08/80:          
 08/80:          	; HANDLE OTHER CHARACTERS IN EXPRESSION
 08/80:          	; ALSO GET PRECEDENCE OF CHARACTER
-08/80: 3802     PARSEXD:LOADI	C,2
-08/81: 7003     	SUBI	A,'+'-'('
-08/82: F62B     	BRZ	5F
-08/83: 7002     	SUBI	A,'-'-'+'
+08/80: 3808     PARSEXD:LOADI	C,BI
+08/81: BB01     	STOREF	[D+1],C
+08/82: 3802     	LOADI	C,2
+08/83: 7003     	SUBI	A,'+'-'('
 08/84: F629     	BRZ	5F
-08/85: 3803     	LOADI	C,3
-08/86: 70FD     	SUBI	A,'*'-'-'
-08/87: F626     	BRZ	5F
-08/88: 7005     	SUBI	A,'/'-'*'
+08/85: 7002     	SUBI	A,'-'-'+'
+08/86: F627     	BRZ	5F
+08/87: 3803     	LOADI	C,3
+08/88: 70FD     	SUBI	A,'*'-'-'
 08/89: F624     	BRZ	5F
-08/8A: 70F6     	SUBI	A,'%'-'/'
+08/8A: 7005     	SUBI	A,'/'-'*'
 08/8B: F622     	BRZ	5F
-08/8C: 3807     	LOADI	C,7
-08/8D: 7057     	SUBI	A,'|'-'%'
-08/8E: F61F     	BRZ	5F
-08/8F: 3805     	LOADI	C,5
-08/90: 70AA     	SUBI	A,'&'-'|'
-08/91: F61C     	BRZ	5F
-08/92: 3801     	LOADI	C,1
-08/93: 70FB     	SUBI	A,'!'-'&'
-08/94: F619     	BRZ	5F
-08/95: 3806     	LOADI	C,6
-08/96: 703D     	SUBI	A,'^'-'!'
-08/97: F616     	BRZ	5F
-08/98: 70CB     	SUBI	A,')'-'^'
-08/99: F700     	BRNZ	1F
-08/9B:          	
-08/9A:          	; TODO: PROCESS RIGHT PARATHESIS
-08/9A:          	
-08/9A: 7015     1:	SUBI	A,'>'-')'
-08/9B: F602     	BRZ	2F
-08/9C: 70FE     	SUBI	A,'<'-'>'
-08/9D: F715     	BRNZ	9F
-08/9F:          
-08/9E:          	; IT'S A '<<' OR '>>' (HOPEFULLY)
-08/9E:          	; GET THE NEXT TOKEN TO CONFIRM
-08/9E: 3808     2:	LOADI	C,BI
-08/9F: BB01     	STOREF	[D+1],C
-08/A0: 38A5     	LOADI	C,@+5
+08/8C: 70F6     	SUBI	A,'%'-'/'
+08/8D: F620     	BRZ	5F
+08/8E: 3807     	LOADI	C,7
+08/8F: 7057     	SUBI	A,'|'-'%'
+08/90: F61D     	BRZ	5F
+08/91: 3805     	LOADI	C,5
+08/92: 70AA     	SUBI	A,'&'-'|'
+08/93: F61A     	BRZ	5F
+08/94: 3801     	LOADI	C,1
+08/95: 70FB     	SUBI	A,'!'-'&'
+08/96: F617     	BRZ	5F
+08/97: 3806     	LOADI	C,6
+08/98: 703D     	SUBI	A,'^'-'!'
+08/99: F614     	BRZ	5F
+08/9A: 70CB     	SUBI	A,')'-'^'
+08/9B: F700     	BRNZ	3F
+08/9D:          	
+08/9C:          	; TODO: PROCESS RIGHT PARATHESIS
+08/9C:          	
+08/9C: 7015     3:	SUBI	A,'>'-')'
+08/9D: F602     	BRZ	4F
+08/9E: 70FE     	SUBI	A,'<'-'>'
+08/9F: F723     	BRNZ	9F
+08/A1:          
+08/A0:          	; IT'S A '<<' OR '>>' (HOPEFULLY)
+08/A0:          	; GET THE NEXT TOKEN TO CONFIRM
+08/A0: 38A5     4:	LOADI	C,@+5
 08/A1: BB00     	STOREF	[D],C
 08/A2: 3404     	LOADI	B,TOK0_B
 08/A3: 3880     	LOADI	C,NEXTTOK
@@ -1353,30 +1375,66 @@
 08/AF:          
 08/AE:          	; WE HAVE A SPECIAL CHARACTER
 08/AE:          	; C = PRECEDENCE
-08/AE: 8030     5:	LOAD	A,[TOKEN]
+08/AE: A813     5:	STORE	[PRECED],C
 08/AF: FFFF     	JUMP	@
-08/B1:          
-08/B0:          	; GET THE NEXT TOKEN
-08/B0: 3407     	LOADI	B,EXP1_B
-08/B1: 38C2     	LOADI	C,PARSEXC
-08/B2: FF4F     	JUMP	INDIR
-08/B4:          	
-08/B3:          
-08/B3:          	; AND WE ARE DONE
-08/B3: 3000     9:	LOADI	A,0
-08/B4: 5C02     	ADDI	D,2
-08/B5: FF4D     	JUMP	IRET
-08/B7:          
-08/B6:          	; CAN'T RECOGNIZE CHARACTER, END OF EXPRESSION
-08/B6:          	
-08/B6:          BI	= BI+1
-08/B6:          .TEXT
-08/B6:          .BANK	BI
-09/80:          MATH0_B	= BI
+08/B1:          	
+08/B0:          	; CHECK EINDEX
+08/B0: 802E     0:	LOAD	A,[EINDEX]
+08/B1: 341A     	LOADI	B,ESTACK
+08/B2: D100     	CMP	A,B
+08/B3: F609     	BRZ	5F
+08/B5:          
+08/B4:          	; COMPARE PRECEDENCE OF THE TOP OF THE ESTACK WITH OP PRECEDENCE
+08/B4: 94FF     	LOADF	B,[A+0-1]
+08/B5: 8013     	LOAD	A,[PRECED]
+08/B6: D100     	CMP	A,B
+08/B7: F105     	BRB	5F
+08/B9:          	
+08/B8:          	; POP OFF OF ESTACK
+08/B8: 38BD     	LOADI	C,@+5
+08/B9: BB00     	STOREF	[D],C
+08/BA: 3409     	LOADI	B,EXP3_B
+08/BB: 3880     	LOADI	C,ESTKPOP
+08/BC: FF45     	JUMP	INDIR
+08/BE:          	
+08/BD:          	; PUSH ONTO ESTACK
+08/BD: 3407     5:	LOADI	B,EXP1_B
+08/BE: 38B5     	LOADI	C,PARSEXB
+08/BF: FF42     	JUMP	INDIR
+08/C1:          
+08/C0:          	; GET THE NEXT TOKEN
+08/C0: 3407     	LOADI	B,EXP1_B
+08/C1: 38C5     	LOADI	C,PARSEXC
+08/C2: FF3F     	JUMP	INDIR
+08/C4:          	
+08/C3:          	; CAN'T RECOGNIZE CHARACTER, END OF EXPRESSION
+08/C3:          	; AND WE ARE DONE
+08/C3: 3000     9:	LOADI	A,0
+08/C4: 5C02     	ADDI	D,2
+08/C5: FF3D     	JUMP	IRET
+08/C7:          
+08/C6:          BI	= BI+1
+08/C6:          .TEXT
+08/C6:          .BANK	BI
+09/80:          EXP3_B	= BI
 09/80:          
-09/80:          	; MULTIPLY [VALUE] AND [OPERAND]
-09/80:          	; VALUES ARE 16-BIT AND UNSIGNED
-09/80:          	; RESULT IS STORED IN [VALUE]
-09/80:          MUL16:	
-09/80:          
-09/80:          
+09/80:          	; POP A VALUE OFF OF THE ESTACK
+09/80: 7C02     ESTKPOP:SUBI	D,2
+09/82:          
+09/81:          
+09/81: 5C02     	ADDI	D,2
+09/82: FF80     	JUMP	IRET
+09/84:          	
+09/83:          
+09/83:          	
+09/83:          BI	= BI+1
+09/83:          .TEXT
+09/83:          .BANK	BI
+0A/80:          MATH0_B	= BI
+0A/80:          
+0A/80:          	; MULTIPLY [VALUE] AND [OPERAND]
+0A/80:          	; VALUES ARE 16-BIT AND UNSIGNED
+0A/80:          	; RESULT IS STORED IN [VALUE]
+0A/80:          MUL16:	
+0A/80:          
+0A/80:          
