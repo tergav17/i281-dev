@@ -1651,36 +1651,139 @@
 0A/80:          	; CONTINUATION OF ESTKPOP
 0A/80:          	; CHECK FOR DIVISION
 0A/80: 7005     ESTKPOA:SUBI	A,'/'-'*'
-0A/81: F708     	BRNZ	7F
+0A/81: F74D     	BRNZ	7F
 0A/83:          	
 0A/82:          	; MAKE SURE OPERAND ISN'T ZERO
-0A/82: 8016     	LOAD	A,[OPERAND]
+0A/82: 8016     ESTKDIV:LOAD	A,[OPERAND]
 0A/83: 5000     	ADDI	A,0
-0A/84: F705     	BRNZ	0F
+0A/84: F709     	BRNZ	0F
 0A/85: 8017     	LOAD	A,[OPERAND+1]
 0A/86: 5000     	ADDI	A,0 
-0A/87: F702     	BRNZ	0F
+0A/87: F706     	BRNZ	0F
 0A/89:          
 0A/88:          	; ERROR! DIVIDE BY ZERO
 0A/88: 3089     	LOADI	A,E_DZERO
-0A/89: FF08     	JUMP	9F
+0A/89: FF4D     	JUMP	9F
 0A/8B:          	
 0A/8A:          	; DO DIVISION
-0A/8A:          0:
-0A/8A:          
-0A/8A:          	; CHECK FOR MODULUS
-0A/8A: 70F6     7:	SUBI	A,'%'-'/'
-0A/8B: F700     	BRNZ	8F
-0A/8D:          
-0A/8C:          	; PLACE [VALUE] ON STACK AND RETURN
-0A/8C: 802F     8:	LOAD	A,[VINDEX]
-0A/8D: 8415     	LOAD	B,[VALUE+1]
-0A/8E: B4FF     	STOREF	[A+0-1],B
-0A/8F: 8414     	LOAD	B,[VALUE]
-0A/90: B4FE     	STOREF	[A+0-2],B
-0A/91: FF71     	JUMP	IRET
-0A/93:          
-0A/92:          	; HANDLE ERROR
-0A/92: 3401     9:	LOADI	B,CORE0_B
-0A/93: 38D0     	LOADI	C,ERROR
-0A/94: FF6D     	JUMP	INDIR
+0A/8A: AC12     	STORE	[SPARK],D
+0A/8C:          	
+0A/8B:          	; RESET REMAINDER
+0A/8B: 3800     	LOADI	C,0
+0A/8C: 3C00     	LOADI	D,0
+0A/8E:          
+0A/8D:          	; RESET COUNTER
+0A/8D: 3010     	LOADI	A,16
+0A/8F:          
+0A/8E:          	; SHIFT QUOTIENT LEFT
+0A/8E:          	; MAIN DIVISOR LOOP
+0A/8E: A018     0:	STORE	[TEMP],A
+0A/8F: 8015     	LOAD	A,[VALUE+1]
+0A/90: 4000     	SHIFTL	A
+0A/91: A015     	STORE	[VALUE+1],A
+0A/92: 8014     	LOAD	A,[VALUE]
+0A/93: F109     	BRNC	2F
+0A/94: 4000     	SHIFTL	A
+0A/95: F003     	BRC	1F
+0A/96: 5001     	ADDI	A,1
+0A/97: A014     	STORE	[VALUE],A
+0A/98: FF06     	JUMP	3F
+0A/99: 5001     1:	ADDI	A,1
+0A/9A: 7000     	SUBI	A,0
+0A/9B: A014     	STORE	[VALUE],A 
+0A/9C: FF02     	JUMP	3F
+0A/9D: 4000     2:	SHIFTL	A
+0A/9E: A014     	STORE	[VALUE],A
+0A/A0:          	
+0A/9F:          	; SHIFT REMAINDER LEFT + CARRY
+0A/9F: F002     3:	BRC	1F
+0A/A0: 4F00     	SHIFTL	D
+0A/A1: FF06     	JUMP	3F 
+0A/A3:          	
+0A/A2:          	; SHIFT BOTTOM 8 BITS (SHIFT IN)
+0A/A2: 4F00     1:	SHIFTL	D
+0A/A3: F002     	BRC	2F
+0A/A4: 5C01     	ADDI	D,1
+0A/A5: FF02     	JUMP	3F
+0A/A6: 5C01     2:	ADDI	D,1
+0A/A7: 7C00     	SUBI	D,0
+0A/A9:          
+0A/A8:          	; DO TOP 8 BITS
+0A/A8: F002     3:	BRC	1F
+0A/A9: 4A00     	SHIFTL	C
+0A/AA: FF06     	JUMP	3F 
+0A/AC:          	
+0A/AB:          	; SHIFT TOP 8 BITS (SHIFT IN)
+0A/AB: 4A00     1:	SHIFTL	C
+0A/AC: F002     	BRC	2F
+0A/AD: 5801     	ADDI	C,1
+0A/AE: FF02     	JUMP	3F
+0A/AF: 5801     2:	ADDI	C,1
+0A/B0: 7800     	SUBI	C,0
+0A/B2:          	
+0A/B1:          	; SUBTRACT WITH CARRY BY DIVISOR ([OPERAND])
+0A/B1: 8017     3:	LOAD	A,[OPERAND+1]
+0A/B2: F105     	BRNC	1F
+0A/B4:          	
+0A/B3:          	; SUBTRACT THE CARRY
+0A/B3: 7C01     	SUBI	D,1
+0A/B4: F003     	BRC	1F
+0A/B5: 6C00     	SUB	D,A
+0A/B6: 5000     	ADDI	A,0
+0A/B7: FF01     	JUMP	2F
+0A/B9:          	
+0A/B8: 6C00     1:	SUB	D,A
+0A/BA:          
+0A/B9:          	; DO TOP 8 BITS
+0A/B9: 8016     2:	LOAD	A,[OPERAND]
+0A/BA: F005     	BRC	1F
+0A/BC:          	
+0A/BB:          	; SUBTRACT THE CARRY
+0A/BB: 7801     	SUBI	C,1
+0A/BC: F003     	BRC	1F
+0A/BD: 6800     	SUB	C,A
+0A/BE: 5000     	ADDI	A,0
+0A/BF: FF01     	JUMP	2F
+0A/C1:          	
+0A/C0: 6800     1:	SUB	C,A
+0A/C2:          
+0A/C1:          	; IF CARRY IS RESET, WE ARE DONE
+0A/C1: F10C     2:	BRNC	6F
+0A/C3:          
+0A/C2:          	; ADD DIVISOR TO REMAINDER
+0A/C2: 8017     	LOAD	A,[OPERAND+1]
+0A/C3: 4C00     	ADD	D,A
+0A/C4: F101     	BRNC	1F
+0A/C5: 5801     	ADDI	C,1
+0A/C6: 8016     1:	LOAD	A,[OPERAND]
+0A/C7: 4800     	ADD	C,A
+0A/C9:          	
+0A/C8:          	; DECREMENT [VALUE+1]
+0A/C8: 8015     	LOAD	A,[VALUE+1]
+0A/C9: 7001     	SUBI	A,1
+0A/CA: A015     	STORE	[VALUE+1],A
+0A/CC:          	
+0A/CB:          	; DECREMENT COUNTER
+0A/CB: 8018     	LOAD	A,[TEMP]
+0A/CC: 7001     	SUBI	A,1
+0A/CD: F7C0     	BRNZ	0B
+0A/CF:          
+0A/CE:          	; DONE
+0A/CE: FF02     6:	JUMP	8F
+0A/D0:          
+0A/CF:          	; CHECK FOR MODULUS
+0A/CF: 70F6     7:	SUBI	A,'%'-'/'
+0A/D0: F700     	BRNZ	8F
+0A/D2:          
+0A/D1:          	; PLACE [VALUE] ON STACK AND RETURN
+0A/D1: 802F     8:	LOAD	A,[VINDEX]
+0A/D2: 8415     	LOAD	B,[VALUE+1]
+0A/D3: B4FF     	STOREF	[A+0-1],B
+0A/D4: 8414     	LOAD	B,[VALUE]
+0A/D5: B4FE     	STOREF	[A+0-2],B
+0A/D6: FF2C     	JUMP	IRET
+0A/D8:          
+0A/D7:          	; HANDLE ERROR
+0A/D7: 3401     9:	LOADI	B,CORE0_B
+0A/D8: 38D0     	LOADI	C,ERROR
+0A/D9: FF28     	JUMP	INDIR
