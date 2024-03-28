@@ -529,22 +529,25 @@
 01/3E: 0300     			ERR2_B,ERROR20,	; ERROR 0X85: EXPRESSION STACK OVERFLOW
 01/40: 031C     			ERR2_B,ERROR21,	; ERROR 0X86: EXPRESSION STACK DEPLETION
 01/42: 0334     			ERR2_B,ERROR22,	; ERROR 0X87: VALUE STACK DEPLETION
-01/44: 0351     			ERR2_B,ERROR23	; ERROR 0X88: PARENTHESIS MISMATCH
-01/46:          	; ERROR VALUES
-01/46:          E_COPEN	= 0X80
-01/46:          E_UXNUM	= 0X81
-01/46:          E_UDEFX = 0X82
-01/46:          E_UXTOK	= 0X83
-01/46:          E_VSTKO = 0X84
-01/46:          E_ESTKO = 0X85
-01/46:          E_VSTKD	= 0X86
-01/46:          E_ESTKD = 0X87
-01/46:          E_PAREN = 0X88
-01/46:          
-01/46:          BD	= BD+1	
-01/46:          	
-01/46:          	; ERROR BANK 1
-01/46:          .BANK	BD
+01/44: 0351     			ERR2_B,ERROR23,	; ERROR 0X88: PARENTHESIS MISMATCH
+01/46: 0368     			ERR2_B,ERROR24	; ERROR 0X89: DIVIDE BY ZERO
+01/48:          
+01/48:          	; ERROR VALUES
+01/48:          E_COPEN	= 0X80
+01/48:          E_UXNUM	= 0X81
+01/48:          E_UDEFX = 0X82
+01/48:          E_UXTOK	= 0X83
+01/48:          E_VSTKO = 0X84
+01/48:          E_ESTKO = 0X85
+01/48:          E_VSTKD	= 0X86
+01/48:          E_ESTKD = 0X87
+01/48:          E_PAREN = 0X88
+01/48:          E_DZERO	= 0X89
+01/48:          
+01/48:          BD	= BD+1	
+01/48:          	
+01/48:          	; ERROR BANK 1
+01/48:          .BANK	BD
 02/00:          .DATA
 02/00:          ERR1_B	= BD
 02/00:          
@@ -614,11 +617,16 @@
        4D49534D
        41544348
        0A0D00   .DEFL BYTE ERROR23	"PARENTHESIS MISMATCH",0X0A,0X0D,0
-03/68:          
-03/68:          BD	= BD+1
-03/68:          
-03/68:          	; SOURCE READ BUFFER
-03/68:          .BANK	BD
+03/68: 44495649
+       44452042
+       59205A45
+       524F0A0D
+       00       .DEFL BYTE ERROR24	"DIVIDE BY ZERO",0X0A,0X0D,0
+03/79:          
+03/79:          BD	= BD+1
+03/79:          
+03/79:          	; SOURCE READ BUFFER
+03/79:          .BANK	BD
 04/00:          .DATA
 04/00:          SRC_B	= BD
 04/00:          
@@ -1493,7 +1501,7 @@
 09/81: 842E     	LOAD	B,[EINDEX]
 09/82: 381A     	LOADI	C,ESTACK
 09/83: D600     	CMP	B,C
-09/84: F960     	BRBE	9F
+09/84: F963     	BRBE	9F
 09/86:          	
 09/85:          	; POP VALUE OFF ESTACK
 09/85: 7402     	SUBI	B,2
@@ -1504,7 +1512,7 @@
 09/88: 842F     	LOAD	B,[VINDEX]
 09/89: 3826     	LOADI	C,VSTACK+2
 09/8A: D600     	CMP	B,C
-09/8B: F959     	BRBE	9F
+09/8B: F95C     	BRBE	9F
 09/8D:          
 09/8C:          	; MOVE TWO VSTACK VALUES INTO [VALUE] AND [OPERAND]
 09/8C: 91FF     	LOADF	A,[B+0-1]
@@ -1539,7 +1547,7 @@
 09/A1: 5001     	ADDI	A,1
 09/A2: 4100     1:	ADD	A,B
 09/A3: A014     	STORE	[VALUE],A
-09/A4: FF3A     	JUMP	8F
+09/A4: FF3D     	JUMP	8F
 09/A6:          	
 09/A5:          	; CHECK FOR SUBTRACTION '-'
 09/A5: 7002     7:	SUBI	A,'-'-'+'
@@ -1556,11 +1564,11 @@
 09/AE: 7001     	SUBI	A,1
 09/AF: 6100     1:	SUB	A,B
 09/B0: A014     	STORE	[VALUE],A
-09/B1: FF2D     	JUMP	8F
+09/B1: FF30     	JUMP	8F
 09/B3:          	
 09/B2:          	; CHECK FOR MULTIPLICATION
 09/B2: 70FD     7:	SUBI	A,'*'-'-'
-09/B3: F72B     	BRNZ	8F
+09/B3: F72B     	BRNZ	7F
 09/B5:          	
 09/B4:          	; DO MULTIPLICATION OPERATION
 09/B4: AC12     	STORE	[SPARK],D
@@ -1576,7 +1584,7 @@
 09/BC: 5C00     	ADDI	D,0
 09/BD: F702     	BRNZ	1F
 09/BE: 8C12     	LOAD	D,[SPARK]
-09/BF: FF1F     	JUMP	8F
+09/BF: FF22     	JUMP	8F
 09/C1:          	
 09/C0:          	; SHIFT 'CD' RIGHT
 09/C0:          	; IF BIT ZERO OF D IS NOT SET, THEN SKIP ADDING
@@ -1617,17 +1625,62 @@
 09/DD: A016     	STORE	[OPERAND],A
 09/DE: FFDB     	JUMP	0B
 09/E0:          
-09/DF:          	; PLACE [VALUE] ON STACK AND RETURN
-09/DF: 802F     8:	LOAD	A,[VINDEX]
-09/E0: 8415     	LOAD	B,[VALUE+1]
-09/E1: B4FF     	STOREF	[A+0-1],B
-09/E2: 8414     	LOAD	B,[VALUE]
-09/E3: B4FE     	STOREF	[A+0-2],B
-09/E4: FF1E     	JUMP	IRET
-09/E6:          
-09/E5:          	; HANDLE ERROR
-09/E5: 3401     9:	LOADI	B,CORE0_B
-09/E6: 38D0     	LOADI	C,ERROR
-09/E7: FF1A     	JUMP	INDIR
+09/DF:          	; SWITCH INSTRUCTION BANK
+09/DF: 340A     7:	LOADI	B,EXP4_B
+09/E0: 3880     	LOADI	C,ESTKPOA
+09/E1: FF20     	JUMP	INDIR
+09/E3:          
+09/E2:          	; PLACE [VALUE] ON STACK AND RETURN
+09/E2: 802F     8:	LOAD	A,[VINDEX]
+09/E3: 8415     	LOAD	B,[VALUE+1]
+09/E4: B4FF     	STOREF	[A+0-1],B
+09/E5: 8414     	LOAD	B,[VALUE]
+09/E6: B4FE     	STOREF	[A+0-2],B
+09/E7: FF1B     	JUMP	IRET
 09/E9:          
-09/E8:          
+09/E8:          	; HANDLE ERROR
+09/E8: 3401     9:	LOADI	B,CORE0_B
+09/E9: 38D0     	LOADI	C,ERROR
+09/EA: FF17     	JUMP	INDIR
+09/EC:          	
+09/EB:          BI	= BI+1
+09/EB:          .TEXT
+09/EB:          .BANK	BI
+0A/80:          EXP4_B	= BI
+0A/80:          
+0A/80:          	; CONTINUATION OF ESTKPOP
+0A/80:          	; CHECK FOR DIVISION
+0A/80: 7005     ESTKPOA:SUBI	A,'/'-'*'
+0A/81: F708     	BRNZ	7F
+0A/83:          	
+0A/82:          	; MAKE SURE OPERAND ISN'T ZERO
+0A/82: 8016     	LOAD	A,[OPERAND]
+0A/83: 5000     	ADDI	A,0
+0A/84: F705     	BRNZ	0F
+0A/85: 8017     	LOAD	A,[OPERAND+1]
+0A/86: 5000     	ADDI	A,0 
+0A/87: F702     	BRNZ	0F
+0A/89:          
+0A/88:          	; ERROR! DIVIDE BY ZERO
+0A/88: 3089     	LOADI	A,E_DZERO
+0A/89: FF08     	JUMP	9F
+0A/8B:          	
+0A/8A:          	; DO DIVISION
+0A/8A:          0:
+0A/8A:          
+0A/8A:          	; CHECK FOR MODULUS
+0A/8A: 70F6     7:	SUBI	A,'%'-'/'
+0A/8B: F700     	BRNZ	8F
+0A/8D:          
+0A/8C:          	; PLACE [VALUE] ON STACK AND RETURN
+0A/8C: 802F     8:	LOAD	A,[VINDEX]
+0A/8D: 8415     	LOAD	B,[VALUE+1]
+0A/8E: B4FF     	STOREF	[A+0-1],B
+0A/8F: 8414     	LOAD	B,[VALUE]
+0A/90: B4FE     	STOREF	[A+0-2],B
+0A/91: FF71     	JUMP	IRET
+0A/93:          
+0A/92:          	; HANDLE ERROR
+0A/92: 3401     9:	LOADI	B,CORE0_B
+0A/93: 38D0     	LOADI	C,ERROR
+0A/94: FF6D     	JUMP	INDIR
