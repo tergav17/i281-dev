@@ -70,6 +70,7 @@ cpu_state.bios = [
 	0xF4F1,	0x3000,	0xA080,	0x887E,	0x8C7F,	0x0C00,	0xFE81,	0xFFFF  // 0x78
 ];
 
+
 /*
 // Setup BIOS
 cpu_state.bios = [
@@ -92,6 +93,7 @@ cpu_state.bios = [
 	0xFFD2,	0x503A,	0xFFD0,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000  // 0x78
 ];
 */
+
 // Lookup table to draw 7-segment display numbers
 const BIN_TO_HEX = [
 	0b00111111,	// 0
