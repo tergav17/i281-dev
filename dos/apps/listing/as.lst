@@ -60,7 +60,7 @@
 01/80:          
 01/80:          
 01/80:          ; AS0.S
-01/80:          ; ASSEMBLER CORE
+01/80:          ; ASSEMBLER BACKBONE
 01/80:          ; GAVIN TERSTEEG, 2024
 01/80:          ; SDMAY24-14
 01/80:          
@@ -195,7 +195,7 @@
 01/CA: A045     	STORE	[PASS],A
 01/CC:          	
 01/CB:          	; BEGIN ASSEMBLY
-01/CB: 3402     	LOADI	B,CORE1_B
+01/CB: 3403     	LOADI	B,MAIN0_B
 01/CC: 3880     	LOADI	C,DOPASS
 01/CD: FF34     	JUMP	INDIR
 01/CF:          
@@ -209,239 +209,188 @@
 01/D0: 3400     ERROR:	LOADI	B,0
 01/D1: A480     	STORE	[DBANK],B
 01/D2: A016     	STORE	[ERRNO],A
-01/D3: 3403     	LOADI	B,PRNT0_B
+01/D3: 3402     	LOADI	B,PRNT0_B
 01/D4: 3880     	LOADI	C,PERHEAD
 01/D5: FF2C     	JUMP	INDIR
-01/D7:          	
+01/D7:          
 01/D6:          BI	= BI+1
 01/D6:          .TEXT
 01/D6:          .BANK	BI
-02/80:          CORE1_B	= BI
+02/80:          PRNT0_B	= BI
 02/80:          
-02/80:          	; START A PASS
-02/80:          	; BEGIN BY REWINDING THE SOURCE STREAM
-02/80: 3802     DOPASS:	LOADI	C,BI
+02/80:          	; PRINTS THE ERROR HEADER
+02/80:          	; THE CURRENTLY OPEN FILE AND LINE NUMBER WILL BE PRINTED
+02/80:          	; FORMAT: '[FILE]:[LINE]: ERROR'
+02/80: 3802     PERHEAD:LOADI	C,BI
 02/81: BB01     	STOREF	[D+1],C
-02/82: 3887     	LOADI	C,@+5
-02/83: BB00     	STOREF	[D],C
-02/84: 3404     	LOADI	B,TOK0_B
-02/85: 388A     	LOADI	C,REWIND
-02/86: FF7B     	JUMP	INDIR
-02/88:          
-02/87:          	; TAKE IN A NEW LINE OF SOURCE CODE
-02/87: 3802     ASMLINE:LOADI	C,BI
-02/88: BB01     	STOREF	[D+1],C
-02/89: 388E     	LOADI	C,@+5
-02/8A: BB00     	STOREF	[D],C
-02/8B: 3404     	LOADI	B,TOK0_B
-02/8C: 3880     	LOADI	C,NEXTTOK
-02/8D: FF74     	JUMP	INDIR
-02/8F:          	
-02/8E:          	; ARE WE AT THE END?
-02/8E: 8030     	LOAD	A,[TOKEN]
-02/8F: 5000     	ADDI	A,0
-02/90: F60B     	BRZ	ASMDONE
-02/92:          	
-02/91:          	; IS IT NEWLINE?
-02/91: 700A     	SUBI	A,NEWLINE
-02/92: F6F4     	BRZ	ASMLINE
+02/83:          	
+02/82:          	; PRINT CURRENTLY OPEN FILE
+02/82: 8048     	LOAD	A,[CURRFIL]
+02/83: 9001     	LOADF	A,[A+ARGV]
+02/85:          
+02/84:          	; PRINT LOOP
+02/84: A039     0:	STORE	[BUFPNTR],A
+02/85: 8472     	LOAD	B,[CMDL_B]
+02/86: A480     	STORE	[DBANK],B
+02/87: 9000     	LOADF	A,[A]
+02/88: 3400     	LOADI	B,0
+02/89: A480     	STORE	[DBANK],B
+02/8A: 3420     	LOADI	B,0X20
+02/8B: D100     	CMP	A,B
+02/8C: F906     	BRBE	1F
+02/8D: 3401     	LOADI	B,S_PUTC
+02/8E: 3890     	LOADI	C,@+2
+02/8F: FF74     	JUMP	SYSCALL
+02/90: 8039     	LOAD	A,[BUFPNTR]
+02/91: 5001     	ADDI	A,1
+02/92: FFF1     	JUMP	0B
 02/94:          	
-02/93:          	; ATTEMPT TO PARSE EXPRESSION
-02/93: 3898     	LOADI	C,@+5
-02/94: BB00     	STOREF	[D],C
-02/95: 3406     	LOADI	B,EXP0_B
-02/96: 3880     	LOADI	C,PARSEX
-02/97: FF6A     	JUMP	INDIR
-02/99:          	
-02/98: 8414     	LOAD	B,[VALUE]
-02/99: 8815     	LOAD	C,[VALUE+1]
-02/9A: FFFF     	JUMP	@
-02/9C:          	
-02/9B: FFEB     	JUMP	ASMLINE
-02/9D:          
-02/9C:          	; ALL DONE
-02/9C: 3401     ASMDONE:LOADI	B,CORE0_B
-02/9D: 38CE     	LOADI	C,EXIT
-02/9E: FF63     	JUMP	INDIR
-02/A0:          
-02/9F:          BI	= BI+1
-02/9F:          .TEXT
-02/9F:          .BANK	BI
-03/80:          PRNT0_B	= BI
-03/80:          
-03/80:          	; PRINTS THE ERROR HEADER
-03/80:          	; THE CURRENTLY OPEN FILE AND LINE NUMBER WILL BE PRINTED
-03/80:          	; FORMAT: '[FILE]:[LINE]: ERROR'
-03/80: 3803     PERHEAD:LOADI	C,BI
-03/81: BB01     	STOREF	[D+1],C
-03/83:          	
-03/82:          	; PRINT CURRENTLY OPEN FILE
-03/82: 8048     	LOAD	A,[CURRFIL]
-03/83: 9001     	LOADF	A,[A+ARGV]
-03/85:          
-03/84:          	; PRINT LOOP
-03/84: A039     0:	STORE	[BUFPNTR],A
-03/85: 8472     	LOAD	B,[CMDL_B]
-03/86: A480     	STORE	[DBANK],B
-03/87: 9000     	LOADF	A,[A]
-03/88: 3400     	LOADI	B,0
-03/89: A480     	STORE	[DBANK],B
-03/8A: 3420     	LOADI	B,0X20
-03/8B: D100     	CMP	A,B
-03/8C: F906     	BRBE	1F
-03/8D: 3401     	LOADI	B,S_PUTC
-03/8E: 3890     	LOADI	C,@+2
-03/8F: FF74     	JUMP	SYSCALL
-03/90: 8039     	LOAD	A,[BUFPNTR]
-03/91: 5001     	ADDI	A,1
-03/92: FFF1     	JUMP	0B
-03/94:          	
-03/93:          	; PRINT ':'
-03/93: 303A     1:	LOADI	A,':'
-03/94: 3401     	LOADI	B,S_PUTC
-03/95: 3897     	LOADI	C,@+2
-03/96: FF6D     	JUMP	SYSCALL
-03/98:          	
-03/97:          	; PRINT LINE NUMBER
-03/97: 8046     	LOAD	A,[LINENUM]
-03/98: A014     	STORE	[VALUE],A
-03/99: 8047     	LOAD	A,[LINENUM+1]
-03/9A: A015     	STORE	[VALUE+1],A
-03/9B: 389E     	LOADI	C,@+3
-03/9C: BB00     	STOREF	[D],C
-03/9D: FF16     	JUMP	PRINTD
-03/9F:          	
-03/9E:          	; PRINT ':' + SPACE
-03/9E: 303A     	LOADI	A,':'
-03/9F: 3401     	LOADI	B,S_PUTC
-03/A0: 38A2     	LOADI	C,@+2
-03/A1: FF62     	JUMP	SYSCALL
-03/A2: 3020     	LOADI	A,0X20
-03/A3: 3401     	LOADI	B,S_PUTC
-03/A4: 38A6     	LOADI	C,@+2
-03/A5: FF5E     	JUMP	SYSCALL
-03/A7:          	
-03/A6:          	; LOOKUP ERROR ON TABLE
-03/A6: 8016     	LOAD	A,[ERRNO]
-03/A7: 7080     	SUBI	A,0X80
-03/A8: 4000     	SHIFTL	A
-03/A9: 5034     	ADDI	A,ETABLE
-03/AA: 3801     	LOADI	C,ERR0_B
-03/AB: A880     	STORE	[DBANK],C
-03/AC: 9400     	LOADF	B,[A]
-03/AD: 9001     	LOADF	A,[A+1]
-03/AE: 3800     	LOADI	C,0
-03/AF: A880     	STORE	[DBANK],C
-03/B0: A46C     	STORE	[ARG_BNK],B
-03/B1: 3401     	LOADI	B,CORE0_B
-03/B2: 38BD     	LOADI	C,PRNTERR
-03/B3: FF4E     	JUMP	INDIR
-03/B5:          	
-03/B4:          
-03/B4:          	; PRINTS VARIABLE [VALUE] AS A 16 BIT BASE-10 NUMBER
-03/B4:          PADDING	= TEMP
-03/B4:          LEAFRET	= TEMP+1
-03/B4: 7C02     PRINTD: SUBI	D,2
-03/B6:          	
-03/B5:          	; SET PADDING TO NULL CHARACTER AT FIRST
-03/B5: 3800     	LOADI	C,0
-03/B6: A818     	STORE	[PADDING],C
-03/B8:          	
-03/B7:          V	= 10000
-03/B7: 3027     	LOADI	A,V/256
-03/B8: 3410     	LOADI	B,V%256
-03/B9: 38BB     	LOADI	C,@+2
-03/BA: FF14     	JUMP	DOCHAR
-03/BC:          	
-03/BB:          V	= 1000
-03/BB: 3003     	LOADI	A,V/256
-03/BC: 34E8     	LOADI	B,V%256
-03/BD: 38BF     	LOADI	C,@+2
-03/BE: FF10     	JUMP	DOCHAR
-03/C0:          	
-03/BF:          V	= 100
-03/BF: 3000     	LOADI	A,V/256
-03/C0: 3464     	LOADI	B,V%256
-03/C1: 38C3     	LOADI	C,@+2
-03/C2: FF0C     	JUMP	DOCHAR
-03/C4:          	
-03/C3:          V	= 10
-03/C3: 3000     	LOADI	A,V/256
-03/C4: 340A     	LOADI	B,V%256
-03/C5: 38C7     	LOADI	C,@+2
-03/C6: FF08     	JUMP	DOCHAR
-03/C8:          	
-03/C7: 3030     	LOADI	A,'0'
-03/C8: A018     	STORE	[PADDING],A
-03/CA:          	
-03/C9:          V	= 1
-03/C9: 3000     	LOADI	A,V/256
-03/CA: 3401     	LOADI	B,V%256
-03/CB: 38CD     	LOADI	C,@+2
-03/CC: FF02     	JUMP	DOCHAR
-03/CE:          	
-03/CD: 5C02     	ADDI	D,2 
-03/CE: FF34     	JUMP	IRET
-03/D0:          	
-03/CF:          	; A = UPPER SUB
-03/CF:          	; B = LOWER SUB
-03/CF: A819     DOCHAR:	STORE	[LEAFRET],C
-03/D0: 8818     	LOAD	C,[PADDING]	
-03/D1: A813     	STORE	[CHAR],C
-03/D3:          	
-03/D2:          	; PARK THE STACK
-03/D2: AC12     	STORE	[SPARK],D
-03/D4:          
-03/D3:          	; GET THE SIZE
-03/D3: 8814     0:	LOAD	C,[VALUE]
-03/D4: 8C15     	LOAD	D,[VALUE+1]
-03/D6:          	
-03/D5:          	; DO 16 BIT SUBTRACTION
-03/D5: 6D00     1:	SUB	D,B
-03/D6: F002     	BRC	2F
-03/D7: 7801     	SUBI	C,1
-03/D8: F10D     	BRNC	4F
-03/D9: 6800     2:	SUB	C,A
-03/DA: F10B     	BRNC	4F
-03/DC:          	
-03/DB:          	; SAVE VALUE
-03/DB: A814     	STORE	[VALUE],C
-03/DC: AC15     	STORE	[VALUE+1],D
-03/DE:          	
-03/DD:          	; GET THE CHAR AND CHECK TO SEE IF IT IS A WHITESPACE
-03/DD: 8813     	LOAD	C,[CHAR]
-03/DE: 3C20     	LOADI	D,0X20
-03/DF: DB00     	CMP	C,D
-03/E0: F802     	BRA	3F
-03/E2:          	
-03/E1:          	; SET PADDING AND CHAR TO '0'
-03/E1: 3830     	LOADI	C,'0'
-03/E2: A818     	STORE	[PADDING],C
-03/E4:          	
-03/E3: 5801     3:	ADDI	C,1
-03/E4: A813     	STORE	[CHAR],C
-03/E5: FFED     	JUMP	0B
-03/E7:          	
-03/E6:          	; RESTORE THE STACK
-03/E6: 8C12     4:	LOAD	D,[SPARK]
-03/E8:          	
-03/E7:          	; SEE IF IT IS ZERO
-03/E7: 8013     	LOAD	A,[CHAR]
-03/E8: 5000     	ADDI	A,0
-03/E9: F702     	BRNZ	5F
-03/EA: 8819     	LOAD	C,[LEAFRET]
-03/EB: FE14     	JUMPR	C
-03/ED:          	
-03/EC:          	; PRINT THE CHARACTER
-03/EC: 3401     5:	LOADI	B,S_PUTC
-03/ED: 3803     	LOADI	C,BI
-03/EE: BB01     	STOREF	[D+1],C
-03/EF: 8819     	LOAD	C,[LEAFRET]
-03/F0: FF13     	JUMP	SYSCALL
-03/F2:          
-03/F1:          
-03/F1:          	; ZERO BANK VARIABLES
-03/F1:          .BANK	0
+02/93:          	; PRINT ':'
+02/93: 303A     1:	LOADI	A,':'
+02/94: 3401     	LOADI	B,S_PUTC
+02/95: 3897     	LOADI	C,@+2
+02/96: FF6D     	JUMP	SYSCALL
+02/98:          	
+02/97:          	; PRINT LINE NUMBER
+02/97: 8046     	LOAD	A,[LINENUM]
+02/98: A014     	STORE	[VALUE],A
+02/99: 8047     	LOAD	A,[LINENUM+1]
+02/9A: A015     	STORE	[VALUE+1],A
+02/9B: 389E     	LOADI	C,@+3
+02/9C: BB00     	STOREF	[D],C
+02/9D: FF16     	JUMP	PRINTD
+02/9F:          	
+02/9E:          	; PRINT ':' + SPACE
+02/9E: 303A     	LOADI	A,':'
+02/9F: 3401     	LOADI	B,S_PUTC
+02/A0: 38A2     	LOADI	C,@+2
+02/A1: FF62     	JUMP	SYSCALL
+02/A2: 3020     	LOADI	A,0X20
+02/A3: 3401     	LOADI	B,S_PUTC
+02/A4: 38A6     	LOADI	C,@+2
+02/A5: FF5E     	JUMP	SYSCALL
+02/A7:          	
+02/A6:          	; LOOKUP ERROR ON TABLE
+02/A6: 8016     	LOAD	A,[ERRNO]
+02/A7: 7080     	SUBI	A,0X80
+02/A8: 4000     	SHIFTL	A
+02/A9: 5034     	ADDI	A,ETABLE
+02/AA: 3801     	LOADI	C,ERR0_B
+02/AB: A880     	STORE	[DBANK],C
+02/AC: 9400     	LOADF	B,[A]
+02/AD: 9001     	LOADF	A,[A+1]
+02/AE: 3800     	LOADI	C,0
+02/AF: A880     	STORE	[DBANK],C
+02/B0: A46C     	STORE	[ARG_BNK],B
+02/B1: 3401     	LOADI	B,CORE0_B
+02/B2: 38BD     	LOADI	C,PRNTERR
+02/B3: FF4E     	JUMP	INDIR
+02/B5:          	
+02/B4:          
+02/B4:          	; PRINTS VARIABLE [VALUE] AS A 16 BIT BASE-10 NUMBER
+02/B4:          PADDING	= TEMP
+02/B4:          LEAFRET	= TEMP+1
+02/B4: 7C02     PRINTD: SUBI	D,2
+02/B6:          	
+02/B5:          	; SET PADDING TO NULL CHARACTER AT FIRST
+02/B5: 3800     	LOADI	C,0
+02/B6: A818     	STORE	[PADDING],C
+02/B8:          	
+02/B7:          V	= 10000
+02/B7: 3027     	LOADI	A,V/256
+02/B8: 3410     	LOADI	B,V%256
+02/B9: 38BB     	LOADI	C,@+2
+02/BA: FF14     	JUMP	DOCHAR
+02/BC:          	
+02/BB:          V	= 1000
+02/BB: 3003     	LOADI	A,V/256
+02/BC: 34E8     	LOADI	B,V%256
+02/BD: 38BF     	LOADI	C,@+2
+02/BE: FF10     	JUMP	DOCHAR
+02/C0:          	
+02/BF:          V	= 100
+02/BF: 3000     	LOADI	A,V/256
+02/C0: 3464     	LOADI	B,V%256
+02/C1: 38C3     	LOADI	C,@+2
+02/C2: FF0C     	JUMP	DOCHAR
+02/C4:          	
+02/C3:          V	= 10
+02/C3: 3000     	LOADI	A,V/256
+02/C4: 340A     	LOADI	B,V%256
+02/C5: 38C7     	LOADI	C,@+2
+02/C6: FF08     	JUMP	DOCHAR
+02/C8:          	
+02/C7: 3030     	LOADI	A,'0'
+02/C8: A018     	STORE	[PADDING],A
+02/CA:          	
+02/C9:          V	= 1
+02/C9: 3000     	LOADI	A,V/256
+02/CA: 3401     	LOADI	B,V%256
+02/CB: 38CD     	LOADI	C,@+2
+02/CC: FF02     	JUMP	DOCHAR
+02/CE:          	
+02/CD: 5C02     	ADDI	D,2 
+02/CE: FF34     	JUMP	IRET
+02/D0:          	
+02/CF:          	; A = UPPER SUB
+02/CF:          	; B = LOWER SUB
+02/CF: A819     DOCHAR:	STORE	[LEAFRET],C
+02/D0: 8818     	LOAD	C,[PADDING]	
+02/D1: A813     	STORE	[CHAR],C
+02/D3:          	
+02/D2:          	; PARK THE STACK
+02/D2: AC12     	STORE	[SPARK],D
+02/D4:          
+02/D3:          	; GET THE SIZE
+02/D3: 8814     0:	LOAD	C,[VALUE]
+02/D4: 8C15     	LOAD	D,[VALUE+1]
+02/D6:          	
+02/D5:          	; DO 16 BIT SUBTRACTION
+02/D5: 6D00     1:	SUB	D,B
+02/D6: F002     	BRC	2F
+02/D7: 7801     	SUBI	C,1
+02/D8: F10D     	BRNC	4F
+02/D9: 6800     2:	SUB	C,A
+02/DA: F10B     	BRNC	4F
+02/DC:          	
+02/DB:          	; SAVE VALUE
+02/DB: A814     	STORE	[VALUE],C
+02/DC: AC15     	STORE	[VALUE+1],D
+02/DE:          	
+02/DD:          	; GET THE CHAR AND CHECK TO SEE IF IT IS A WHITESPACE
+02/DD: 8813     	LOAD	C,[CHAR]
+02/DE: 3C20     	LOADI	D,0X20
+02/DF: DB00     	CMP	C,D
+02/E0: F802     	BRA	3F
+02/E2:          	
+02/E1:          	; SET PADDING AND CHAR TO '0'
+02/E1: 3830     	LOADI	C,'0'
+02/E2: A818     	STORE	[PADDING],C
+02/E4:          	
+02/E3: 5801     3:	ADDI	C,1
+02/E4: A813     	STORE	[CHAR],C
+02/E5: FFED     	JUMP	0B
+02/E7:          	
+02/E6:          	; RESTORE THE STACK
+02/E6: 8C12     4:	LOAD	D,[SPARK]
+02/E8:          	
+02/E7:          	; SEE IF IT IS ZERO
+02/E7: 8013     	LOAD	A,[CHAR]
+02/E8: 5000     	ADDI	A,0
+02/E9: F702     	BRNZ	5F
+02/EA: 8819     	LOAD	C,[LEAFRET]
+02/EB: FE14     	JUMPR	C
+02/ED:          	
+02/EC:          	; PRINT THE CHARACTER
+02/EC: 3401     5:	LOADI	B,S_PUTC
+02/ED: 3802     	LOADI	C,BI
+02/EE: BB01     	STOREF	[D+1],C
+02/EF: 8819     	LOAD	C,[LEAFRET]
+02/F0: FF13     	JUMP	SYSCALL
+02/F2:          
+02/F1:          
+02/F1:          	; ZERO BANK VARIABLES
+02/F1:          .BANK	0
 00/80:          .BSS
 00/80:          
 00/00:          	; COMMAND LINE ARGUMENTS
@@ -498,9 +447,13 @@
 00/45: 00       .DEFL BYTE PASS		0
 00/46: 0000     .DEFL WORD LINENUM	0
 00/48: 00       .DEFL BYTE CURRFIL	0
-00/49:          
-00/49:          	; ERROR BANK 0
-00/49:          .BANK	BD
+00/49: 00       .DEFL BYTE COUNTER	0
+00/4A: 00       .DEFL BYTE SEGMENT	0
+00/4B: 00       .DEFL BYTE SELBANK	0
+00/4C: 00       .DEFL BYTE CURBANK	0
+00/4D:          
+00/4D:          	; ERROR BANK 0
+00/4D:          .BANK	BD
 01/00:          .DATA
 01/00:          ERR0_B	= BD
 01/00:          
@@ -632,22 +585,77 @@
 04/00:          
 04/00:          BD	= BD+4
 04/00:          ; AS1.S
-04/00:          ; SOURCE INPUT AND TOKENIZER
+04/00:          ; ASSEMBLER MAIN LOGIC
 04/00:          ; GAVIN TERSTEEG, 2024
 04/00:          ; SDMAY24-14
-04/00:          
-04/00:          ; NEW LINE CHARACTER
-04/00:          NEWLINE	= 0X0A
-04/00:          SEMICOL	= 0X3B
-04/00:          SQUOTE	= 0X27
-04/00:          DQUOTE	= 0X22
-04/00:          SYMBOL	= 0X80
-04/00:          NUMERIC	= 0X81
-04/00:          
 04/00:          
 04/00:          BI	= BI+1
 04/00:          .TEXT
 04/80:          .BANK	BI
+03/80:          MAIN0_B	= BI
+03/80:          
+03/80:          	; START A PASS
+03/80:          	; BEGIN BY REWINDING THE SOURCE STREAM
+03/80: 3803     DOPASS:	LOADI	C,BI
+03/81: BB01     	STOREF	[D+1],C
+03/82: 3887     	LOADI	C,@+5
+03/83: BB00     	STOREF	[D],C
+03/84: 3404     	LOADI	B,TOK0_B
+03/85: 388A     	LOADI	C,REWIND
+03/86: FF7B     	JUMP	INDIR
+03/88:          
+03/87:          	; TAKE IN A NEW LINE OF SOURCE CODE
+03/87: 3803     ASMLINE:LOADI	C,BI
+03/88: BB01     	STOREF	[D+1],C
+03/89: 388E     	LOADI	C,@+5
+03/8A: BB00     	STOREF	[D],C
+03/8B: 3404     	LOADI	B,TOK0_B
+03/8C: 3880     	LOADI	C,NEXTTOK
+03/8D: FF74     	JUMP	INDIR
+03/8F:          	
+03/8E:          	; ARE WE AT THE END?
+03/8E: 8030     	LOAD	A,[TOKEN]
+03/8F: 5000     	ADDI	A,0
+03/90: F60B     	BRZ	ASMDONE
+03/92:          	
+03/91:          	; IS IT NEWLINE?
+03/91: 700A     	SUBI	A,NEWLINE
+03/92: F6F4     	BRZ	ASMLINE
+03/94:          	
+03/93:          	; ATTEMPT TO PARSE EXPRESSION
+03/93: 3898     	LOADI	C,@+5
+03/94: BB00     	STOREF	[D],C
+03/95: 3406     	LOADI	B,EXP0_B
+03/96: 3880     	LOADI	C,PARSEX
+03/97: FF6A     	JUMP	INDIR
+03/99:          	
+03/98: 8414     	LOAD	B,[VALUE]
+03/99: 8815     	LOAD	C,[VALUE+1]
+03/9A: FFFF     	JUMP	@
+03/9C:          	
+03/9B: FFEB     	JUMP	ASMLINE
+03/9D:          
+03/9C:          	; ALL DONE
+03/9C: 3401     ASMDONE:LOADI	B,CORE0_B
+03/9D: 38CE     	LOADI	C,EXIT
+03/9E: FF63     	JUMP	INDIR
+03/A0:          ; AS2.S
+03/9F:          ; SOURCE INPUT AND TOKENIZER
+03/9F:          ; GAVIN TERSTEEG, 2024
+03/9F:          ; SDMAY24-14
+03/9F:          
+03/9F:          ; NEW LINE CHARACTER
+03/9F:          NEWLINE	= 0X0A
+03/9F:          SEMICOL	= 0X3B
+03/9F:          SQUOTE	= 0X27
+03/9F:          DQUOTE	= 0X22
+03/9F:          SYMBOL	= 0X80
+03/9F:          NUMERIC	= 0X81
+03/9F:          
+03/9F:          
+03/9F:          BI	= BI+1
+03/9F:          .TEXT
+03/9F:          .BANK	BI
 04/80:          TOK0_B	= BI
 04/80:          
 04/80:          	; GETS THE NEXT TOKEN
@@ -1030,7 +1038,7 @@
 05/FD: 5C02     9:	ADDI	D,2
 05/FE: FF04     	JUMP	IRET
 05/100:          	
-05/FF:          ; AS2.S
+05/FF:          ; AS3.S
 05/FF:          ; EXPRESSION HANDLING
 05/FF:          ; GAVIN TERSTEEG, 2024
 05/FF:          ; SDMAY24-14
@@ -2060,3 +2068,15 @@
 0C/CD: 8414     	LOAD	B,[VALUE]
 0C/CE: B4FE     	STOREF	[A+0-2],B
 0C/CF: FF33     	JUMP	IRET
+0C/D1:          ; AS4.S
+0C/D0:          ; ASSEMBLER SYMBOL MANAGEMENT
+0C/D0:          ; GAVIN TERSTEEG, 2024
+0C/D0:          ; SDMAY24-14
+0C/D0:          
+0C/D0:          BI	= BI+1
+0C/D0:          .TEXT
+0C/D0:          .BANK	BI
+0D/80:          SYM0_B	= BI
+0D/80:          
+0D/80:          	; DEFINES OR UPDATES A SYMBOL IN THE TABLE
+0D/80:          DEFINE:
