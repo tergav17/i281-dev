@@ -452,8 +452,12 @@
 00/4B: 00       .DEFL BYTE SELBANK	0
 00/4C: 00       .DEFL BYTE CURBANK	0
 00/4D:          
-00/4D:          	; ERROR BANK 0
-00/4D:          .BANK	BD
+00/4D:          	; SYMBOL STUFF
+00/4D: 00       .DEFL BYTE NFREE	0
+00/4E: 0000     .DEFL WORD NUMLOC	0
+00/50:          
+00/50:          	; ERROR BANK 0
+00/50:          .BANK	BD
 01/00:          .DATA
 01/00:          ERR0_B	= BD
 01/00:          
