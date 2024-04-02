@@ -174,7 +174,7 @@
 01/BD: 3801     PRNTERR:LOADI	C,BI
 01/BE: BB01     	STOREF	[D+1],C
 01/BF: 3404     	LOADI	B,S_PUTS
-01/C0: 38CE     	LOADI	C,EXIT
+01/C0: 38D0     	LOADI	C,EXIT
 01/C1: FF42     	JUMP	SYSCALL	
 01/C3:          
 01/C2:          	; EXIT PROGRAM
@@ -194,28 +194,32 @@
 01/C9: 3000     	LOADI	A,0
 01/CA: A045     	STORE	[PASS],A
 01/CC:          	
-01/CB:          	; BEGIN ASSEMBLY
-01/CB: 3403     	LOADI	B,MAIN0_B
-01/CC: 3880     	LOADI	C,DOPASS
-01/CD: FF34     	JUMP	INDIR
-01/CF:          
-01/CE:          	; EXIT PROGRAM
-01/CE: 3400     EXIT:	LOADI	B,S_EXIT
-01/CF: FF35     	JUMP	SYSJUMP
-01/D1:          	
-01/D0:          	; DO AN ERROR
-01/D0:          	; A = ERROR #
-01/D0:          ERRNO	= OPERAND
-01/D0: 3400     ERROR:	LOADI	B,0
-01/D1: A480     	STORE	[DBANK],B
-01/D2: A016     	STORE	[ERRNO],A
-01/D3: 3402     	LOADI	B,PRNT0_B
-01/D4: 3880     	LOADI	C,PERHEAD
-01/D5: FF2C     	JUMP	INDIR
-01/D7:          
-01/D6:          BI	= BI+1
-01/D6:          .TEXT
-01/D6:          .BANK	BI
+01/CB:          	; SET NEXT FREE TO HEAP
+01/CB: 3009     	LOADI	A,HEAP
+01/CC: A04D     	STORE	[NFREE],A
+01/CE:          	
+01/CD:          	; BEGIN ASSEMBLY
+01/CD: 3403     	LOADI	B,MAIN0_B
+01/CE: 3880     	LOADI	C,DOPASS
+01/CF: FF32     	JUMP	INDIR
+01/D1:          
+01/D0:          	; EXIT PROGRAM
+01/D0: 3400     EXIT:	LOADI	B,S_EXIT
+01/D1: FF33     	JUMP	SYSJUMP
+01/D3:          	
+01/D2:          	; DO AN ERROR
+01/D2:          	; A = ERROR #
+01/D2:          ERRNO	= OPERAND
+01/D2: 3400     ERROR:	LOADI	B,0
+01/D3: A480     	STORE	[DBANK],B
+01/D4: A016     	STORE	[ERRNO],A
+01/D5: 3402     	LOADI	B,PRNT0_B
+01/D6: 3880     	LOADI	C,PERHEAD
+01/D7: FF2A     	JUMP	INDIR
+01/D9:          
+01/D8:          BI	= BI+1
+01/D8:          .TEXT
+01/D8:          .BANK	BI
 02/80:          PRNT0_B	= BI
 02/80:          
 02/80:          	; PRINTS THE ERROR HEADER
@@ -607,59 +611,63 @@
 03/84: 3404     	LOADI	B,TOK0_B
 03/85: 388A     	LOADI	C,REWIND
 03/86: FF7B     	JUMP	INDIR
-03/88:          
-03/87:          	; TAKE IN A NEW LINE OF SOURCE CODE
-03/87: 3803     ASMLINE:LOADI	C,BI
-03/88: BB01     	STOREF	[D+1],C
-03/89: 388E     	LOADI	C,@+5
-03/8A: BB00     	STOREF	[D],C
-03/8B: 3404     	LOADI	B,TOK0_B
-03/8C: 3880     	LOADI	C,NEXTTOK
-03/8D: FF74     	JUMP	INDIR
-03/8F:          	
-03/8E:          	; ARE WE AT THE END?
-03/8E: 8030     	LOAD	A,[TOKEN]
-03/8F: 5000     	ADDI	A,0
-03/90: F60B     	BRZ	ASMDONE
-03/92:          	
-03/91:          	; IS IT NEWLINE?
-03/91: 700A     	SUBI	A,NEWLINE
-03/92: F6F4     	BRZ	ASMLINE
+03/88:          	
+03/87:          	; RESET LOCAL COUNTER
+03/87: 3000     	LOADI	A,0
+03/88: A04E     	STORE	[NUMLOC],A
+03/8A:          
+03/89:          	; TAKE IN A NEW LINE OF SOURCE CODE
+03/89: 3803     ASMLINE:LOADI	C,BI
+03/8A: BB01     	STOREF	[D+1],C
+03/8B: 3890     	LOADI	C,@+5
+03/8C: BB00     	STOREF	[D],C
+03/8D: 3404     	LOADI	B,TOK0_B
+03/8E: 3880     	LOADI	C,NEXTTOK
+03/8F: FF72     	JUMP	INDIR
+03/91:          	
+03/90:          	; ARE WE AT THE END?
+03/90: 8030     	LOAD	A,[TOKEN]
+03/91: 5000     	ADDI	A,0
+03/92: F60B     	BRZ	ASMDONE
 03/94:          	
-03/93:          	; ATTEMPT TO PARSE EXPRESSION
-03/93: 3898     	LOADI	C,@+5
-03/94: BB00     	STOREF	[D],C
-03/95: 3406     	LOADI	B,EXP0_B
-03/96: 3880     	LOADI	C,PARSEX
-03/97: FF6A     	JUMP	INDIR
-03/99:          	
-03/98: 8414     	LOAD	B,[VALUE]
-03/99: 8815     	LOAD	C,[VALUE+1]
-03/9A: FFFF     	JUMP	@
-03/9C:          	
-03/9B: FFEB     	JUMP	ASMLINE
-03/9D:          
-03/9C:          	; ALL DONE
-03/9C: 3401     ASMDONE:LOADI	B,CORE0_B
-03/9D: 38CE     	LOADI	C,EXIT
-03/9E: FF63     	JUMP	INDIR
-03/A0:          ; AS2.S
-03/9F:          ; SOURCE INPUT AND TOKENIZER
-03/9F:          ; GAVIN TERSTEEG, 2024
-03/9F:          ; SDMAY24-14
+03/93:          	; IS IT NEWLINE?
+03/93: 700A     	SUBI	A,NEWLINE
+03/94: F6F4     	BRZ	ASMLINE
+03/96:          	
+03/95:          	; ATTEMPT TO PARSE EXPRESSION
+03/95: 389A     	LOADI	C,@+5
+03/96: BB00     	STOREF	[D],C
+03/97: 3406     	LOADI	B,EXP0_B
+03/98: 3880     	LOADI	C,PARSEX
+03/99: FF68     	JUMP	INDIR
+03/9B:          	
+03/9A: 8414     	LOAD	B,[VALUE]
+03/9B: 8815     	LOAD	C,[VALUE+1]
+03/9C: FFFF     	JUMP	@
+03/9E:          	
+03/9D: FFEB     	JUMP	ASMLINE
 03/9F:          
-03/9F:          ; NEW LINE CHARACTER
-03/9F:          NEWLINE	= 0X0A
-03/9F:          SEMICOL	= 0X3B
-03/9F:          SQUOTE	= 0X27
-03/9F:          DQUOTE	= 0X22
-03/9F:          SYMBOL	= 0X80
-03/9F:          NUMERIC	= 0X81
-03/9F:          
-03/9F:          
-03/9F:          BI	= BI+1
-03/9F:          .TEXT
-03/9F:          .BANK	BI
+03/9E:          	; ALL DONE
+03/9E: 3401     ASMDONE:LOADI	B,CORE0_B
+03/9F: 38D0     	LOADI	C,EXIT
+03/A0: FF61     	JUMP	INDIR
+03/A2:          ; AS2.S
+03/A1:          ; SOURCE INPUT AND TOKENIZER
+03/A1:          ; GAVIN TERSTEEG, 2024
+03/A1:          ; SDMAY24-14
+03/A1:          
+03/A1:          ; NEW LINE CHARACTER
+03/A1:          NEWLINE	= 0X0A
+03/A1:          SEMICOL	= 0X3B
+03/A1:          SQUOTE	= 0X27
+03/A1:          DQUOTE	= 0X22
+03/A1:          SYMBOL	= 0X80
+03/A1:          NUMERIC	= 0X81
+03/A1:          
+03/A1:          
+03/A1:          BI	= BI+1
+03/A1:          .TEXT
+03/A1:          .BANK	BI
 04/80:          TOK0_B	= BI
 04/80:          
 04/80:          	; GETS THE NEXT TOKEN
@@ -749,7 +757,7 @@
 04/AD: A047     	STORE	[LINENUM+1],A
 04/AE: 3080     	LOADI	A,E_COPEN
 04/AF: 3401     	LOADI	B,CORE0_B
-04/B0: 38D0     	LOADI	C,ERROR
+04/B0: 38D2     	LOADI	C,ERROR
 04/B1: FF50     	JUMP	INDIR
 04/B3:          
 04/B2:          	; ATTEMPT TO READ THE FIRST BLOCK
@@ -1134,7 +1142,7 @@
 06/B0:          	; ISSUE WITH PARSING NUMERIC
 06/B0: 3081     8:	LOADI	A,E_UXNUM
 06/B1: 3401     	LOADI	B,CORE0_B
-06/B2: 38D0     	LOADI	C,ERROR
+06/B2: 38D2     	LOADI	C,ERROR
 06/B3: FF4E     	JUMP	INDIR
 06/B5:          	
 06/B4:          	; C = RADIX
@@ -1310,7 +1318,7 @@
 07/C1:          	; ERROR!
 07/C1: 3083     7:	LOADI	A,E_UXTOK
 07/C2: 3401     8:	LOADI	B,CORE0_B
-07/C3: 38D0     	LOADI	C,ERROR
+07/C3: 38D2     	LOADI	C,ERROR
 07/C4: FF3D     	JUMP	INDIR
 07/C6:          
 07/C5:          	; GET THE NEXT TOKEN
@@ -1384,7 +1392,7 @@
 08/A0:          	; ERROR! PARENTHESIS ARE MISMATCHED
 08/A0: 3088     	LOADI	A,E_PAREN
 08/A1: 3401     	LOADI	B,CORE0_B
-08/A2: 38D0     	LOADI	C,ERROR
+08/A2: 38D2     	LOADI	C,ERROR
 08/A3: FF5E     	JUMP	INDIR
 08/A5:          	
 08/A4:          	; CHECK TOP OF ESTACK
@@ -1428,7 +1436,7 @@
 08/BD:          	; BOO! ERROR!
 08/BD: 3083     	LOADI	A,E_UXTOK
 08/BE: 3401     	LOADI	B,CORE0_B
-08/BF: 38D0     	LOADI	C,ERROR
+08/BF: 38D2     	LOADI	C,ERROR
 08/C0: FF41     	JUMP	INDIR
 08/C2:          
 08/C1:          	; WE HAVE A SPECIAL CHARACTER
@@ -1488,7 +1496,7 @@
 08/E2:          	; ERROR :(
 08/E2: 3084     	LOADI	A,E_VSTKO
 08/E3: 3401     	LOADI	B,CORE0_B
-08/E4: 38D0     	LOADI	C,ERROR
+08/E4: 38D2     	LOADI	C,ERROR
 08/E5: FF1C     	JUMP	INDIR
 08/E7:          
 08/E6:          	; SET RESULT TO VALUE
@@ -1652,7 +1660,7 @@
 09/E9:          
 09/E8:          	; HANDLE ERROR
 09/E8: 3401     9:	LOADI	B,CORE0_B
-09/E9: 38D0     	LOADI	C,ERROR
+09/E9: 38D2     	LOADI	C,ERROR
 09/EA: FF17     	JUMP	INDIR
 09/EC:          	
 09/EB:          BI	= BI+1
@@ -1802,7 +1810,7 @@
 0A/DD:          
 0A/DC:          	; HANDLE ERROR
 0A/DC: 3401     9:	LOADI	B,CORE0_B
-0A/DD: 38D0     	LOADI	C,ERROR
+0A/DD: 38D2     	LOADI	C,ERROR
 0A/DE: FF23     	JUMP	INDIR
 0A/E0:          	
 0A/DF:          BI	= BI+1
@@ -2062,7 +2070,7 @@
 0C/C6:          	; ERROR! PARENTHESIS ARE MISMATCHED
 0C/C6: 3088     	LOADI	A,E_PAREN
 0C/C7: 3401     	LOADI	B,CORE0_B
-0C/C8: 38D0     	LOADI	C,ERROR
+0C/C8: 38D2     	LOADI	C,ERROR
 0C/C9: FF38     	JUMP	INDIR
 0C/CB:          
 0C/CA:          	; PLACE [VALUE] ON STACK AND RETURN
@@ -2084,3 +2092,9 @@
 0D/80:          
 0D/80:          	; DEFINES OR UPDATES A SYMBOL IN THE TABLE
 0D/80:          DEFINE:
+0D/80:          
+0D/80:          
+0D/80:          
+0D/80:          
+0D/80:          	; SET START OF HEAP
+0D/80:          HEAP	= BD+1

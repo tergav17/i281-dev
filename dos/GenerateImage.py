@@ -77,6 +77,9 @@ def main():
             record[511] = 0xFF
         else:
             record[511] = 0x01
+        
+        for o in range(32):
+            record[o * 16 + 14] = o + 0x50
 
         image.write(bytes(record))
 
