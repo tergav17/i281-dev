@@ -195,7 +195,7 @@
 01/CA: A045     	STORE	[PASS],A
 01/CC:          	
 01/CB:          	; SET NEXT FREE TO HEAP
-01/CB: 3009     	LOADI	A,HEAP
+01/CB: 300A     	LOADI	A,HEAP
 01/CC: A04D     	STORE	[NFREE],A
 01/CE:          	
 01/CD:          	; BEGIN ASSEMBLY
@@ -491,24 +491,26 @@
 01/40: 031C     			ERR2_B,ERROR21,	; ERROR 0X86: EXPRESSION STACK DEPLETION
 01/42: 0334     			ERR2_B,ERROR22,	; ERROR 0X87: VALUE STACK DEPLETION
 01/44: 0351     			ERR2_B,ERROR23,	; ERROR 0X88: PARENTHESIS MISMATCH
-01/46: 0368     			ERR2_B,ERROR24	; ERROR 0X89: DIVIDE BY ZERO
-01/48:          
-01/48:          	; ERROR VALUES
-01/48:          E_COPEN	= 0X80
-01/48:          E_UXNUM	= 0X81
-01/48:          E_UDEFX = 0X82
-01/48:          E_UXTOK	= 0X83
-01/48:          E_VSTKO = 0X84
-01/48:          E_ESTKO = 0X85
-01/48:          E_VSTKD	= 0X86
-01/48:          E_ESTKD = 0X87
-01/48:          E_PAREN = 0X88
-01/48:          E_DZERO	= 0X89
-01/48:          
-01/48:          BD	= BD+1	
-01/48:          	
-01/48:          	; ERROR BANK 1
-01/48:          .BANK	BD
+01/46: 0368     			ERR2_B,ERROR24,	; ERROR 0X89: DIVIDE BY ZERO
+01/48: 0300     			ERR2_B,ERROR30	; ERROR 0X8A: OUT OF MEMORY
+01/4A:          
+01/4A:          	; ERROR VALUES
+01/4A:          E_COPEN	= 0X80
+01/4A:          E_UXNUM	= 0X81
+01/4A:          E_UDEFX = 0X82
+01/4A:          E_UXTOK	= 0X83
+01/4A:          E_VSTKO = 0X84
+01/4A:          E_ESTKO = 0X85
+01/4A:          E_VSTKD	= 0X86
+01/4A:          E_ESTKD = 0X87
+01/4A:          E_PAREN = 0X88
+01/4A:          E_DZERO	= 0X89
+01/4A:          E_OMEM	= 0X8A
+01/4A:          
+01/4A:          BD	= BD+1	
+01/4A:          	
+01/4A:          	; ERROR BANK 1
+01/4A:          .BANK	BD
 02/00:          .DATA
 02/00:          ERR1_B	= BD
 02/00:          
@@ -586,20 +588,32 @@
 03/79:          
 03/79:          BD	= BD+1
 03/79:          
-03/79:          	; SOURCE READ BUFFER
+03/79:          	; ERROR BANK 3
 03/79:          .BANK	BD
 04/00:          .DATA
-04/00:          SRC_B	= BD
+04/00:          ERR3_B	= BD
 04/00:          
-04/00:          BD	= BD+4
-04/00:          ; AS1.S
-04/00:          ; ASSEMBLER MAIN LOGIC
-04/00:          ; GAVIN TERSTEEG, 2024
-04/00:          ; SDMAY24-14
-04/00:          
-04/00:          BI	= BI+1
-04/00:          .TEXT
-04/80:          .BANK	BI
+04/00: 4F555420
+       4F46204D
+       454D4F52
+       590A0D00 .DEFL BYTE ERROR30	"OUT OF MEMORY",0X0A,0X0D,0
+04/10:          
+04/10:          BD	= BD+1
+04/10:          
+04/10:          	; SOURCE READ BUFFER
+04/10:          .BANK	BD
+05/00:          .DATA
+05/00:          SRC_B	= BD
+05/00:          
+05/00:          BD	= BD+4
+05/00:          ; AS1.S
+05/00:          ; ASSEMBLER MAIN LOGIC
+05/00:          ; GAVIN TERSTEEG, 2024
+05/00:          ; SDMAY24-14
+05/00:          
+05/00:          BI	= BI+1
+05/00:          .TEXT
+05/80:          .BANK	BI
 03/80:          MAIN0_B	= BI
 03/80:          
 03/80:          	; START A PASS
@@ -722,7 +736,7 @@
 04/95: A038     	STORE	[SRCLINE+1],A
 04/97:          	
 04/96:          	; RESET BANK
-04/96: 3004     	LOADI	A,SRC_B
+04/96: 3005     	LOADI	A,SRC_B
 04/97: A033     	STORE	[SRCBANK],A
 04/99:          
 04/98:          	; INCREMENT SOURCE INDEX
@@ -761,7 +775,7 @@
 04/B1: FF50     	JUMP	INDIR
 04/B3:          
 04/B2:          	; ATTEMPT TO READ THE FIRST BLOCK
-04/B2: 3404     1:	LOADI	B,SRC_B
+04/B2: 3405     1:	LOADI	B,SRC_B
 04/B3: A46C     	STORE	[ARG_BNK],B
 04/B4: 3000     	LOADI	A,0
 04/B5: 3408     	LOADI	B,S_READ
@@ -815,7 +829,7 @@
 04/D1: 3000     3:	LOADI	A,0
 04/D2: 5401     	ADDI	B,1
 04/D3: A433     	STORE	[SRCBANK],B
-04/D4: 3808     	LOADI	C,SRC_B+4
+04/D4: 3809     	LOADI	C,SRC_B+4
 04/D5: D600     	CMP	B,C
 04/D6: F1EE     	BRB	1B
 04/D8:          	
@@ -834,7 +848,7 @@
 04/E3:          	
 04/E2:          	; GO READ A CHARACTER NOW
 04/E2: 3000     	LOADI	A,0
-04/E3: 3404     	LOADI	B,SRC_B
+04/E3: 3405     	LOADI	B,SRC_B
 04/E4: A433     	STORE	[SRCBANK],B
 04/E5: FFDF     	JUMP	1B
 04/E7:          
@@ -2091,10 +2105,122 @@
 0D/80:          SYM0_B	= BI
 0D/80:          
 0D/80:          	; DEFINES OR UPDATES A SYMBOL IN THE TABLE
-0D/80:          DEFINE:
-0D/80:          
-0D/80:          
-0D/80:          
-0D/80:          
-0D/80:          	; SET START OF HEAP
-0D/80:          HEAP	= BD+1
+0D/80:          	; [TBUF] = SYMBOL NAME
+0D/80:          	; [VALUE] = SYMBOL VALUE
+0D/80: AC12     DEFINE:	STORE	[SPARK],D
+0D/82:          
+0D/81:          	; START BY SEARCHING THE SYMBOL TABLE FOR EXISTING SYMBOLS
+0D/81: 3409     	LOADI	B,STAB_B
+0D/82: 3C01     0:	LOADI	D,ST_NAME
+0D/83: A418     	STORE	[TEMP],B
+0D/85:          	
+0D/84:          	; DO NAME CHECK
+0D/84: 38F8     1:	LOADI	C,0-8
+0D/86:          
+0D/85:          	; CHECK ALL 8 VALUE
+0D/85: 5808     2:	ADDI	C,8
+0D/86: 923A     	LOADF	A,[C+TBUF]
+0D/87: 8418     	LOAD	B,[TEMP]
+0D/88: A480     	STORE	[DBANK],B
+0D/89: 9700     	LOADF	B,[D]
+0D/8A: D100     	CMP	A,B
+0D/8B: F70F     	BRNZ	3F
+0D/8C: 3000     	LOADI 	A,0
+0D/8D: A080     	STORE	[DBANK],A
+0D/8E: 5C01     	ADDI	D,1
+0D/8F: 7807     	SUBI	C,7
+0D/90: F7F4     	BRNZ	2B
+0D/92:          	
+0D/91:          	; FOUND THE SYMBOL
+0D/91: 8014     9:	LOAD	A,[VALUE]
+0D/92: 8415     	LOAD	B,[VALUE+1]
+0D/93: 8818     	LOAD	C,[TEMP]
+0D/94: A880     	STORE	[DBANK],C
+0D/95: B300     	STOREF	[D],A
+0D/96: B301     	STOREF	[D+1],A
+0D/97: 3000     	LOADI	A,0
+0D/98: A080     	STORE	[DBANK],A
+0D/99: 8C12     	LOAD	D,[SPARK]
+0D/9A: FF68     	JUMP	IRET
+0D/9C:          
+0D/9B:          	; SYMBOL DOES NOT MATCH
+0D/9B: 6E00     3:	SUB	D,C
+0D/9C: 9300     	LOADF	A,[D]
+0D/9D: 5000     	ADDI	A,0
+0D/9E: F720     	BRNZ	0F
+0D/A0:          	
+0D/9F:          	; EXIT SYMBOL ENTRY
+0D/9F: 5C14     	ADDI	D,20
+0D/A0: F404     	BRN	4F
+0D/A1: 7C0A     	SUBI	D,10
+0D/A2: 3000     	LOADI	A,0
+0D/A3: A080     	STORE	[DBANK],A
+0D/A4: FFDF     	JUMP	1B
+0D/A6:          
+0D/A5:          	; NEXT BANK
+0D/A5: 8000     4:	LOAD	A,[ST_NEXT]
+0D/A6: 5000     	ADDI	A,0
+0D/A7: 3800     	LOADI	C,0
+0D/A8: A880     	STORE	[DBANK],C
+0D/A9: F602     	BRZ	5F
+0D/AA: A018     	STORE	[TEMP],A
+0D/AB: FFD8     	JUMP	1B
+0D/AD:          	
+0D/AC:          	; ALLOCATE A NEW BANK
+0D/AC: 844D     5:	LOAD	B,[NFREE]
+0D/AD: 8071     	LOAD	A,[MAX_DB]
+0D/AE: D400     	CMP	B,A
+0D/AF: F904     	BRBE	6F
+0D/B1:          	
+0D/B0:          	; ERROR! OUT OF MEMORY
+0D/B0: 308A     	LOADI	A,E_OMEM
+0D/B1: 3401     	LOADI	B,CORE0_B
+0D/B2: 38D2     	LOADI	C,ERROR
+0D/B3: FF4E     	JUMP	INDIR
+0D/B5:          	
+0D/B4:          	; SETUP NEW BANK 
+0D/B4: 8018     6:	LOAD	A,[TEMP]
+0D/B5: A080     	STORE	[DBANK],A
+0D/B6: A400     	STORE	[ST_NEXT],B
+0D/B8:          	
+0D/B7: 3000     	LOADI	A,0
+0D/B8: 3801     	LOADI	C,ST_NAME
+0D/B9: A000     	STORE	[ST_NEXT],A
+0D/BA: B200     7:	STOREF	[C],A
+0D/BB: 580A     	ADDI	C,10
+0D/BC: F5FD     	BRNN	7B
+0D/BE:          	
+0D/BD: A080     	STORE	[DBANK],A
+0D/BE: FFC3     	JUMP	0B
+0D/C0:          	
+0D/BF:          	; EMPTY SLOT, PUT THE SYMBOL HERE
+0D/BF:          0:	
+0D/BF:          	
+0D/BF:          	
+0D/BF:          	
+0D/BF:          
+0D/BF:          
+0D/BF:          
+0D/BF:          	; START OF SYMBOL TABLE
+0D/BF:          .BANK	BD
+09/EB:          .DATA
+09/00:          STAB_B	= BD
+09/00:          
+09/00:          	; SYMBOL TABLE DEFINITION
+09/00:          	; 0X00: NEXT BANK
+09/00:          	; 0X01-0X08: SYMBOL 0 NAME
+09/00:          	; 0X09-0X0A: SYMBOL 1 VALUE
+09/00:          	; 0X0B-0X13: SYMBOL 2 NAME
+09/00:          	; 0X14-0X15: SYMBOL 2 VALUE
+09/00:          	
+09/00:          	; IF A SYMBOL NAME STARTS WITH 0X00, IT IS UNALLOCATED
+09/00:          
+09/00: 00       .DEFL BYTE ST_NEXT	0
+09/01: 00000000
+       00000000 .DEFL BYTE ST_NAME	0,0,0,0,0,0,0,0
+09/09: 0000     .DEFL BYTE ST_VAL	0,0
+09/0B:          
+09/0B:          BD	= BD+1
+09/0B:          
+09/0B:          	; SET START OF HEAP
+09/0B:          HEAP	= BD

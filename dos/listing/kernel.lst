@@ -1111,17 +1111,6 @@ FB/9F: 80A7     	LOAD	A,[CF_STAT]
 FB/A0: C100     	SHIFTR	A
 FB/A1: F0E9     	BRC	BLKREAD
 FB/A3:          	
-FB/A2:          	; WAIT, DID WE JUST READ 0X13?
-FB/A2:          	;LOAD	A,[BLK]
-FB/A2:          	;SUBI	A,0
-FB/A2:          	;BRNZ	2F
-FB/A2:          	;LOAD	A,[BLK+1]
-FB/A2:          	;SUBI	A,0X13
-FB/A2:          	;LOAD	B,[D0]
-FB/A2:          	;STORE	[DBANK],B
-FB/A2:          	;LOAD	B,[0X7F]
-FB/A2:          	;BRZ	@
-FB/A2:          	
 FB/A2:          	; OPERATION COMPLETE
 FB/A2: 3000     2:	LOADI	A,0
 FB/A3: FF29     	JUMP	BLKDONE
