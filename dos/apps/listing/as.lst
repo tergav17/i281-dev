@@ -723,49 +723,61 @@
 03/C9: 3000     	LOADI	A,0
 03/CA: A03A     	STORE	[TBUF+1],A
 03/CC:          
+03/CB:          	; PRINT SOME DEBUGGING STUFF
 03/CB: 3803     	LOADI	C,BI
 03/CC: BB01     	STOREF	[D+1],C
-03/CD: 38D2     	LOADI	C,@+5
-03/CE: BB00     	STOREF	[D],C
-03/CF: 340D     	LOADI	B,SYM0_B
-03/D0: 3883     	LOADI	C,GETSYM
-03/D1: FF30     	JUMP	INDIR
-03/D3:          	
-03/D2: 3041     	LOADI	A,'A'
-03/D3: 3401     	LOADI	B,S_PUTC
-03/D4: 38D6     	LOADI	C,@+2
-03/D5: FF2E     	JUMP	SYSCALL
-03/D6: 303D     	LOADI	A,'='
-03/D7: 3401     	LOADI	B,S_PUTC
-03/D8: 38DA     	LOADI	C,@+2
-03/D9: FF2A     	JUMP	SYSCALL
-03/DA: 38DF     	LOADI	C,@+5
-03/DB: BB00     	STOREF	[D],C
-03/DC: 3402     	LOADI	B,PRNT0_B
-03/DD: 38B4     	LOADI	C,PRINTD
-03/DE: FF23     	JUMP	INDIR
-03/E0:          
-03/DF:          	; EXIT
-03/DF: 3401     	LOADI	B,CORE0_B
-03/E0: 38D0     	LOADI	C,EXIT
-03/E1: FF20     	JUMP	INDIR
-03/E3:          ; AS2.S
-03/E2:          ; SOURCE INPUT AND TOKENIZER
-03/E2:          ; GAVIN TERSTEEG, 2024
-03/E2:          ; SDMAY24-14
-03/E2:          
-03/E2:          ; NEW LINE CHARACTER
-03/E2:          NEWLINE	= 0X0A
-03/E2:          SEMICOL	= 0X3B
-03/E2:          SQUOTE	= 0X27
-03/E2:          DQUOTE	= 0X22
-03/E2:          SYMBOL	= 0X80
-03/E2:          NUMERIC	= 0X81
-03/E2:          
-03/E2:          
-03/E2:          BI	= BI+1
-03/E2:          .TEXT
-03/E2:          .BANK	BI
+03/CD: 3041     	LOADI	A,'A'
+03/CE: 3401     	LOADI	B,S_PUTC
+03/CF: 38D1     	LOADI	C,@+2
+03/D0: FF33     	JUMP	SYSCALL
+03/D1: 303D     	LOADI	A,'='
+03/D2: 3401     	LOADI	B,S_PUTC
+03/D3: 38D5     	LOADI	C,@+2
+03/D4: FF2F     	JUMP	SYSCALL
+03/D6:          	
+03/D5:          	; GET 'A' SYMBOL
+03/D5: 38DA     	LOADI	C,@+5
+03/D6: BB00     	STOREF	[D],C
+03/D7: 340D     	LOADI	B,SYM0_B
+03/D8: 3883     	LOADI	C,GETSYM
+03/D9: FF28     	JUMP	INDIR
+03/DA: 5000     	ADDI	A,0
+03/DB: F705     	BRNZ	1F
+03/DD:          	
+03/DC:          	; PRINT VALUE
+03/DC: 38E5     	LOADI	C,2F
+03/DD: BB00     	STOREF	[D],C
+03/DE: 3402     	LOADI	B,PRNT0_B
+03/DF: 38B4     	LOADI	C,PRINTD
+03/E0: FF21     	JUMP	INDIR
+03/E2:          	
+03/E1:          	; UNDEFINED
+03/E1: 303F     1:	LOADI	A,'?'
+03/E2: 3401     	LOADI	B,S_PUTC
+03/E3: 38E5     	LOADI	C,@+2
+03/E4: FF1F     	JUMP	SYSCALL
+03/E6:          
+03/E5:          	; EXIT
+03/E5: 3401     2:	LOADI	B,CORE0_B
+03/E6: 38D0     	LOADI	C,EXIT
+03/E7: FF1A     	JUMP	INDIR
+03/E9:          ; AS2.S
+03/E8:          ; SOURCE INPUT AND TOKENIZER
+03/E8:          ; GAVIN TERSTEEG, 2024
+03/E8:          ; SDMAY24-14
+03/E8:          
+03/E8:          ; NEW LINE CHARACTER
+03/E8:          NEWLINE	= 0X0A
+03/E8:          SEMICOL	= 0X3B
+03/E8:          SQUOTE	= 0X27
+03/E8:          DQUOTE	= 0X22
+03/E8:          SYMBOL	= 0X80
+03/E8:          NUMERIC	= 0X81
+03/E8:          
+03/E8:          
+03/E8:          BI	= BI+1
+03/E8:          .TEXT
+03/E8:          .BANK	BI
 04/80:          TOK0_B	= BI
 04/80:          
 04/80:          	; GETS THE NEXT TOKEN
