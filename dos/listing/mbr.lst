@@ -15,7 +15,7 @@
 01/80:          ZSTART	= 8
 01/80:          
 01/80:          ; DEFINES
-01/80:          HALT	= 0x7F
+01/80:          HALT	= 0X7F
 01/80:          
 01/80:          DBANK	= 0X80		; DATA BANK ADDRESS
 01/80:          

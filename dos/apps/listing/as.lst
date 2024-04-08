@@ -195,7 +195,7 @@
 01/CA: A044     	STORE	[PASS],A
 01/CC:          	
 01/CB:          	; SET NEXT FREE TO HEAP
-01/CB: 300A     	LOADI	A,HEAP
+01/CB: 300B     	LOADI	A,HEAP
 01/CC: A04C     	STORE	[NFREE],A
 01/CE:          	
 01/CD:          	; BEGIN ASSEMBLY
@@ -741,7 +741,7 @@
 03/D6: 38DB     	LOADI	C,@+5
 03/D7: BB00     	STOREF	[D],C
 03/D8: 340D     	LOADI	B,SYM0_B
-03/D9: 3883     	LOADI	C,GETSYM
+03/D9: 3886     	LOADI	C,GETSYM
 03/DA: FF27     	JUMP	INDIR
 03/DB: 5000     	ADDI	A,0
 03/DC: F705     	BRNZ	1F
@@ -1386,7 +1386,7 @@
 07/9F: 38A4     	LOADI	C,@+5
 07/A0: BB00     	STOREF	[D],C
 07/A1: 340D     	LOADI	B,SYM0_B
-07/A2: 3883     	LOADI	C,GETSYM
+07/A2: 3886     	LOADI	C,GETSYM
 07/A3: FF5E     	JUMP	INDIR
 07/A5:          	
 07/A4:          	; IS IT DEFINED?
@@ -2226,89 +2226,96 @@
 0D/81: 3880     	LOADI	C,DEFINEA
 0D/82: FF7F     	JUMP	INDIR
 0D/84:          	
-0D/83:          	; GET A SYMBOL VALUE
-0D/83:          	; [TBUF] = SYMBOL NAME
-0D/83:          	; RETURNS VALUE OF SYMBOL IN [VALUE]
-0D/83:          	; A = 0X00 IF DEFINE, 0XFF IF UNDEFINED 
-0D/83: AC10     GETSYM:STORE	[SPARK],D
-0D/85:          
-0D/84:          	; START BY SEARCHING THE SYMBOL TABLE FOR EXISTING SYMBOLS
-0D/84: 3409     	LOADI	B,STAB_B
-0D/85: 3C01     0:	LOADI	D,ST_NAME
-0D/86: A416     	STORE	[TEMP],B
-0D/88:          	
-0D/87:          	; DO NAME CHECK
-0D/87: 38F8     1:	LOADI	C,0-8
-0D/89:          
-0D/88:          	; COMPARE TBUF AND CURRENT SYMBOL
-0D/88: 5808     2:	ADDI	C,8
-0D/89: 9239     	LOADF	A,[C+TBUF]
-0D/8A: 8416     	LOAD	B,[TEMP]
-0D/8B: A480     	STORE	[DBANK],B
-0D/8C: 9700     	LOADF	B,[D]
-0D/8D: D100     	CMP	A,B
-0D/8E: F715     	BRNZ	3F
-0D/8F: 5000     	ADDI	A,0
-0D/90: F606     	BRZ	2F
-0D/91: 3000     	LOADI 	A,0
-0D/92: A080     	STORE	[DBANK],A
-0D/93: 5C01     	ADDI	D,1
-0D/94: 7807     	SUBI	C,7
-0D/95: F7F2     	BRNZ	2B
-0D/96: 3808     	LOADI	C,8
-0D/98:          	
-0D/97:          	; STRING TERMINATES, FIX POINTER AND RETURN
-0D/97: 6E00     2:	SUB	D,C
-0D/98: 5C08     	ADDI	D,8
-0D/9A:          	
-0D/99:          	; FOUND THE SYMBOL, GRAB THE VALUE
-0D/99: 9301     	LOADF	A,[D+1]
-0D/9A: 9702     	LOADF	B,[D+2]
-0D/9B: 9F00     	LOADF	D,[D]
-0D/9C: 3800     	LOADI	C,0
-0D/9D: A880     	STORE	[DBANK],C
-0D/9E: A012     	STORE	[VALUE],A
-0D/9F: A413     	STORE	[VALUE+1],B
-0D/A0: 30FF     	LOADI	A,0XFF
-0D/A1: 6300     	SUB	A,D
-0D/A2: 8C10     	LOAD	D,[SPARK]
-0D/A3: FF5F     	JUMP	IRET
-0D/A5:          
-0D/A4:          	; SYMBOL DOES NOT MATCH
-0D/A4: 6E00     3:	SUB	D,C
-0D/A5: 9300     	LOADF	A,[D]
-0D/A6: 5000     	ADDI	A,0
-0D/A7: F60E     	BRZ	5F
-0D/A9:          	
-0D/A8:          	; EXIT SYMBOL ENTRY
-0D/A8: 5C16     	ADDI	D,ST_SIZE*2
-0D/A9: F404     	BRN	4F
-0D/AA: 7C0B     	SUBI	D,ST_SIZE
-0D/AB: 3000     	LOADI	A,0
-0D/AC: A080     	STORE	[DBANK],A
-0D/AD: FFD9     	JUMP	1B
-0D/AF:          
-0D/AE:          	; NEXT BANK
-0D/AE: 8000     4:	LOAD	A,[ST_NEXT]
-0D/AF: 5000     	ADDI	A,0
-0D/B0: 3800     	LOADI	C,0
-0D/B1: A880     	STORE	[DBANK],C
-0D/B2: F603     	BRZ	5F
-0D/B3: A016     	STORE	[TEMP],A
-0D/B4: 3C01     	LOADI	D,ST_NAME
-0D/B5: FFD1     	JUMP	1B
-0D/B7:          
-0D/B6:          	; CANNOT FIND SYMBOL!
-0D/B6: 3800     5:	LOADI	C,0
-0D/B7: A880     	STORE	[DBANK],C
-0D/B8: 8C10     	LOAD	D,[SPARK]
-0D/B9: 30FF     	LOADI	A,0XFF
-0D/BA: FF48     	JUMP	IRET
-0D/BC:          
-0D/BB:          
-0D/BB:          BI	= BI+1
-0D/BB:          .TEXT
-0D/BB:          .BANK	BI
+0D/83:          	; ADDS A NEW LOCAL SYMBOL TO THE TABLE
+0D/83:          	; A = SYMBOL NAME
+0D/83:          	; [VALUE] = SYMBOL VALUE
+0D/83: 340F     ADDLOC:	LOADI	B,SYM2_B
+0D/84: 3880     	LOADI	C,ADDLOCA
+0D/85: FF7C     	JUMP	INDIR
+0D/87:          	
+0D/86:          	; GET A SYMBOL VALUE
+0D/86:          	; [TBUF] = SYMBOL NAME
+0D/86:          	; RETURNS VALUE OF SYMBOL IN [VALUE]
+0D/86:          	; A = 0X00 IF DEFINE, 0XFF IF UNDEFINED 
+0D/86: AC10     GETSYM:STORE	[SPARK],D
+0D/88:          
+0D/87:          	; START BY SEARCHING THE SYMBOL TABLE FOR EXISTING SYMBOLS
+0D/87: 3409     	LOADI	B,STAB_B
+0D/88: 3C01     0:	LOADI	D,ST_NAME
+0D/89: A416     	STORE	[TEMP],B
+0D/8B:          	
+0D/8A:          	; DO NAME CHECK
+0D/8A: 38F8     1:	LOADI	C,0-8
+0D/8C:          
+0D/8B:          	; COMPARE TBUF AND CURRENT SYMBOL
+0D/8B: 5808     2:	ADDI	C,8
+0D/8C: 9239     	LOADF	A,[C+TBUF]
+0D/8D: 8416     	LOAD	B,[TEMP]
+0D/8E: A480     	STORE	[DBANK],B
+0D/8F: 9700     	LOADF	B,[D]
+0D/90: D100     	CMP	A,B
+0D/91: F715     	BRNZ	3F
+0D/92: 5000     	ADDI	A,0
+0D/93: F606     	BRZ	2F
+0D/94: 3000     	LOADI 	A,0
+0D/95: A080     	STORE	[DBANK],A
+0D/96: 5C01     	ADDI	D,1
+0D/97: 7807     	SUBI	C,7
+0D/98: F7F2     	BRNZ	2B
+0D/99: 3808     	LOADI	C,8
+0D/9B:          	
+0D/9A:          	; STRING TERMINATES, FIX POINTER AND RETURN
+0D/9A: 6E00     2:	SUB	D,C
+0D/9B: 5C08     	ADDI	D,8
+0D/9D:          	
+0D/9C:          	; FOUND THE SYMBOL, GRAB THE VALUE
+0D/9C: 9301     	LOADF	A,[D+1]
+0D/9D: 9702     	LOADF	B,[D+2]
+0D/9E: 9F00     	LOADF	D,[D]
+0D/9F: 3800     	LOADI	C,0
+0D/A0: A880     	STORE	[DBANK],C
+0D/A1: A012     	STORE	[VALUE],A
+0D/A2: A413     	STORE	[VALUE+1],B
+0D/A3: 30FF     	LOADI	A,0XFF
+0D/A4: 6300     	SUB	A,D
+0D/A5: 8C10     	LOAD	D,[SPARK]
+0D/A6: FF5C     	JUMP	IRET
+0D/A8:          
+0D/A7:          	; SYMBOL DOES NOT MATCH
+0D/A7: 6E00     3:	SUB	D,C
+0D/A8: 9300     	LOADF	A,[D]
+0D/A9: 5000     	ADDI	A,0
+0D/AA: F60E     	BRZ	5F
+0D/AC:          	
+0D/AB:          	; EXIT SYMBOL ENTRY
+0D/AB: 5C16     	ADDI	D,ST_SIZE*2
+0D/AC: F404     	BRN	4F
+0D/AD: 7C0B     	SUBI	D,ST_SIZE
+0D/AE: 3000     	LOADI	A,0
+0D/AF: A080     	STORE	[DBANK],A
+0D/B0: FFD9     	JUMP	1B
+0D/B2:          
+0D/B1:          	; NEXT BANK
+0D/B1: 8000     4:	LOAD	A,[ST_NEXT]
+0D/B2: 5000     	ADDI	A,0
+0D/B3: 3800     	LOADI	C,0
+0D/B4: A880     	STORE	[DBANK],C
+0D/B5: F603     	BRZ	5F
+0D/B6: A016     	STORE	[TEMP],A
+0D/B7: 3C01     	LOADI	D,ST_NAME
+0D/B8: FFD1     	JUMP	1B
+0D/BA:          
+0D/B9:          	; CANNOT FIND SYMBOL!
+0D/B9: 3800     5:	LOADI	C,0
+0D/BA: A880     	STORE	[DBANK],C
+0D/BB: 8C10     	LOAD	D,[SPARK]
+0D/BC: 30FF     	LOADI	A,0XFF
+0D/BD: FF45     	JUMP	IRET
+0D/BF:          
+0D/BE:          
+0D/BE:          BI	= BI+1
+0D/BE:          .TEXT
+0D/BE:          .BANK	BI
 0E/80:          SYM1_B	= BI
 0E/80:          
 0E/80:          	; SHADOW OF DEFINE
@@ -2423,18 +2430,73 @@
 0E/D1:          	; GO PLACE THE POINTER
 0E/D1: 5C09     2:	ADDI	D,9
 0E/D2: FFC3     	JUMP	9B
-0E/D4:          
-0E/D3:          	; START OF SYMBOL TABLE
-0E/D3:          .BANK	BD
+0E/D4:          	
+0E/D3:          BI	= BI+1
+0E/D3:          .TEXT
+0E/D3:          .BANK	BI
+0F/80:          SYM2_B	= BI
+0F/80:          
+0F/80:          	; SHADOW OF ADDLOC
+0F/80:          	; FIND THE END OF THE TABLE
+0F/80: 380A     ADDLOCA:LOADI	C,LTAB_B
+0F/81: A880     0:	STORE	[DBANK],C
+0F/82: 8800     	LOAD	C,[LT_NEXT]
+0F/83: 5800     	ADDI	C,0
+0F/84: F7FC     	BRNZ	0B
+0F/86:          	
+0F/85:          	; IS THERE SPACE TO STORE A NEW LOCAL HERE?
+0F/85: 8401     	LOAD	B,[LT_FREE]
+0F/86: 5401     	ADDI	B,LT_SIZE-1
+0F/87: F510     	BRNN	2F
+0F/89:          	
+0F/88:          	; ALLOCATE A NEW BANK
+0F/88: 3400     	LOADI	B,0
+0F/89: A480     	STORE	[DBANK],B
+0F/8A: AC10     	STORE	[SPARK],D
+0F/8B: 844C     	LOAD	B,[NFREE]
+0F/8C: 8C71     	LOAD	D,[MAX_DB]
+0F/8D: D700     	CMP	B,D
+0F/8E: 8C10     	LOAD	D,[SPARK]
+0F/8F: F904     	BRBE	1F
+0F/91:          	
+0F/90:          	; ERROR! OUT OF MEMORY
+0F/90: 308A     	LOADI	A,E_OMEM
+0F/91: 3401     	LOADI	B,CORE0_B
+0F/92: 38D2     	LOADI	C,ERROR
+0F/93: FF6E     	JUMP	INDIR
+0F/95:          	
+0F/94:          	; LINK AND SETUP
+0F/94: 5401     1:	ADDI	B,1
+0F/95: A44C     	STORE	[NFREE],B
+0F/96: A880     	STORE	[DBANK],C
+0F/97: A400     	STORE	[LT_NEXT],B
+0F/99:          	
+0F/98:          
+0F/98:          	; THERE IS SPACE, LETS USE IT
+0F/98: 7401     2:	SUBI	B,LT_SIZE-1
+0F/99: B100     	STOREF	[B],A
+0F/9A: 3000     	LOADI	A,0
+0F/9B: A080     	STORE	[DBANK],A
+0F/9C: 8013     	LOAD	A,[VALUE+1]
+0F/9D: A880     	STORE	[DBANK],C
+0F/9E: B101     	STOREF	[B+1],A
+0F/9F: 3000     	LOADI	A,0
+0F/A0: A080     	STORE	[DBANK],A
+0F/A1: FF61     	JUMP	IRET
+0F/A3:          
+0F/A2:          	; START OF SYMBOL TABLE
+0F/A2:          .BANK	BD
 09/EE:          .DATA
 09/00:          STAB_B	= BD
 09/00:          
 09/00:          	; SYMBOL TABLE DEFINITION
-09/00:          	; 0X00: NEXT BANK
+09/00:          	; 0X00     : NEXT BANK
 09/00:          	; 0X01-0X08: SYMBOL 0 NAME
-09/00:          	; 0X09-0X0A: SYMBOL 1 VALUE
-09/00:          	; 0X0B-0X13: SYMBOL 2 NAME
-09/00:          	; 0X14-0X15: SYMBOL 2 VALUE
+09/00:          	; 0X09     : SYMBOL 0 DEFINED
+09/00:          	; 0X0A-0X0B: SYMBOL 0 VALUE
+09/00:          	; 0X0C-0X14: SYMBOL 1 NAME
+09/00:          	; 0X15     : SYMBOL 1 DEFINED
+09/00:          	; 0X16-0X17: SYMBOL 1 VALUE
 09/00:          	
 09/00:          	; IF A SYMBOL NAME STARTS WITH 0X00, IT IS UNALLOCATED
 09/00:          
@@ -2447,5 +2509,27 @@
 09/0C:          
 09/0C:          BD	= BD+1
 09/0C:          
-09/0C:          	; SET START OF HEAP
-09/0C:          HEAP	= BD
+09/0C:          	; START OF LOCAL TABLE
+09/0C:          .BANK	BD
+0A/00:          .DATA
+0A/00:          LTAB_B	= BD
+0A/00:          
+0A/00:          	; LOCAL TABLE DEFINITION
+0A/00:          	; 0X00: NEXT BANK
+0A/00:          	; 0X01: NEXT FREE SYMBOL
+0A/00:          	; 0X02: SYMBOL 0 NAME
+0A/00:          	; 0X03: SYMBOL 0 VALUE
+0A/00:          	; 0X04: SYMBOL 1 NAME
+0A/00:          	; 0X05: SYMBOL 1 VALUE
+0A/00:          	
+0A/00: 00       .DEFL BYTE LT_NEXT	0
+0A/01: 00       .DEFL BYTE LT_FREE	0
+0A/02: 00       .DEFL BYTE LT_NAME	0
+0A/03: 00       .DEFL BYTE LT_VAL	0
+0A/04:          LT_SIZE = @-LT_NAME
+0A/04:          	
+0A/04:          
+0A/04:          BD	= BD+1
+0A/04:          
+0A/04:          	; SET START OF HEAP
+0A/04:          HEAP	= BD
