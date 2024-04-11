@@ -2330,11 +2330,50 @@
 0E/BB: 8C10     	LOAD	D,[SPARK]
 0E/BC: 30FF     	LOADI	A,0XFF
 0E/BD: FF45     	JUMP	IRET
-0E/BF:          
-0E/BE:          
-0E/BE:          BI	= BI+1
-0E/BE:          .TEXT
-0E/BE:          .BANK	BI
+0E/BF:          	
+0E/BE:          	; GETS THE VALUE OF A LOCAL SYMBOL
+0E/BE:          	; A COUNTER MUST BE SUPPLIED TO DETERMINE
+0E/BE:          	; HOW MANY ENTRIES WILL BE SKIPPED BEFORE
+0E/BE:          	; A MATCH CAN BE MADE
+0E/BE:          	; A = NAME OF LOCAL SYMBOL
+0E/BE:          	; [NUMLOC] = # OF LOCALS TO SKIP
+0E/BE:          	; RETURNS A = 0XFF IF UNDEFINED, 0X00 OTHERWISE
+0E/BE:          	; VALUE IS RETURNED IN [VALUE]
+0E/BE: A011     GETLOC:	STORE	[CHAR],A
+0E/BF: 804D     	LOAD	A,[NUMLOC]
+0E/C0: 844E     	LOAD	B,[NUMLOC+1]
+0E/C1: A016     	STORE	[TEMP],A
+0E/C2: A417     	STORE	[TEMP+1],B
+0E/C3: 380A     	LOADI	C,LTAB_B
+0E/C5:          
+0E/C4: 8412     0:	LOAD	B,[VALUE]
+0E/C5: 5400     	ADDI	B,0
+0E/C6: F700     	BRNZ	1F
+0E/C8:          	
+0E/C7:          	
+0E/C7:          	; NEXT BANK
+0E/C7: A880     1:	STORE	[DBANK],C
+0E/C8: 8800     	LOAD	C,[LT_NEXT]
+0E/C9: 3000     	LOADI	A,0
+0E/CA: A080     	STORE	[DBANK],A
+0E/CB: 5800     	ADDI	C,0
+0E/CC: F6B8     	BRZ	2F
+0E/CE:          	
+0E/CD:          	; SUBTRACT FROM [VALUE]
+0E/CD: 8413     	LOAD	B,[VALUE+1]
+0E/CE: 303F     	LOADI	A,LT_CNT
+0E/CF: 6400     	SUB	B,A
+0E/D0: A413     	STORE	[VALUE+1],B
+0E/D1: F0F2     	BRC	0B
+0E/D2: 8412     	LOAD	B,[VALUE]
+0E/D3: 7401     	SUBI	B,1
+0E/D4: A412     	STORE	[VALUE],B
+0E/D5: FFEE     	JUMP	0B
+0E/D7:          
+0E/D6:          
+0E/D6:          BI	= BI+1
+0E/D6:          .TEXT
+0E/D6:          .BANK	BI
 0F/80:          SYM1_B	= BI
 0F/80:          
 0F/80:          	; SHADOW OF DEFINE
@@ -2561,6 +2600,7 @@
 0A/02: 00       .DEFL BYTE LT_NAME	0
 0A/03: 00       .DEFL BYTE LT_VAL	0
 0A/04:          LT_SIZE = @-LT_NAME
+0A/04:          LT_CNT	= (128-LT_NAME)/LT_SIZE
 0A/04:          	
 0A/04:          
 0A/04:          BD	= BD+1
