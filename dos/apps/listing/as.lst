@@ -2346,34 +2346,11 @@
 0E/C2: A417     	STORE	[TEMP+1],B
 0E/C3: 380A     	LOADI	C,LTAB_B
 0E/C5:          
-0E/C4: 8412     0:	LOAD	B,[VALUE]
-0E/C5: 5400     	ADDI	B,0
-0E/C6: F700     	BRNZ	1F
-0E/C8:          	
-0E/C7:          	
-0E/C7:          	; NEXT BANK
-0E/C7: A880     1:	STORE	[DBANK],C
-0E/C8: 8800     	LOAD	C,[LT_NEXT]
-0E/C9: 3000     	LOADI	A,0
-0E/CA: A080     	STORE	[DBANK],A
-0E/CB: 5800     	ADDI	C,0
-0E/CC: F6B8     	BRZ	2F
-0E/CE:          	
-0E/CD:          	; SUBTRACT FROM [VALUE]
-0E/CD: 8413     	LOAD	B,[VALUE+1]
-0E/CE: 303F     	LOADI	A,LT_CNT
-0E/CF: 6400     	SUB	B,A
-0E/D0: A413     	STORE	[VALUE+1],B
-0E/D1: F0F2     	BRC	0B
-0E/D2: 8412     	LOAD	B,[VALUE]
-0E/D3: 7401     	SUBI	B,1
-0E/D4: A412     	STORE	[VALUE],B
-0E/D5: FFEE     	JUMP	0B
-0E/D7:          
-0E/D6:          
-0E/D6:          BI	= BI+1
-0E/D6:          .TEXT
-0E/D6:          .BANK	BI
+0E/C4:          
+0E/C4:          
+0E/C4:          BI	= BI+1
+0E/C4:          .TEXT
+0E/C4:          .BANK	BI
 0F/80:          SYM1_B	= BI
 0F/80:          
 0F/80:          	; SHADOW OF DEFINE
