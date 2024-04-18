@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<!-- i281 'Interactive' Opcode Table -->
+
+<html>
+	<head>
+		<title>i281 Opcode Table</title>
+	</head>
+
+	<h1>i281 Opcode Table
+
+	<body>
+	
+		<!-- Main Opcode Table -->
+		<table cellspacing="0" cellpadding="0" bgcolor="#bfbfbf" width="1000">
+		
+		
+		<!-- Table Header -->
+		<tbody>
+			<tr style="font-family: monospace; font-size: 8pt" align="center" bgcolor="#a0a0a0">
+				<td class="withborder"></td>
+				<td style="width: 7em"><b>0x-0</b></td>
+				<td style="width: 7em"><b>0x-1</b></td>
+				<td style="width: 7em"><b>0x-2</b></td>
+				<td style="width: 7em"><b>0x-3</b></td>
+				<td style="width: 7em"><b>0x-4</b></td>
+				<td style="width: 7em"><b>0x-5</b></td>
+				<td style="width: 7em"><b>0x-6</b></td>
+				<td style="width: 7em"><b>0x-7</b></td>
+				<td style="width: 7em"><b>0x-8</b></td>
+				<td style="width: 7em"><b>0x-9</b></td>
+				<td style="width: 7em"><b>0x-A</b></td>
+				<td style="width: 7em"><b>0x-B</b></td>
+				<td style="width: 7em"><b>0x-C</b></td>
+				<td style="width: 7em"><b>0x-D</b></td>
+				<td style="width: 7em"><b>0x-E</b></td>
+				<td style="width: 7em"><b>0x-F</b></td>
+			</tr>
+		
+		
+		
+		<!-- 0x0- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x0-<br><br></b></td>
+			<td bgcolor="#f77e7e">MOV A,A<br>NOOP<br>
+			<td bgcolor="#f7bb7e">MOV A,B<br>
+			<td bgcolor="#f7bb7e">MOV A,C<br>
+			<td bgcolor="#f7bb7e">MOV A,D<br>
+			<td bgcolor="#f7bb7e">MOV B,A<br>
+			<td bgcolor="#f77e7e">MOV B,B<br>NOOP<br>
+			<td bgcolor="#f7bb7e">MOV B,C<br>
+			<td bgcolor="#f7bb7e">MOV B,D<br>
+			<td bgcolor="#f7bb7e">MOV C,A<br>
+			<td bgcolor="#f7bb7e">MOV C,B<br>
+			<td bgcolor="#f77e7e">MOV C,C<br>NOOP<br>
+			<td bgcolor="#f7bb7e">MOV C,D<br>
+			<td bgcolor="#f7bb7e">MOV D,A<br>
+			<td bgcolor="#f7bb7e">MOV D,B<br>
+			<td bgcolor="#f7bb7e">MOV D,C<br>
+			<td bgcolor="#f77e7e">MOV D,D<br>NOOP<br>
+			
+		<!-- 0x1- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x1-<br><br></b></td>
+			<td bgcolor="#5c5cf7">INPUTC [*]<br>
+			<td bgcolor="#5c5cf7">INPUTCF [A+*]<br>
+			<td bgcolor="#5c5cf7">INPUTD [*]<br>
+			<td bgcolor="#5c5cf7">INPUTDF [A+*]<br>
+			<td bgcolor="#5cdc47">CACHE A<br>
+			<td bgcolor="#5c5cf7">INPUTCF [B+*]<br>
+			<td bgcolor="#5cdc47">WRITE [B+*],A<br>
+			<td bgcolor="#5c5cf7">INPUTDF [B+*]<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#5c5cf7">INPUTCF [C+*]<br>
+			<td bgcolor="#5cdc47">WRITE [C+*],A<br>
+			<td bgcolor="#5c5cf7">INPUTDF [C+*]<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#5c5cf7">INPUTCF [D+*]<br>
+			<td bgcolor="#5cdc47">WRITE [D+*],A<br>
+			<td bgcolor="#5c5cf7">INPUTDF [D+*]<br>
+			
+		<!-- 0x2- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>&nbsp;0x2-&nbsp;<br><br></b></td>
+			<td bgcolor="#e79ec3">BANK A+*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#e79ec3">BANK B+*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#e79ec3">BANK C+*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#e79ec3">BANK D+*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			
+		<!-- 0x3- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x3-<br><br></b></td>
+			<td bgcolor="#f77ec3">LOADI A,*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#f7f37e">LOAD A,[*]<br>
+			<td bgcolor="#7e84f7">STORE [*],A<br>
+			<td bgcolor="#f77ec3">LOADI B,*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#f7f37e">LOAD B,[*]<br>
+			<td bgcolor="#7e84f7">STORE [*],B<br>
+			<td bgcolor="#f77ec3">LOADI C,*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#f7f37e">LOAD C,[*]<br>
+			<td bgcolor="#7e84f7">STORE [*],C<br>
+			<td bgcolor="#f77ec3">LOADI D,*<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#f7f37e">LOAD D,[*]<br>
+			<td bgcolor="#7e84f7">STORE [*],D<br>
+			
+		<!-- 0x4- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x4-<br><br></b></td>
+			<td bgcolor="#f7d39e">NORI A,*<br>
+			<td bgcolor="#d57ef7">SHIFTR A<br>
+			<td bgcolor="#7ec1f7">ADDI A,*<br>
+			<td bgcolor="#7ef7b0">SUBI A,*<br>
+			<td bgcolor="#f7d39e">NORI B,*<br>
+			<td bgcolor="#d57ef7">SHIFTR B<br>
+			<td bgcolor="#7ec1f7">ADDI B,*<br>
+			<td bgcolor="#7ef7b0">SUBI B,*<br>
+			<td bgcolor="#f7d39e">NORI C,*<br>
+			<td bgcolor="#d57ef7">SHIFTR C<br>
+			<td bgcolor="#7ec1f7">ADDI C,*<br>
+			<td bgcolor="#7ef7b0">SUBI C,*<br>
+			<td bgcolor="#f7d39e">NORI D,*<br>
+			<td bgcolor="#d57ef7">SHIFTR D<br>
+			<td bgcolor="#7ec1f7">ADDI D,*<br>
+			<td bgcolor="#7ef7b0">SUBI D,*<br>
+			
+		<!-- 0x5- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x5-<br><br></b></td>
+			<td bgcolor="#7ec1f7">ADD A,A<br>SHIFTL A<br>
+			<td bgcolor="#7ec1f7">ADD A,B<br>
+			<td bgcolor="#7ec1f7">ADD A,C<br>
+			<td bgcolor="#7ec1f7">ADD A,D<br>
+			<td bgcolor="#7ec1f7">ADD B,A<br>
+			<td bgcolor="#a27ef7">ADD B,B<br>SHIFTL B<br>
+			<td bgcolor="#7ec1f7">ADD B,C<br>
+			<td bgcolor="#7ec1f7">ADD B,D<br>
+			<td bgcolor="#7ec1f7">ADD C,A<br>
+			<td bgcolor="#7ec1f7">ADD C,B<br>
+			<td bgcolor="#a27ef7">ADD C,C<br>SHIFTL C<br>
+			<td bgcolor="#7ec1f7">ADD C,D<br>
+			<td bgcolor="#7ec1f7">ADD D,A<br>
+			<td bgcolor="#7ec1f7">ADD D,B<br>
+			<td bgcolor="#7ec1f7">ADD D,C<br>
+			<td bgcolor="#a27ef7">ADD D,D<br>SHIFTL D<br>	
+			
+		<!-- 0x6- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x6-<br><br></b></td>
+			<td bgcolor="#7ef7b0">SUB A,A<br>
+			<td bgcolor="#7ef7b0">SUB A,B<br>
+			<td bgcolor="#7ef7b0">SUB A,C<br>
+			<td bgcolor="#7ef7b0">SUB A,D<br>
+			<td bgcolor="#7ef7b0">SUB B,A<br>
+			<td bgcolor="#7ef7b0">SUB B,B<br>
+			<td bgcolor="#7ef7b0">SUB B,C<br>
+			<td bgcolor="#7ef7b0">SUB B,D<br>
+			<td bgcolor="#7ef7b0">SUB C,A<br>
+			<td bgcolor="#7ef7b0">SUB C,B<br>
+			<td bgcolor="#7ef7b0">SUB C,C<br>
+			<td bgcolor="#7ef7b0">SUB C,D<br>
+			<td bgcolor="#7ef7b0">SUB D,A<br>
+			<td bgcolor="#7ef7b0">SUB D,B<br>
+			<td bgcolor="#7ef7b0">SUB D,C<br>
+			<td bgcolor="#7ef7b0">SUB D,D<br>
+			
+		<!-- 0x7- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x7-<br><br></b></td>
+			<td bgcolor="#f7d39e">NOR A,A<br>
+			<td bgcolor="#f7d39e">NOR A,B<br>
+			<td bgcolor="#f7d39e">NOR A,C<br>
+			<td bgcolor="#f7d39e">NOR A,D<br>
+			<td bgcolor="#f7d39e">NOR B,A<br>
+			<td bgcolor="#f7d39e">NOR B,B<br>
+			<td bgcolor="#f7d39e">NOR B,C<br>
+			<td bgcolor="#f7d39e">NOR B,D<br>
+			<td bgcolor="#f7d39e">NOR C,A<br>
+			<td bgcolor="#f7d39e">NOR C,B<br>
+			<td bgcolor="#f7d39e">NOR C,C<br>
+			<td bgcolor="#f7d39e">NOR C,D<br>
+			<td bgcolor="#f7d39e">NOR D,A<br>
+			<td bgcolor="#f7d39e">NOR D,B<br>
+			<td bgcolor="#f7d39e">NOR D,C<br>
+			<td bgcolor="#f7d39e">NOR D,D<br>
+			
+		<!-- 0x8- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x8-<br><br></b></td>
+			<td bgcolor="#7ea8f7">CMP A,A<br>
+			<td bgcolor="#7ea8f7">CMP A,B<br>
+			<td bgcolor="#7ea8f7">CMP A,C<br>
+			<td bgcolor="#7ea8f7">CMP A,D<br>
+			<td bgcolor="#7ea8f7">CMP B,A<br>
+			<td bgcolor="#7ea8f7">CMP B,B<br>
+			<td bgcolor="#7ea8f7">CMP B,C<br>
+			<td bgcolor="#7ea8f7">CMP B,D<br>
+			<td bgcolor="#7ea8f7">CMP C,A<br>
+			<td bgcolor="#7ea8f7">CMP C,B<br>
+			<td bgcolor="#7ea8f7">CMP C,C<br>
+			<td bgcolor="#7ea8f7">CMP C,D<br>
+			<td bgcolor="#7ea8f7">CMP D,A<br>
+			<td bgcolor="#7ea8f7">CMP D,B<br>
+			<td bgcolor="#7ea8f7">CMP D,C<br>
+			<td bgcolor="#7ea8f7">CMP D,D<br>
+	
+		<!-- 0x9- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0x9-<br><br></b></td>
+			<td bgcolor="#80f77e">LOADF A,[A+*]<br>
+			<td bgcolor="#80f77e">LOADF A,[B+*]<br>
+			<td bgcolor="#80f77e">LOADF A,[C+*]<br>
+			<td bgcolor="#80f77e">LOADF A,[D+*]<br>
+			<td bgcolor="#80f77e">LOADF B,[A+*]<br>
+			<td bgcolor="#80f77e">LOADF B,[B+*]<br>
+			<td bgcolor="#80f77e">LOADF B,[C+*]<br>
+			<td bgcolor="#80f77e">LOADF B,[D+*]<br>
+			<td bgcolor="#80f77e">LOADF C,[A+*]<br>
+			<td bgcolor="#80f77e">LOADF C,[B+*]<br>
+			<td bgcolor="#80f77e">LOADF C,[C+*]<br>
+			<td bgcolor="#80f77e">LOADF C,[D+*]<br>
+			<td bgcolor="#80f77e">LOADF D,[A+*]<br>
+			<td bgcolor="#80f77e">LOADF D,[B+*]<br>
+			<td bgcolor="#80f77e">LOADF D,[C+*]<br>
+			<td bgcolor="#80f77e">LOADF D,[D+*]<br>
+
+
+			
+		<!-- 0xA- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0xA-<br><br></b></td>
+			<td bgcolor="#58f5a7">STOREF [A+*],A<br>
+			<td bgcolor="#58f5a7">STOREF [B+*],A<br>
+			<td bgcolor="#58f5a7">STOREF [C+*],A<br>
+			<td bgcolor="#58f5a7">STOREF [D+*],A<br>
+			<td bgcolor="#58f5a7">STOREF [A+*],B<br>
+			<td bgcolor="#58f5a7">STOREF [B+*],B<br>
+			<td bgcolor="#58f5a7">STOREF [C+*],B<br>
+			<td bgcolor="#58f5a7">STOREF [D+*],B<br>
+			<td bgcolor="#58f5a7">STOREF [A+*],C<br>
+			<td bgcolor="#58f5a7">STOREF [B+*],C<br>
+			<td bgcolor="#58f5a7">STOREF [C+*],C<br>
+			<td bgcolor="#58f5a7">STOREF [D+*],C<br>
+			<td bgcolor="#58f5a7">STOREF [A+*],D<br>
+			<td bgcolor="#58f5a7">STOREF [B+*],D<br>
+			<td bgcolor="#58f5a7">STOREF [C+*],D<br>
+			<td bgcolor="#58f5a7">STOREF [D+*],D<br>
+			
+			
+		<!-- 0xB- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0xB-<br><br></b></td>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			
+		<!-- 0xC- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0xC-<br><br></b></td>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			
+		<!-- 0xD- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0xD-<br><br></b></td>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			
+		<!-- 0xE- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0xE-<br><br></b></td>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			<td bgcolor="#a0a0a0">---<br>
+			
+		<!-- 0xF- Class Instructions -->
+		<tr style="font-family: monospace; font-size: 8pt" align="center">
+			<td bgcolor="#a0a0a0"><b><br>0xF-<br><br></b></td>
+			<td bgcolor="#7e8ef7">BRC *<br>BRAE *<br>
+			<td bgcolor="#7e8ef7">BRNC *<br>BRB *<br>
+			<td bgcolor="#7e8ef7">BRO *<br>
+			<td bgcolor="#7e8ef7">BRNO *<br>
+			<td bgcolor="#7e8ef7">BRN *<br>
+			<td bgcolor="#7e8ef7">BRNN *<br>BRP *<br>
+			<td bgcolor="#7e8ef7">BRZ *<br>BRE *<br>
+			<td bgcolor="#7e8ef7">BRNZ *<br>BRNE *<br>
+			<td bgcolor="#7e8ef7">BRA *<br>
+			<td bgcolor="#7e8ef7">BRBE *<br>
+			<td bgcolor="#7e8ef7">BRG *<br>
+			<td bgcolor="#7e8ef7">BRGE *<br>
+			<td bgcolor="#7e8ef7">BRL *<br>
+			<td bgcolor="#7e8ef7">BRLE *<br>
+			<td bgcolor="#7e8ef7">JUMPR C+*<br>
+			<td bgcolor="#7e8ef7">JUMP *<br>
+			
+		</tbody></table>
+	</body>
+</html>
