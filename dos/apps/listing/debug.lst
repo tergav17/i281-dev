@@ -860,7 +860,7 @@
 07/B2: 3409     	LOADI	B,WORK_B+2
 07/B3: A480     	STORE	[DBANK],B
 07/B4: 3000     	LOADI	A,0
-07/B5: 3820     	LOADI	C,0X20
+07/B5: 3800     	LOADI	C,0
 07/B6: B800     3:	STOREF	[A],C
 07/B7: 5001     	ADDI	A,1
 07/B8: F5FD     	BRNN	3B
@@ -1060,7 +1060,7 @@
 05/00:          .DATA
 05/00:          .BANK	BD
 07/00:          WORK_B	= BD
-07/00:          BD	= BD+3
+07/00:          BD	= BD+4
 07/00:          
 07/00:          	; WORK BANK
 07/00:          	; WORK_B + 0 = RECORD HEADER
