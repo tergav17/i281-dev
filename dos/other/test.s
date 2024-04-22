@@ -2,6 +2,9 @@
 .BANK 1
 
 	NOOP
+	MOV	A,B
+	ADD	C,D
+	SUB	D,A
 
 .DATA
 
