@@ -100,6 +100,9 @@ struct instruct isr_table[] = {
 	{ JUMPR, "jumpr", 0xFE, 0 },
 	{ BRANCH, "jump", 0xFF, 0 },
 	
+	{ IMM, "nori", 0xC0, 0 },
+	{ ARITH, "nor", 0xE0, 0 },
+	
 	{ END, "", 0x00, 0x00}
 };
 

@@ -14,8 +14,8 @@ binary/as.sv: dosdef.s source/as0.s source/as1.s source/as2.s source/as3.s sourc
 	mv as.sav binary/as.sv
 	mv as.lst listing
 	
-binary/sqplay.sv: dosdef.s source/sqp0.s
-	$(I281_ASM) -o sqplay dosdef.s source/sqp0.s
+binary/sqplay.sv: dosdef.s source/sqp0.s source/sqp1.s
+	$(I281_ASM) -o sqplay dosdef.s source/sqp0.s source/sqp1.s
 	mv sqplay.sav binary/sqplay.sv
 	mv sqplay.lst listing
 

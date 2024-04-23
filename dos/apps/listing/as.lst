@@ -5061,6 +5061,10 @@
        52000DFE 			"JUMPR",0,	BJUMPR,	0XFE,
 1B/45: 4A554D50
        000BFF   			"JUMP",0,	BRANCH,	0XFF,
-1B/4C: 00       			END
-1B/4D:          
-1B/4D:          BD	= BD+1
+1B/4C: 4E4F5200
+       02E0     			"NOR",0,	ARITH,	0XE0,
+1B/52: 4E4F5249
+       0003C0   			"NORI",0,	IMM,	0XC0,
+1B/59: 00       			END
+1B/5A:          
+1B/5A:          BD	= BD+1

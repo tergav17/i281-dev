@@ -95,6 +95,8 @@ ITAB2_B	= BD
 			"BRLE",0,	BRANCH,	0XFD,
 			"JUMPR",0,	BJUMPR,	0XFE,
 			"JUMP",0,	BRANCH,	0XFF,
+			"NOR",0,	ARITH,	0XE0,
+			"NORI",0,	IMM,	0XC0,
 			END
 
 BD	= BD+1
