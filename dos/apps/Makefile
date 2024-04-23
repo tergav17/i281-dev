@@ -1,6 +1,8 @@
 I281_ASM = "../../i281as"
 
-all: binary/hello.sv binary/dir.sv binary/cat.sv binary/cd.sv binary/echo.sv binary/stat.sv binary/ed.sv binary/rm.sv binary/xmodem.sv binary/cp.sv binary/hdump.sv binary/debug.sv binary/as.sv binary/sh.sv
+all: binary/hello.sv binary/dir.sv binary/cat.sv binary/cd.sv binary/echo.sv \
+     binary/stat.sv binary/ed.sv binary/rm.sv binary/xmodem.sv binary/cp.sv  \
+	 binary/hdump.sv binary/debug.sv binary/as.sv binary/sh.sv binary/sqplay.sv
 
 binary/ed.sv: dosdef.s source/ed0.s source/ed1.s source/ed2.s source/ed3.s
 	$(I281_ASM) -o ed dosdef.s source/ed0.s source/ed1.s source/ed2.s source/ed3.s
@@ -11,6 +13,11 @@ binary/as.sv: dosdef.s source/as0.s source/as1.s source/as2.s source/as3.s sourc
 	$(I281_ASM) -o as dosdef.s source/as0.s source/as1.s source/as2.s source/as3.s source/as4.s source/as5.s source/as6.s source/as7.s
 	mv as.sav binary/as.sv
 	mv as.lst listing
+	
+binary/sqplay.sv: dosdef.s source/sqp0.s
+	$(I281_ASM) -o sqplay dosdef.s source/sqp0.s
+	mv sqplay.sav binary/sqplay.sv
+	mv sqplay.lst listing
 
 binary/%.sv: dosdef.s source/%.s
 	$(I281_ASM) -o $* dosdef.s source/$*.s
