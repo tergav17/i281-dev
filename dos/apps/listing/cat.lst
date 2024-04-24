@@ -73,7 +73,7 @@
 01/83:          	
 01/82:          	; RESET ARG STATE
 01/82: A000     	STORE	[ARGC],A
-01/83: A011     	STORE	[ARGUMENT],A
+01/83: A011     	STORE	[ARGMNT],A
 01/85:          	
 01/84:          	; SET UP STACK
 01/84: 3C5E     	LOADI	D,0X60-2
@@ -179,7 +179,7 @@
 01/C4:          	; A = FILE STRING START
 01/C4: 8072     0:	LOAD	A,[CMDL_B]
 01/C5: A06C     	STORE	[ARG_BNK],A
-01/C6: 8011     	LOAD	A,[ARGUMENT]
+01/C6: 8011     	LOAD	A,[ARGMNT]
 01/C7: 9001     	LOADF	A,[A+ARGV]
 01/C9:          	
 01/C8:          	; OPEN FILE
@@ -256,9 +256,9 @@
 01/F5:          	; NEXT FILE
 01/F5: 3400     NEXT:	LOADI	B,0
 01/F6: A480     	STORE	[DBANK],B
-01/F7: 8011     	LOAD	A,[ARGUMENT]
+01/F7: 8011     	LOAD	A,[ARGMNT]
 01/F8: 5001     	ADDI	A,1
-01/F9: A011     	STORE	[ARGUMENT],A
+01/F9: A011     	STORE	[ARGMNT],A
 01/FA: 8400     	LOAD	B,[ARGC]
 01/FB: D100     	CMP	A,B
 01/FC: F7C7     	BRNZ	0B
@@ -302,7 +302,7 @@
        00000000 			0,0,0,0,0,0,0,0
 00/11:          
 00/11:          	; ARGUMENT COUNTER
-00/11: 00       .DEFL BYTE ARGUMENT	0
+00/11: 00       .DEFL BYTE ARGMNT	0
 00/12:          
 00/12:          	; READ BLOCK COUNTER
 00/12: 00       .DEFL BYTE COUNT	0
