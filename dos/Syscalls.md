@@ -33,6 +33,9 @@ The procedure to execute a system call is as follows:
 | 13        | S_CREAT | A = String address \ [ARG_BNK] = String bank | A = 0x00 if successful, 0xFF otherwise | Creates a new file, if the file already exists it will be replaced. File will then be opened. |
 | 14        | S_FREE  | None      | [BD_FREE] = Remaining free blocks | Calculates the remaining free blocks on the block device. Should be run after a file close | 
 | 15        | S_EXEC  | None      | None              | Takes the content in the argument buffer and attempts to execute it |
+| 16        | S_PRNTC | A = Character | None          | Sends a character to the printer. Syscall will wait until printer becomes ready |
+| 17        | S_PSTAT | None      | A = Status        | Returns printer status, A = 0xFF will be returned if the printer is ready to recieve a character |
+
 
 ## File I/O Operations
 

@@ -33,6 +33,8 @@
 01/80:          S_CREAT	= 13
 01/80:          S_FREE	= 14
 01/80:          S_EXEC	= 15
+01/80:          S_PRNTC	= 16
+01/80:          S_PSTAT	= 17
 01/80:          
 01/80:          ; MEMORY AREAS
 01/80:          CF_NAME	= 0X60

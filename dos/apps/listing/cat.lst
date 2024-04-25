@@ -33,6 +33,8 @@
 01/80:          S_CREAT	= 13
 01/80:          S_FREE	= 14
 01/80:          S_EXEC	= 15
+01/80:          S_PRNTC	= 16
+01/80:          S_PSTAT	= 17
 01/80:          
 01/80:          ; MEMORY AREAS
 01/80:          CF_NAME	= 0X60
@@ -73,7 +75,7 @@
 01/83:          	
 01/82:          	; RESET ARG STATE
 01/82: A000     	STORE	[ARGC],A
-01/83: A011     	STORE	[ARGMNT],A
+01/83: A012     	STORE	[ARGMNT],A
 01/85:          	
 01/84:          	; SET UP STACK
 01/84: 3C5E     	LOADI	D,0X60-2
@@ -82,193 +84,253 @@
 01/85: 3801     	LOADI	C,1	
 01/86: BB01     	STOREF	[D+1],C
 01/88:          	
-01/87:          	; SET UP POINTER
+01/87:          	; SET UP FLAGS
 01/87: 3800     	LOADI	C,0
-01/89:          	
-01/88:          	; GO TO ARGUMENT BANK
-01/88: 8072     0:	LOAD	A,[CMDL_B]
-01/89: A06C     	STORE	[ARG_BNK],A
-01/8A: A080     	STORE	[DBANK],A
-01/8C:          
-01/8B:          	; SKIP THE CURRENT ARGUMENT
-01/8B: 9200     1:	LOADF	A,[C]
-01/8C: 3420     	LOADI	B,0X20
-01/8D: D100     	CMP	A,B
-01/8E: F902     	BRBE	2F
-01/8F: 5801     	ADDI	C,1
-01/90: FFFA     	JUMP	1B
-01/92:          
-01/91:          	; LOOK FOR AN ARGUMENT
-01/91: 9200     2:	LOADF	A,[C]
-01/92: 5000     	ADDI	A,0
-01/93: F62B     	BRZ	ARGDONE
-01/94: D100     	CMP	A,B
-01/95: F802     	BRA	3F
-01/96: 5801     	ADDI	C,1
-01/97: FFF9     	JUMP	2B
-01/99:          
-01/98:          	; IS IT A FLAG?
-01/98: 342D     3:	LOADI	B,'-'
-01/99: D100     	CMP	A,B
-01/9A: F711     	BRNZ	5F
-01/9C:          	
-01/9B:          	; HANDLE FLAGS HERE	
-01/9B: 5801     4:	ADDI	C,1
-01/9C: 9200     	LOADF	A,[C]
-01/9D: 5000     	ADDI	A,0
-01/9E: F620     	BRZ	ARGDONE
-01/9F: 3420     	LOADI	B,0X20
-01/A0: D100     	CMP	A,B
-01/A1: F9EF     	BRBE	2B
-01/A3:          	
-01/A2:          	; REGISTER THE FLAG
-01/A2: 3400     	LOADI	B,0
-01/A3: A480     	STORE	[DBANK],B
-01/A5:          	
-01/A4:          	; IS IT A RECOGNIZED FLAG?
-01/A4: 5400     	ADDI	B,0
-01/A5: F60F     	BRZ	ARGBAD
-01/A6: 3001     	LOADI	A,1
-01/A7: B100     	STOREF	[B],A
-01/A9:          
-01/A8:          	; THERE MAY BE ANOTHER FLAG
-01/A8: 8472     	LOAD	B,[CMDL_B]
-01/A9: A46C     	STORE	[ARG_BNK],B
-01/AA: A480     	STORE	[DBANK],B
-01/AB: FFEF     	JUMP	4B
+01/88: A811     	STORE	[PFLAG],C
+01/8A:          	
+01/89:          	; GO TO ARGUMENT BANK
+01/89: 8072     0:	LOAD	A,[CMDL_B]
+01/8A: A06C     	STORE	[ARG_BNK],A
+01/8B: A080     	STORE	[DBANK],A
+01/8D:          
+01/8C:          	; SKIP THE CURRENT ARGUMENT
+01/8C: 9200     1:	LOADF	A,[C]
+01/8D: 3420     	LOADI	B,0X20
+01/8E: D100     	CMP	A,B
+01/8F: F902     	BRBE	2F
+01/90: 5801     	ADDI	C,1
+01/91: FFFA     	JUMP	1B
+01/93:          
+01/92:          	; LOOK FOR AN ARGUMENT
+01/92: 9200     2:	LOADF	A,[C]
+01/93: 5000     	ADDI	A,0
+01/94: F62E     	BRZ	ARGDONE
+01/95: D100     	CMP	A,B
+01/96: F802     	BRA	3F
+01/97: 5801     	ADDI	C,1
+01/98: FFF9     	JUMP	2B
+01/9A:          
+01/99:          	; IS IT A FLAG?
+01/99: 342D     3:	LOADI	B,'-'
+01/9A: D100     	CMP	A,B
+01/9B: F714     	BRNZ	5F
+01/9D:          	
+01/9C:          	; HANDLE FLAGS HERE	
+01/9C: 5801     4:	ADDI	C,1
+01/9D: 9200     	LOADF	A,[C]
+01/9E: 5000     	ADDI	A,0
+01/9F: F623     	BRZ	ARGDONE
+01/A0: 3420     	LOADI	B,0X20
+01/A1: D100     	CMP	A,B
+01/A2: F9EF     	BRBE	2B
+01/A4:          	
+01/A3:          	; REGISTER THE FLAG
+01/A3: 3400     	LOADI	B,0
+01/A4: A480     	STORE	[DBANK],B
+01/A6:          	
+01/A5: 7050     	SUBI	A,'P'
+01/A6: F701     	BRNZ	@+2
+01/A7: 3411     	LOADI	B,PFLAG
+01/A9:          	
+01/A8:          	; IS IT A RECOGNIZED FLAG?
+01/A8: 5400     	ADDI	B,0
+01/A9: F60F     	BRZ	ARGBAD
+01/AA: 3001     	LOADI	A,1
+01/AB: B100     	STOREF	[B],A
 01/AD:          
-01/AC:          	; SAVE THE ARGUMENT
-01/AC: 3400     5:	LOADI	B,0
-01/AD: A480     	STORE	[DBANK],B
-01/AE: 8400     	LOAD	B,[ARGC]
-01/AF: B901     	STOREF	[B+ARGV],C
-01/B1:          	
-01/B0:          	; DID WE EXCEED THE ALLOWED NUMBER OF ARGUMENTS
-01/B0: 740F     	SUBI	B,MAXARGS
-01/B1: F003     	BRC	ARGBAD
-01/B2: 5410     	ADDI	B,MAXARGS+1
-01/B3: A400     	STORE	[ARGC],B
-01/B4: FFD3     	JUMP	0B
-01/B6:          	
-01/B5:          	; BAD ARGUMENT
-01/B5: 3000     ARGBAD:	LOADI	A,0
-01/B6: A080     	STORE	[DBANK],A
-01/B8:          	
-01/B7: 3001     	LOADI	A,STR_B
-01/B8: A06C     	STORE	[ARG_BNK],A
-01/B9: 3000     	LOADI	A,ERROR0
-01/BB:          	
-01/BA:          	; PRINT ERROR MESSAGE
-01/BA: 3404     	LOADI	B,S_PUTS
-01/BB: 38FD     	LOADI	C,EXIT
-01/BC: FF47     	JUMP	SYSCALL	
-01/BE:          
-01/BD:          	; EXIT PROGRAM
-01/BD: 3400     EXIT:	LOADI	B,0
-01/BE: FF46     	JUMP	SYSJUMP
-01/C0:          	
-01/BF:          	; ARGUMENT PROCESSING DONE
-01/BF: 3000     ARGDONE:LOADI	A,0
-01/C0: A080     	STORE	[DBANK],A
-01/C2:          	
-01/C1:          	; CHECK ARG COUNT
-01/C1: 8000     	LOAD	A,[ARGC]
-01/C2: 5000     	ADDI	A,0
-01/C3: F6F1     	BRZ	ARGBAD
-01/C5:          	
-01/C4:          	; A = FILE STRING START
-01/C4: 8072     0:	LOAD	A,[CMDL_B]
-01/C5: A06C     	STORE	[ARG_BNK],A
-01/C6: 8011     	LOAD	A,[ARGMNT]
-01/C7: 9001     	LOADF	A,[A+ARGV]
+01/AC:          	; THERE MAY BE ANOTHER FLAG
+01/AC: 8472     	LOAD	B,[CMDL_B]
+01/AD: A46C     	STORE	[ARG_BNK],B
+01/AE: A480     	STORE	[DBANK],B
+01/AF: FFEC     	JUMP	4B
+01/B1:          
+01/B0:          	; SAVE THE ARGUMENT
+01/B0: 3400     5:	LOADI	B,0
+01/B1: A480     	STORE	[DBANK],B
+01/B2: 8400     	LOAD	B,[ARGC]
+01/B3: B901     	STOREF	[B+ARGV],C
+01/B5:          	
+01/B4:          	; DID WE EXCEED THE ALLOWED NUMBER OF ARGUMENTS
+01/B4: 740F     	SUBI	B,MAXARGS
+01/B5: F003     	BRC	ARGBAD
+01/B6: 5410     	ADDI	B,MAXARGS+1
+01/B7: A400     	STORE	[ARGC],B
+01/B8: FFD0     	JUMP	0B
+01/BA:          	
+01/B9:          	; BAD ARGUMENT
+01/B9: 3000     ARGBAD:	LOADI	A,0
+01/BA: A080     	STORE	[DBANK],A
+01/BC:          	
+01/BB: 3001     	LOADI	A,STR_B
+01/BC: A06C     	STORE	[ARG_BNK],A
+01/BD: 3000     	LOADI	A,ERROR0
+01/BF:          	
+01/BE:          	; PRINT ERROR MESSAGE
+01/BE: 3404     	LOADI	B,S_PUTS
+01/BF: 38C1     	LOADI	C,@+2
+01/C0: FF43     	JUMP	SYSCALL
+01/C2:          
+01/C1:          	; EXIT PROGRAM
+01/C1: 3400     	LOADI	B,0
+01/C2: FF42     	JUMP	SYSJUMP
+01/C4:          	
+01/C3:          	; ARGUMENT PROCESSING DONE
+01/C3: 3000     ARGDONE:LOADI	A,0
+01/C4: A080     	STORE	[DBANK],A
+01/C6:          	
+01/C5:          	; CHECK ARG COUNT
+01/C5: 8000     	LOAD	A,[ARGC]
+01/C6: 5000     	ADDI	A,0
+01/C7: F6F1     	BRZ	ARGBAD
 01/C9:          	
-01/C8:          	; OPEN FILE
-01/C8: 3406     	LOADI	B,S_OPEN
-01/C9: 38CB     	LOADI	C,@+2
-01/CA: FF39     	JUMP	SYSCALL
-01/CC:          	
-01/CB:          	; CHECK FOR ERRORS
-01/CB: 5000     	ADDI	A,0
-01/CC: F606     	BRZ	1F
-01/CE:          	
-01/CD:          	; ERROR MESSAGE ARGS
-01/CD: 3001     	LOADI	A,STR_B
-01/CE: A06C     	STORE	[ARG_BNK],A
-01/CF: 3030     	LOADI	A,ERROR1
-01/D1:          	
-01/D0:          	; PRINT ERROR MESSAGE
-01/D0: 3404     	LOADI	B,S_PUTS
-01/D1: 38FD     	LOADI	C,EXIT
-01/D2: FF31     	JUMP	SYSCALL
-01/D4:          	
-01/D3:          	; RESET STATE
-01/D3: 3002     1:	LOADI	A,2
-01/D4: A06C     	STORE	[ARG_BNK],A
-01/D5: 3000     	LOADI	A,0
-01/D7:          	
-01/D6:          	; READ BLOCK
-01/D6: A012     READF:	STORE	[COUNT],A
-01/D7: 3408     	LOADI	B,S_READ
-01/D8: 38DA     	LOADI	C,@+2
-01/D9: FF2A     	JUMP	SYSCALL
-01/DB:          	
-01/DA:          	; CHECK FOR ERRORS
-01/DA: 5000     	ADDI	A,0
-01/DB: F719     	BRNZ	NEXT
-01/DD:          	
-01/DC:          	; SET DEFAULT POINTER AND BANK
-01/DC: 3000     	LOADI	A,0
-01/DD: 3402     	LOADI	B,2
-01/DF:          	
-01/DE:          	; LOOP TO OUTPUT CHARACTER
-01/DE: A013     OUTPUT:	STORE	[POINTER],A
-01/DF: A414     	STORE	[BANK],B 
-01/E0: A480     	STORE	[DBANK],B
-01/E1: 9000     	LOADF	A,[A]
-01/E3:          	
-01/E2:          	; MAKE SURE IT ISN'T 0
-01/E2: 5000     	ADDI	A,0
-01/E3: F611     	BRZ	NEXT
-01/E5:          	
-01/E4:          	; PRINT CHARACTER MESSAGE
-01/E4: 3400     	LOADI	B,0
-01/E5: A480     	STORE	[DBANK],B
-01/E6: 3401     	LOADI	B,S_PUTC
-01/E7: 38E9     	LOADI	C,@+2
-01/E8: FF1B     	JUMP	SYSCALL
-01/EA:          	
-01/E9:          	; NEXT CHARACTER
-01/E9: 8013     	LOAD	A,[POINTER]
-01/EA: 8414     	LOAD	B,[BANK]
-01/EB: 5001     	ADDI	A,1
-01/EC: F5F1     	BRNN	OUTPUT
-01/ED: 3000     	LOADI	A,0
-01/EE: 5401     	ADDI	B,1
-01/EF: 3806     	LOADI	C,6
-01/F0: D600     	CMP	B,C
-01/F1: F7EC     	BRNZ	OUTPUT
-01/F3:          	
-01/F2:          	; NEXT BLOCK
-01/F2: 8012     	LOAD	A,[COUNT]
-01/F3: 5001     	ADDI	A,1
-01/F4: F1E1     	BRNC	READF
-01/F6:          	
-01/F5:          	; NEXT FILE
-01/F5: 3400     NEXT:	LOADI	B,0
-01/F6: A480     	STORE	[DBANK],B
-01/F7: 8011     	LOAD	A,[ARGMNT]
-01/F8: 5001     	ADDI	A,1
-01/F9: A011     	STORE	[ARGMNT],A
-01/FA: 8400     	LOAD	B,[ARGC]
-01/FB: D100     	CMP	A,B
-01/FC: F7C7     	BRNZ	0B
-01/FE:          
-01/FD:          	; EXIT PROGRAM
-01/FD: 3400     EXIT:	LOADI	B,0
-01/FE: FF06     	JUMP	SYSJUMP
-01/100:          
-01/FF:          
-01/FF:          .DATA
+01/C8:          	; GO TO MAIN FUNCTION
+01/C8: 3402     	LOADI	B,2
+01/C9: 3880     	LOADI	C,MAIN
+01/CA: FF37     	JUMP	INDIR
+01/CC:          
+01/CB:          .BANK	2
+02/80:          .TEXT
+02/80:          	
+02/80:          	; MAIN FUNCTION
+02/80: 3802     MAIN:	LOADI	C,2	
+02/81: BB01     	STOREF	[D+1],C
+02/83:          	
+02/82:          	; WAIT FOR PRINTER TO BECOME READY
+02/82: 8011     	LOAD	A,[PFLAG]
+02/83: 5000     	ADDI	A,0
+02/84: F610     	BRZ	0F
+02/86:          	
+02/85: 3000     	LOADI	A,0
+02/86: A016     PRTWAIT:STORE	[WAIT],A
+02/88:          	
+02/87:          	; GET PRINTER STATUS
+02/87: 3411     	LOADI	B,S_PSTAT
+02/88: 388A     	LOADI	C,@+2
+02/89: FF7A     	JUMP	SYSCALL
+02/8A: 5000     	ADDI	A,0
+02/8B: F709     	BRNZ	0F
+02/8D:          	
+02/8C:          	; INCREMENT WAIT
+02/8C: 8016     	LOAD	A,[WAIT]
+02/8D: 5000     	ADDI	A,0
+02/8E: F7F7     	BRNZ	PRTWAIT
+02/90:          	
+02/8F:          	; ERROR!
+02/8F: 3001     	LOADI	A,STR_B
+02/90: A06C     	STORE	[ARG_BNK],A
+02/91: 3042     	LOADI	A,ERROR2
+02/93:          	
+02/92:          	; PRINT ERROR MESSAGE
+02/92: 3404     	LOADI	B,S_PUTS
+02/93: 38D4     	LOADI	C,EXIT
+02/94: FF6F     	JUMP	SYSCALL
+02/96:          	
+02/95:          	; A = FILE STRING START
+02/95: 8072     0:	LOAD	A,[CMDL_B]
+02/96: A06C     	STORE	[ARG_BNK],A
+02/97: 8012     	LOAD	A,[ARGMNT]
+02/98: 9001     	LOADF	A,[A+ARGV]
+02/9A:          	
+02/99:          	; OPEN FILE
+02/99: 3406     	LOADI	B,S_OPEN
+02/9A: 389C     	LOADI	C,@+2
+02/9B: FF68     	JUMP	SYSCALL
+02/9D:          	
+02/9C:          	; CHECK FOR ERRORS
+02/9C: 5000     	ADDI	A,0
+02/9D: F606     	BRZ	1F
+02/9F:          	
+02/9E:          	; ERROR MESSAGE ARGS
+02/9E: 3001     	LOADI	A,STR_B
+02/9F: A06C     	STORE	[ARG_BNK],A
+02/A0: 3030     	LOADI	A,ERROR1
+02/A2:          	
+02/A1:          	; PRINT ERROR MESSAGE
+02/A1: 3404     	LOADI	B,S_PUTS
+02/A2: 38D4     	LOADI	C,EXIT
+02/A3: FF60     	JUMP	SYSCALL
+02/A5:          	
+02/A4:          	; RESET STATE
+02/A4: 3002     1:	LOADI	A,2
+02/A5: A06C     	STORE	[ARG_BNK],A
+02/A6: 3000     	LOADI	A,0
+02/A8:          	
+02/A7:          	; READ BLOCK
+02/A7: A013     READF:	STORE	[COUNT],A
+02/A8: 3408     	LOADI	B,S_READ
+02/A9: 38AB     	LOADI	C,@+2
+02/AA: FF59     	JUMP	SYSCALL
+02/AC:          	
+02/AB:          	; CHECK FOR ERRORS
+02/AB: 5000     	ADDI	A,0
+02/AC: F71F     	BRNZ	NEXT
+02/AE:          	
+02/AD:          	; SET DEFAULT POINTER AND BANK
+02/AD: 3000     	LOADI	A,0
+02/AE: 3402     	LOADI	B,2
+02/B0:          	
+02/AF:          	; LOOP TO OUTPUT CHARACTER
+02/AF: A014     OUTPUT:	STORE	[POINTER],A
+02/B0: A415     	STORE	[BANK],B 
+02/B1: A480     	STORE	[DBANK],B
+02/B2: 9000     	LOADF	A,[A]
+02/B4:          	
+02/B3:          	; MAKE SURE IT ISN'T 0
+02/B3: 5000     	ADDI	A,0
+02/B4: F617     	BRZ	NEXT
+02/B6:          	
+02/B5:          	; RETURN TO BANK ZERO
+02/B5: 3400     	LOADI	B,0
+02/B6: A480     	STORE	[DBANK],B
+02/B8:          	
+02/B7:          	; GET PFLAG
+02/B7: 8411     	LOAD	B,[PFLAG]
+02/B8: 5400     	ADDI	B,0
+02/B9: F603     	BRZ	1F
+02/BB:          	
+02/BA:          	; PRINT CHARACTER
+02/BA: 3410     	LOADI	B,S_PRNTC
+02/BB: 38C0     	LOADI	C,2F
+02/BC: FF47     	JUMP	SYSCALL
+02/BE:          	
+02/BD:          	; TYPE CHARACTER
+02/BD: 3401     1:	LOADI	B,S_PUTC
+02/BE: 38C0     	LOADI	C,@+2
+02/BF: FF44     	JUMP	SYSCALL
+02/C1:          	
+02/C0:          	; NEXT CHARACTER
+02/C0: 8014     2:	LOAD	A,[POINTER]
+02/C1: 8415     	LOAD	B,[BANK]
+02/C2: 5001     	ADDI	A,1
+02/C3: F5EB     	BRNN	OUTPUT
+02/C4: 3000     	LOADI	A,0
+02/C5: 5401     	ADDI	B,1
+02/C6: 3806     	LOADI	C,6
+02/C7: D600     	CMP	B,C
+02/C8: F7E6     	BRNZ	OUTPUT
+02/CA:          	
+02/C9:          	; NEXT BLOCK
+02/C9: 8013     	LOAD	A,[COUNT]
+02/CA: 5001     	ADDI	A,1
+02/CB: F1DB     	BRNC	READF
+02/CD:          	
+02/CC:          	; NEXT FILE
+02/CC: 3400     NEXT:	LOADI	B,0
+02/CD: A480     	STORE	[DBANK],B
+02/CE: 8012     	LOAD	A,[ARGMNT]
+02/CF: 5001     	ADDI	A,1
+02/D0: A012     	STORE	[ARGMNT],A
+02/D1: 8400     	LOAD	B,[ARGC]
+02/D2: D100     	CMP	A,B
+02/D3: F7C1     	BRNZ	0B
+02/D5:          
+02/D4:          	; EXIT PROGRAM
+02/D4: 3400     EXIT:	LOADI	B,0
+02/D5: FF2F     	JUMP	SYSJUMP
+02/D7:          
+02/D6:          
+02/D6:          .BANK	1
+01/CB:          .DATA
 01/00:          STR_B	= 1
 01/00:          
 01/00:          	; ERROR MESSAGES
@@ -290,8 +352,13 @@
        454E2046
        494C450A
        0D00     .DEFL BYTE ERROR1	"CAN'T OPEN FILE",0X0A,0X0D,0
-01/42:          
-01/42:          .BANK	0
+01/42: 5052494E
+       54455220
+       4E4F5420
+       52454144
+       590A0D00 .DEFL BYTE ERROR2	"PRINTER NOT READY",0X0A,0X0D,0
+01/56:          
+01/56:          .BANK	0
 00/00:          .BSS
 00/00:          
 00/00:          	; COMMAND LINE ARGUMENTS
@@ -300,13 +367,19 @@
        00000000 .DEFL BYTE ARGV		0,0,0,0,0,0,0,0,
 00/09: 00000000
        00000000 			0,0,0,0,0,0,0,0
-00/11:          
-00/11:          	; ARGUMENT COUNTER
-00/11: 00       .DEFL BYTE ARGMNT	0
+00/11:          			
+00/11:          	; FLAGS
+00/11: 00       .DEFL BYTE PFLAG	0
 00/12:          
-00/12:          	; READ BLOCK COUNTER
-00/12: 00       .DEFL BYTE COUNT	0
+00/12:          	; ARGUMENT COUNTER
+00/12: 00       .DEFL BYTE ARGMNT	0
 00/13:          
-00/13:          	; INFORMATION ON WHAT CHARACTER IS BEING PRINTED
-00/13: 00       .DEFL BYTE POINTER	0
-00/14: 00       .DEFL BYTE BANK		0
+00/13:          	; READ BLOCK COUNTER
+00/13: 00       .DEFL BYTE COUNT	0
+00/14:          
+00/14:          	; INFORMATION ON WHAT CHARACTER IS BEING PRINTED
+00/14: 00       .DEFL BYTE POINTER	0
+00/15: 00       .DEFL BYTE BANK		0
+00/16:          
+00/16:          	; WAIT COUNT
+00/16: 00       .DEFL BYTE WAIT		0
