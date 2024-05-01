@@ -1,0 +1,684 @@
+00/00:          ; DOSDEF.S
+01/80:          ; THIS FILE CONTAINS IMPORTANT DEFINES USED IN DOS/281
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
+01/80:          
+01/80:          ; BIOS CALLS
+01/80:          BOOT	= 0
+01/80:          ALTBOOT = 1
+01/80:          INDIR	= 2
+01/80:          IRET	= 3
+01/80:          SYSCALL	= 4
+01/80:          SYSJUMP	= 5
+01/80:          PRGM	= 6
+01/80:          IWRITE	= 7
+01/80:          ZSTART	= 8
+01/80:          
+01/80:          HALT	= 0X7F
+01/80:          
+01/80:          ; SYSTEM CALLS
+01/80:          S_EXIT	= 0
+01/80:          S_PUTC	= 1
+01/80:          S_GETC	= 2
+01/80:          S_STAT	= 3
+01/80:          S_PUTS	= 4
+01/80:          S_INPUT	= 5
+01/80:          S_OPEN	= 6
+01/80:          S_CLOSE	= 7
+01/80:          S_READ	= 8
+01/80:          S_WRITE	= 9
+01/80:          S_FSRCH	= 10
+01/80:          S_NEXT	= 11
+01/80:          S_DELET	= 12
+01/80:          S_CREAT	= 13
+01/80:          S_FREE	= 14
+01/80:          S_EXEC	= 15
+01/80:          S_PRNTC	= 16
+01/80:          S_PSTAT	= 17
+01/80:          
+01/80:          ; MEMORY AREAS
+01/80:          CF_NAME	= 0X60
+01/80:          CF_SIZE	= 0X68
+01/80:          CF_USR	= 0X6A
+01/80:          DFT_USR	= 0X6B
+01/80:          ARG_BNK	= 0X6C
+01/80:          BD_FREE	= 0X6E
+01/80:          MAX_IB	= 0X70
+01/80:          MAX_DB	= 0X71
+01/80:          CMDL_B	= 0X72
+01/80:          AUTO_B	= 0X73
+01/80:          KERNMEM	= 0X78
+01/80:          BIOSMEM	= 0X7C
+01/80:          AU_RUN	= 0X00
+01/80:          AU_PNTR	= 0X01
+01/80:          AU_BANK	= 0X02
+01/80:          AU_BLK	= 0X03
+01/80:          AU_UA	= 0X04
+01/80:          AU_FILE	= 0X06
+01/80:          AU_MISC	= 0X18
+01/80:          
+01/80:          ; DATA BANK ADDRESS
+01/80:          DBANK	= 0X80		
+01/80:          
+01/80:          
+01/80:          ; YMPLAY.S
+01/80:          ; STREAMS A YM FILE FROM THE MEDIA BUFFER
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
+01/80:          
+01/80:          ; SET START OF HEAP
+01/80:          HEAP	= BD
+01/80:          
+01/80:          ; BANK ALLOCATION STUFF
+01/80:          BI	= 1
+01/80:          BD	= 1
+01/80:          
+01/80:          ; MAXIMUM ARGUMENTS
+01/80:          MAXARGS	= 1
+01/80:          
+01/80:          ; MEDIA BASE
+01/80:          MEDBASE	= 1
+01/80:          
+01/80:          ; COMPACT FLASH REGISTERS
+01/80:          CF	= 0XA0		; COMPACT FLASH BASE ADDRESS
+01/80:          CF_DATA	= CF+0X00	; CF DATA
+01/80:          CF_ERR	= CF+0X01	; CF ERROR
+01/80:          CF_FEAT	= CF+0x01	; CF FEATURES
+01/80:          CF_CNT	= CF+0X02	; CF SECTOR COUNT
+01/80:          CF_LBA0	= CF+0X03	; CF LBA BITS 0-7
+01/80:          CF_LBA1	= CF+0X04	; CF LBA BITS 8-15
+01/80:          CF_LBA2	= CF+0X05	; CF LBA BITS 16-23
+01/80:          CF_LBA3	= CF+0X06	; CF LBA BITS 24-27
+01/80:          CF_STAT	= CF+0X07	; CF STATUS
+01/80:          CF_CMD	= CF+0X07	; CF COMMAND
+01/80:          
+01/80:          ; AY-3-8910 REGISTERS
+01/80:          MEGAIO	= 0XB0
+01/80:          AY0_ADR	= MEGAIO+0
+01/80:          AY1_ADR = MEGAIO+2
+01/80:          AY0_WR	= MEGAIO+1
+01/80:          AY1_WR	= MEGAIO+3
+01/80:          AY0_RD	= MEGAIO+0
+01/80:          AY1_RD	= MEGAIO+2
+01/80:          
+01/80:          ; COMPACT FLASH COMMANDS
+01/80:          CF_READ	= 0X20		; READ COMMAND
+01/80:          
+01/80:          .TEXT
+01/80:          .BANK	BI
+01/80:          CORE0_B	= BI
+01/80:          
+01/80:          	; START BY PROCESSING THE ARGUMENTS
+01/80: 3000     START:	LOADI	A,0
+01/81: A080     	STORE	[DBANK],A
+01/83:          	
+01/82:          	; RESET ARG STATE
+01/82: A000     	STORE	[ARGC],A
+01/84:          	
+01/83:          	; SET UP STACK
+01/83: 3C5E     	LOADI	D,0X60-2
+01/85:          	
+01/84:          	; SYSCALL RETURN BANK
+01/84: 3801     	LOADI	C,BI
+01/85: BB01     	STOREF	[D+1],C
+01/87:          	
+01/86:          	; SET UP POINTER
+01/86: 3800     	LOADI	C,0
+01/88:          	
+01/87:          	; GO TO ARGUMENT BANK
+01/87: 8072     0:	LOAD	A,[CMDL_B]
+01/88: A06C     	STORE	[ARG_BNK],A
+01/89: A080     	STORE	[DBANK],A
+01/8B:          
+01/8A:          	; SKIP THE CURRENT ARGUMENT
+01/8A: 9200     1:	LOADF	A,[C]
+01/8B: 3420     	LOADI	B,0X20
+01/8C: D100     	CMP	A,B
+01/8D: F902     	BRBE	2F
+01/8E: 5801     	ADDI	C,1
+01/8F: FFFA     	JUMP	1B
+01/91:          
+01/90:          	; LOOK FOR AN ARGUMENT
+01/90: 9200     2:	LOADF	A,[C]
+01/91: 5000     	ADDI	A,0
+01/92: F62D     	BRZ	ARGDONE
+01/93: D100     	CMP	A,B
+01/94: F802     	BRA	3F
+01/95: 5801     	ADDI	C,1
+01/96: FFF9     	JUMP	2B
+01/98:          
+01/97:          	; IS IT A FLAG?
+01/97: 342D     3:	LOADI	B,'-'
+01/98: D100     	CMP	A,B
+01/99: F711     	BRNZ	5F
+01/9B:          	
+01/9A:          	; HANDLE FLAGS HERE	
+01/9A: 5801     4:	ADDI	C,1
+01/9B: 9200     	LOADF	A,[C]
+01/9C: 5000     	ADDI	A,0
+01/9D: F622     	BRZ	ARGDONE
+01/9E: 3420     	LOADI	B,0X20
+01/9F: D100     	CMP	A,B
+01/A0: F9EF     	BRBE	2B
+01/A2:          	
+01/A1:          	; REGISTER THE FLAG
+01/A1: 3400     	LOADI	B,0
+01/A2: A480     	STORE	[DBANK],B
+01/A4:          	
+01/A3:          	; IS IT A RECOGNIZED FLAG?
+01/A3: 5400     	ADDI	B,0
+01/A4: F60F     	BRZ	ARGBAD
+01/A5: 3001     	LOADI	A,1
+01/A6: B100     	STOREF	[B],A
+01/A8:          
+01/A7:          	; THERE MAY BE ANOTHER FLAG
+01/A7: 8472     	LOAD	B,[CMDL_B]
+01/A8: A46C     	STORE	[ARG_BNK],B
+01/A9: A480     	STORE	[DBANK],B
+01/AA: FFEF     	JUMP	4B
+01/AC:          
+01/AB:          	; SAVE THE ARGUMENT
+01/AB: 3400     5:	LOADI	B,0
+01/AC: A480     	STORE	[DBANK],B
+01/AD: 8400     	LOAD	B,[ARGC]
+01/AE: B901     	STOREF	[B+ARGV],C
+01/B0:          	
+01/AF:          	; DID WE EXCEED THE ALLOWED NUMBER OF ARGUMENTS
+01/AF: 7401     	SUBI	B,MAXARGS
+01/B0: F003     	BRC	ARGBAD
+01/B1: 5402     	ADDI	B,MAXARGS+1
+01/B2: A400     	STORE	[ARGC],B
+01/B3: FFD3     	JUMP	0B
+01/B5:          	
+01/B4:          	; BAD ARGUMENT
+01/B4: 3000     ARGBAD:	LOADI	A,0
+01/B5: A080     	STORE	[DBANK],A
+01/B7:          	
+01/B6: 3001     	LOADI	A,ERR0_B
+01/B7: A06C     	STORE	[ARG_BNK],A
+01/B8: 3000     	LOADI	A,ERROR00
+01/BA:          	
+01/B9:          	; PRINT ERROR MESSAGE
+01/B9: 3801     PRNTERR:LOADI	C,BI
+01/BA: BB01     	STOREF	[D+1],C
+01/BB: 3404     	LOADI	B,S_PUTS
+01/BC: 38BE     	LOADI	C,EXIT
+01/BD: FF46     	JUMP	SYSCALL	
+01/BF:          
+01/BE:          	; EXIT PROGRAM
+01/BE: 3400     EXIT:	LOADI	B,0
+01/BF: FF45     	JUMP	SYSJUMP
+01/C1:          	
+01/C0:          	; ARGUMENT PROCESSING DONE
+01/C0: 3000     ARGDONE:LOADI	A,0
+01/C1: A080     	STORE	[DBANK],A
+01/C3:          	
+01/C2:          	; CHECK ARG COUNT
+01/C2: 8000     	LOAD	A,[ARGC]
+01/C3: 5000     	ADDI	A,0
+01/C4: F7EF     	BRNZ	ARGBAD
+01/C6:          	
+01/C5:          	; RESET READ IN STATE
+01/C5: 3000     	LOADI	A,0
+01/C6: A004     	STORE	[SECADDR],A
+01/C7: A005     	STORE	[SECADDR+1],A
+01/C9:          	
+01/C8:          	; READ IN THE FIRST SECTOR
+01/C8:          	; SET COMPACT FLASH ADDRESS
+01/C8: 8405     	LOAD	B,[SECADDR+1]
+01/C9: A4A3     	STORE	[CF_LBA0],B
+01/CA: 8404     	LOAD	B,[SECADDR]
+01/CB: A4A4     	STORE	[CF_LBA1],B
+01/CC: 3401     	LOADI	B,MEDBASE
+01/CD: A4A5     	STORE	[CF_LBA2],B
+01/CE: 34E0     	LOADI	B,0XE0
+01/CF: A4A6     	STORE	[CF_LBA3],B
+01/D0: 3401     	LOADI	B,1
+01/D1: A4A2     	STORE	[CF_CNT],B
+01/D3:          	
+01/D2:          	; SET UP AY CHIPS
+01/D2: 3007     	LOADI	A,7
+01/D3: A0B2     	STORE	[AY1_ADR],A
+01/D4: 30BF     	LOADI	A,0XBF
+01/D5: A0B3     	STORE	[AY1_WR],A
+01/D7:          
+01/D6:          	; SET RESET STATE
+01/D6: 300F     	LOADI	A,15
+01/D7: A0B2     	STORE	[AY1_ADR],A
+01/D8: 3001     	LOADI	A,1
+01/D9: A0B3     	STORE	[AY1_WR],A
+01/DB:          	
+01/DA:          	; START PLAYING
+01/DA: 3402     	LOADI	B,CORE1_B
+01/DB: 3880     	LOADI	C,DOPLAY
+01/DC: FF25     	JUMP	INDIR
+01/DE:          
+01/DD:          BI	= BI+1
+01/DD:          .TEXT
+01/DD:          .BANK	BI
+02/80:          CORE1_B	= BI
+02/80:          
+02/80:          	; START PLAYING
+02/80:          	; RESET STATE
+02/80: 3000     DOPLAY:	LOADI	A,0
+02/81: A008     	STORE	[STATE],A
+02/82: A009     	STORE	[COUNTER],A
+02/84:          
+02/83:          	; SET RETURN ADDRESS
+02/83: 3802     	LOADI	C,BI
+02/84: BB01     	STOREF	[D+1],C
+02/86:          
+02/85:          	; EXECUTE A COMPACT FLASH READ
+02/85: 3887     	LOADI	C,@+2
+02/86: FF51     	JUMP	CFWAIT
+02/87: 3020     	LOADI	A,CF_READ
+02/88: A0A7     	STORE	[CF_CMD],A
+02/8A:          
+02/89:          	; CONSUME THE LATEST SECTOR AND QUEUE UP A NEW SECTOR
+02/89: 388B     0:	LOADI	C,@+2
+02/8A: FF4D     	JUMP	CFWAIT
+02/8B: 3802     	LOADI	C,HEAP
+02/8C: A880     1:	STORE	[DBANK],C
+02/8D: 3400     	LOADI	B,0
+02/8E: 80A0     2:	LOAD	A,[CF_DATA]
+02/8F: B100     	STOREF	[B],A
+02/90: 5401     	ADDI	B,1
+02/91: F5FC     	BRNN	2B
+02/92: 5801     	ADDI	C,1
+02/93: 3006     	LOADI	A,HEAP+4
+02/94: D200     	CMP	A,C
+02/95: F7F6     	BRNZ	1B
+02/96: 3000     	LOADI	A,0
+02/97: A080     	STORE	[DBANK],A
+02/99:          
+02/98:          	; INCREMENT SECTOR ADDRESS
+02/98: 8005     	LOAD	A,[SECADDR+1]
+02/99: 5001     	ADDI	A,1
+02/9A: A005     	STORE	[SECADDR+1],A
+02/9B: F103     	BRNC	3F
+02/9C: 8004     	LOAD	A,[SECADDR]
+02/9D: 5001     	ADDI	A,1
+02/9E: A004     	STORE	[SECADDR],A
+02/A0:          
+02/9F:          	; SET COMPACT FLASH ADDRESS
+02/9F: 8405     3:	LOAD	B,[SECADDR+1]
+02/A0: A4A3     	STORE	[CF_LBA0],B
+02/A1: 8404     	LOAD	B,[SECADDR]
+02/A2: A4A4     	STORE	[CF_LBA1],B
+02/A3: 3401     	LOADI	B,MEDBASE
+02/A4: A4A5     	STORE	[CF_LBA2],B
+02/A5: 34E0     	LOADI	B,0XE0
+02/A6: A4A6     	STORE	[CF_LBA3],B
+02/A7: 3401     	LOADI	B,1
+02/A8: A4A2     	STORE	[CF_CNT],B
+02/AA:          
+02/A9:          	; QUEUE UP NEXT READ
+02/A9: 38AB     	LOADI	C,@+2
+02/AA: FF2D     	JUMP	CFWAIT
+02/AB: 3020     	LOADI	A,CF_READ
+02/AC: A0A7     	STORE	[CF_CMD],A
+02/AE:          	
+02/AD:          	; RESET BANK AND POINTER
+02/AD: 3000     	LOADI	A,0
+02/AE: 3402     	LOADI	B,HEAP
+02/AF: A007     4:	STORE	[POINTER],A
+02/B0: A406     	STORE	[BANK],B
+02/B2:          
+02/B1:          	; GET BYTE FROM BUFFER
+02/B1: A480     	STORE	[DBANK],B
+02/B2: 9000     	LOADF	A,[A]
+02/B3: 3400     	LOADI	B,0
+02/B4: A480     	STORE	[DBANK],B
+02/B6:          	
+02/B5:          	; CALL PLAY LOGIC
+02/B5: 38BA     	LOADI	C,@+5 
+02/B6: BB00     	STOREF	[D],C
+02/B7: 3403     	LOADI	B,PLAYR_B
+02/B8: 3880     	LOADI	C,PLOGIC
+02/B9: FF48     	JUMP	INDIR
+02/BA: 5000     	ADDI	A,0
+02/BB: F607     	BRZ	5F
+02/BD:          	
+02/BC:          	; WE ARE DONE
+02/BC: 3007     	LOADI	A,7
+02/BD: A0B0     	STORE	[AY0_ADR],A
+02/BE: A0B2     	STORE	[AY1_ADR],A
+02/BF: 30BF     	LOADI	A,0XBF
+02/C0: A0B1     	STORE	[AY0_WR],A
+02/C1: A0B3     	STORE	[AY1_WR],A
+02/C2: FF0A     	JUMP	9F
+02/C4:          	
+02/C3:          	; GET NEXT BYTE
+02/C3: 8007     5:	LOAD	A,[POINTER]
+02/C4: 8406     	LOAD	B,[BANK]
+02/C5: 5001     	ADDI	A,1
+02/C6: F5E8     	BRNN	4B
+02/C7: 3000     	LOADI	A,0
+02/C8: 5401     	ADDI	B,1
+02/C9: 3806     	LOADI	C,HEAP+4
+02/CA: D600     	CMP	B,C
+02/CB: F7E3     	BRNZ	4B
+02/CC: FFBC     	JUMP	0B
+02/CE:          
+02/CD:          	; EXIT
+02/CD: 3000     9:	LOADI	A,0
+02/CE: A080     	STORE	[DBANK],A
+02/D0:          	
+02/CF:          	; READ QUEUED SECTOR
+02/CF: 38D1     	LOADI	C,@+2
+02/D0: FF07     	JUMP	CFWAIT
+02/D1: 3000     	LOADI	A,0
+02/D2: 84A0     0:	LOAD	B,[CF_DATA]
+02/D3: 84A0     	LOAD	B,[CF_DATA]
+02/D4: 5001     	ADDI	A,1
+02/D5: F7FC     	BRNZ	0B
+02/D7:          	
+02/D6:          	; DONE
+02/D6: 3400     	LOADI	B,S_EXIT
+02/D7: FF2D     	JUMP	SYSJUMP
+02/D9:          
+02/D8:          	; WAIT FOR THE CF CARD TO BECOME READY
+02/D8:          	; FOR THIS TO HAPPEN, THE BUSY FLAG MUST BE 0
+02/D8:          	; AND THE READY FLAG MUST BE 1
+02/D8:          	; IF A CF CARD ISN'T PRESENT, THIS ROUTINE HANGS
+02/D8:          	; BUT WE DON'T CARE
+02/D8:          	; USES: B
+02/D8: 84A7     CFWAIT:	LOAD	B,[CF_STAT]
+02/DA:          
+02/D9:          	; CHECK BIT 7 (BUSY FLAG)
+02/D9: 4500     	SHIFTL	B
+02/DB:          	
+02/DA:          	; GO BACK TO START BUSY
+02/DA: F0FD     	BRC	CFWAIT
+02/DC:          	
+02/DB:          	; CHECK BIT 6 (READY FLAG)
+02/DB: 4500     	SHIFTL	B
+02/DD:          	
+02/DC:          	; GO BACK TO START IF NOT READY
+02/DC: F1FB     	BRNC	CFWAIT
+02/DE:          	
+02/DD:          	; RETURN FROM FUNCTION CALL
+02/DD: FE22     	JUMPR	C
+02/DF:          
+02/DE:          BI	= BI+1
+02/DE:          .TEXT
+02/DE:          .BANK	BI
+03/80:          PLAYR_B	= BI
+03/80:          
+03/80:          	; PLAYER LOGIC
+03/80:          	; A = NEXT CHARACTER IN STREAM
+03/80:          	; RETURNS A=0XFF WHEN DONE
+03/80: 2800     PLOGIC:	MOV	C,A
+03/81: 8408     	LOAD	B,[STATE]
+03/82: 7401     	SUBI	B,1
+03/83: F01D     	BRC	8F
+03/85:          
+03/84:          	; STATE = 0, PARSE HEADER FOR VALIDITY
+03/84: 8409     	LOAD	B,[COUNTER]
+03/85: 5401     	ADDI	B,1
+03/86: A409     	STORE	[COUNTER],B
+03/87: 30FF     	LOADI	A,0XFF
+03/88: 7401     	SUBI	B,1
+03/89: F703     	BRNZ	7F
+03/8B:          	; COUNTER = 0
+03/8A: 7859     	SUBI	C,0X59
+03/8B: F645     	BRZ	9F
+03/8C: FF76     	JUMP	IRET
+03/8E:          	
+03/8D: 7401     7:	SUBI	B,1
+03/8E: F703     	BRNZ	7F
+03/90:          	; COUNTER = 1
+03/8F: 784D     	SUBI	C,0X4D
+03/90: F640     	BRZ	9F
+03/91: FF71     	JUMP	IRET
+03/93:          	
+03/92: 7401     7:	SUBI	B,1
+03/93: F703     	BRNZ	7F
+03/95:          	; COUNTER = 2
+03/94: 7835     	SUBI	C,0X35
+03/95: F63B     	BRZ	9F
+03/96: FF6C     	JUMP	IRET
+03/98:          	
+03/97: 7401     7:	SUBI	B,1
+03/98: F703     	BRNZ	7F
+03/9A:          	; COUNTER = 3
+03/99: 7821     	SUBI	C,0X21
+03/9A: F636     	BRZ	9F
+03/9B: FF67     	JUMP	IRET
+03/9D:          	
+03/9C: 741E     7:	SUBI	B,30
+03/9D: F733     	BRNZ	9F
+03/9F:          	; COUNTER = 33
+03/9E: 3001     	LOADI	A,1
+03/9F: A008     	STORE	[STATE],A
+03/A0: FF30     	JUMP	9F
+03/A2:          	
+03/A1: 8408     8:	LOAD	B,[STATE]
+03/A2: 7403     	SUBI	B,3
+03/A3: F814     	BRA	8F
+03/A5:          	
+03/A4:          	; STATE = 1, 2, 3, PRINT SOME STRINGS
+03/A4: 7C02     	SUBI	D,2
+03/A6:          	
+03/A5:          	; SET RETURN ADDRESS
+03/A5: 3803     	LOADI	C,BI
+03/A6: BB01     	STOREF	[D+1],C
+03/A8:          	
+03/A7:          	; CHECK FOR ZEROS
+03/A7: 5000     	ADDI	A,0
+03/A8: F70A     	BRNZ	1F
+03/AA:          	
+03/A9:          	; INCREMENT STATE
+03/A9: 8408     	LOAD	B,[STATE]
+03/AA: 5401     	ADDI	B,1
+03/AB: A408     	STORE	[STATE],B
+03/AD:          	
+03/AC:          	; RESET COUNTER TOO
+03/AC: 3000     	LOADI	A,0
+03/AD: A009     	STORE	[COUNTER],A
+03/AF:          	
+03/AE:          	; DO CRLF / PRINT A CHARACTER
+03/AE: 300A     	LOADI	A,0X0A
+03/AF: 3401     	LOADI	B,S_PUTC
+03/B0: 38B2     	LOADI	C,@+2
+03/B1: FF52     	JUMP	SYSCALL
+03/B2: 300D     	LOADI	A,0X0D
+03/B3: 3401     1:	LOADI	B,S_PUTC
+03/B4: 38B6     	LOADI	C,@+2
+03/B5: FF4E     	JUMP	SYSCALL
+03/B7:          	
+03/B6: 5C02     	ADDI	D,2
+03/B7: FF19     	JUMP	9F
+03/B9:          	
+03/B8:          	; START BUFFERING 
+03/B8: 8409     8:	LOAD	B,[COUNTER]
+03/B9: B10A     	STOREF	[B+PBUFFER],A
+03/BA: 5401     	ADDI	B,1
+03/BB: A409     	STORE	[COUNTER],B
+03/BD:          	
+03/BC: 7410     	SUBI	B,16
+03/BD: F713     	BRNZ	9F
+03/BF:          	
+03/BE:          	; WE HAVE A COMPLETE FRAME, LETS PROCESS IT
+03/BE:          	
+03/BE:          	; RESET COUNTER
+03/BE: 3400     	LOADI	B,0
+03/BF: A409     	STORE	[COUNTER],B
+03/C1:          	
+03/C0:          	; CHECK FOR END
+03/C0: 800A     	LOAD	A,[PBUFFER]
+03/C1: 7045     	SUBI	A,0X45
+03/C2: F709     	BRNZ	1F
+03/C3: 800B     	LOAD	A,[PBUFFER+1]
+03/C4: 706E     	SUBI	A,0X6E
+03/C5: F706     	BRNZ	1F
+03/C6: 800C     	LOAD	A,[PBUFFER+2]
+03/C7: 7064     	SUBI	A,0X64
+03/C8: F703     	BRNZ	1F
+03/C9: 800D     	LOAD	A,[PBUFFER+3]
+03/CA: 7021     	SUBI	A,0X21
+03/CB: F603     	BRZ	8F
+03/CD:          	
+03/CC:          	; NOW WE SET ALL OF THE REGISTERS
+03/CC: 3404     1:	LOADI	B,AYREG_B
+03/CD: 3880     	LOADI	C,SETAYR
+03/CE: FF33     	JUMP	INDIR
+03/D0:          		
+03/CF: 30FF     8:	LOADI	A,0XFF
+03/D0: FF32     	JUMP	IRET
+03/D2:          
+03/D1: 3000     9:	LOADI	A,0
+03/D2: FF30     	JUMP	IRET
+03/D4:          
+03/D3:          BI	= BI+1
+03/D3:          .TEXT
+03/D3:          .BANK	BI
+04/80:          AYREG_B	= BI
+04/80:          
+04/80:          	; SETS THE AY REGISTERS
+04/80: 7C02     SETAYR:	SUBI	D,2
+04/82:          
+04/81:          	; SET RETURN ADDRESS
+04/81: 3804     	LOADI	C,BI
+04/82: BB01     	STOREF	[D+1],C
+04/84:          
+04/83:          	; CORRECT THE FRAME
+04/83: 800A     	LOAD	A,[PBUFFER]
+04/84: 840B     	LOAD	B,[PBUFFER+1]
+04/85: 4500     	SHIFTL	B
+04/86: 4000     	SHIFTL	A
+04/87: F101     	BRNC	2F
+04/88: 5401     	ADDI	B,0X01
+04/89: A00A     2:	STORE	[PBUFFER],A
+04/8A: A40B     	STORE	[PBUFFER+1],B
+04/8B: 800C     	LOAD	A,[PBUFFER+2]
+04/8C: 840D     	LOAD	B,[PBUFFER+3]
+04/8D: 4500     	SHIFTL	B
+04/8E: 4000     	SHIFTL	A
+04/8F: F101     	BRNC	2F
+04/90: 5401     	ADDI	B,0X01
+04/91: A00C     2:	STORE	[PBUFFER+2],A
+04/92: A40D     	STORE	[PBUFFER+3],B
+04/93: 800E     	LOAD	A,[PBUFFER+4]
+04/94: 840F     	LOAD	B,[PBUFFER+5]
+04/95: 4500     	SHIFTL	B
+04/96: 4000     	SHIFTL	A
+04/97: F101     	BRNC	2F
+04/98: 5401     	ADDI	B,0X01
+04/99: A00E     2:	STORE	[PBUFFER+4],A
+04/9A: A40F     	STORE	[PBUFFER+5],B
+04/9B: 8015     	LOAD	A,[PBUFFER+11]
+04/9C: 8416     	LOAD	B,[PBUFFER+12]
+04/9D: 4500     	SHIFTL	B
+04/9E: 4000     	SHIFTL	A
+04/9F: F101     	BRNC	2F
+04/A0: 5401     	ADDI	B,0X01
+04/A1: A015     2:	STORE	[PBUFFER+11],A
+04/A2: A416     	STORE	[PBUFFER+12],B
+04/A4:          	
+04/A3: 8010     	LOAD	A,[PBUFFER+6]
+04/A4: 4000     	SHIFTL	A
+04/A5: 341F     	LOADI	B,0X1F
+04/A6: D100     	CMP	A,B
+04/A7: F901     	BRBE	2F
+04/A8: 2100     	MOV	A,B
+04/A9: A010     2:	STORE	[PBUFFER+6],A
+04/AB:          
+04/AA:          	; SET I/O DIRECTION
+04/AA: 8011     	LOAD	A,[PBUFFER+7]
+04/AB: 4000     	SHIFTL	A
+04/AC: 4000     	SHIFTL	A
+04/AD: C100     	SHIFTR	A
+04/AE: C100     	SHIFTR	A
+04/AF: 5080     	ADDI	A,0X80
+04/B0: A011     	STORE	[PBUFFER+7],A
+04/B2:          	
+04/B1:          	; COPY TO AY-3-8910
+04/B1: 380D     	LOADI	C,13
+04/B2: 920A     0:	LOADF	A,[C+PBUFFER]
+04/B3: A8B0     	STORE	[AY0_ADR],C
+04/B4: A8B2     	STORE	[AY1_ADR],C
+04/B5: A0B1     	STORE	[AY0_WR],A
+04/B6: A0B3     	STORE	[AY1_WR],A
+04/B7: 7801     	SUBI	C,1
+04/B8: F0F9     	BRC	0B
+04/BA:          
+04/B9:          	; WAIT FOR 50 HZ OR KEYSTROKE
+04/B9: 3403     WAITL:	LOADI	B,S_STAT
+04/BA: 38BC     	LOADI	C,@+2
+04/BB: FF48     	JUMP	SYSCALL
+04/BC: 5000     	ADDI	A,0
+04/BD: F70E     	BRNZ	8F
+04/BF:          	
+04/BE:          	; CHECK 50 HZ SIGNAL
+04/BE:          		
+04/BE:          	; WAIT FOR 50 HZ FLAG
+04/BE: 300E     	LOADI	A,14
+04/BF: A0B2     	STORE	[AY1_ADR],A
+04/C0: 2000     	NOOP
+04/C1: 2000     	NOOP
+04/C2: 80B2     	LOAD	A,[AY1_RD]
+04/C3: C100     	SHIFTR	A
+04/C4: F1F4     	BRNC	WAITL
+04/C6:          
+04/C5:          	; RESET 50 HZ FLAG
+04/C5: 300F     	LOADI	A,15
+04/C6: A0B2     	STORE	[AY1_ADR],A
+04/C7: 3000     	LOADI	A,0
+04/C8: A0B3     	STORE	[AY1_WR],A
+04/C9: 3001     	LOADI	A,1
+04/CA: A0B3     	STORE	[AY1_WR],A
+04/CB: FF03     	JUMP	9F
+04/CD:          
+04/CC: 30FF     8:	LOADI	A,0XFF
+04/CD: 5C02     	ADDI	D,2
+04/CE: FF34     	JUMP	IRET
+04/D0:          
+04/CF: 3000     9:	LOADI	A,0
+04/D0: 5C02     	ADDI	D,2
+04/D1: FF31     	JUMP	IRET
+04/D3:          
+04/D2:          	; ZERO BANK VARIABLES
+04/D2:          .BANK	0
+00/80:          .BSS
+00/80:          
+00/00:          	; COMMAND LINE ARGUMENTS
+00/00: 00       .DEFL BYTE ARGC		0
+00/01: 0000     .DEFL BYTE ARGV		0,0
+00/03:          
+00/03:          	; VARIOUS MISC VARIABLES
+00/03:          	; TO BE USED IN LEAF-FUNCTIONS
+00/03: 00       .DEFL BYTE SPARK	0
+00/04:          
+00/04:          	; READ IN STATE
+00/04: 0000     .DEFL WORD SECADDR	0
+00/06: 00       .DEFL BYTE BANK		0
+00/07: 00       .DEFL BYTE POINTER	0
+00/08:          
+00/08:          	; PLAYBACK STATE
+00/08: 00       .DEFL BYTE STATE	0
+00/09: 00       .DEFL BYTE COUNTER	0
+00/0A:          
+00/0A:          	; PLAYBACK REGISTER BUFFER
+00/0A: 00000000
+       00000000 .DEFL BYTE PBUFFER	0,0,0,0,0,0,0,0,
+00/12: 00000000
+       00000000 			0,0,0,0,0,0,0,0
+00/1A:          
+00/1A:          	; ERROR BANK 0
+00/1A:          .BANK	BD
+01/00:          .DATA
+01/00:          ERR0_B	= BD
+01/00:          
+01/00:          	; INVALID ARGUMENTS
+01/00: 494E5641
+       4C494420
+       41524755
+       4D454E54
+       530A0D   .DEFL BYTE ERROR00	"INVALID ARGUMENTS",0X0A,0X0D,
+01/13: 55534147
+       453A2059
+       4D504C41
+       590A0D00 			"USAGE: YMPLAY",0X0A,0X0D,0
+01/23:          
+01/23:          BD	= BD+1	

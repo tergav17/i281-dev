@@ -70,7 +70,7 @@ function ioRead(addr) {
 cf_state = {
 	
 	// Data
-	data: new Uint8Array(512 * 256 * 256), // 32MB array, boo hoo!
+	data: new Uint8Array(512 * 256 * 256 * 2), // 64MB array, boo hoo!
 	
 	// Buffer Information
 	buffer: [], // Current operation buffer
@@ -110,12 +110,12 @@ function cfCommand(cf, val) {
 			cf.buffer = [];
 			cf.rdwri = 0;
 			
-			let pointer = (cf.lba0 << 9) + (cf.lba1 << 17);
+			let pointer = (cf.lba0 << 9) + (cf.lba1 << 17) + (cf.lba2 << 25);
 			console.log("Read starting at: " + pointer + " (Block " + (pointer / 512) + ")");
 			for (let i = 0; i < cf.left; i++) {
 				cf.buffer.push(cf.data[pointer]);
 				
-				pointer = (pointer + 1) & 0x1FFFFFF;
+				pointer = (pointer + 1) & 0x3FFFFFF;
 			}
 			break;
 			
@@ -126,7 +126,7 @@ function cfCommand(cf, val) {
 			cf.buffer = [];
 			cf.rdwri = 1;
 			
-			let wpointer = (cf.lba0 << 9) + (cf.lba1 << 17);
+			let wpointer = (cf.lba0 << 9) + (cf.lba1 << 17) + (cf.lba2 << 25);
 			console.log("Write starting at: " + wpointer + " (Block " + (wpointer / 512) + ")");
 			break;
 			
@@ -155,10 +155,10 @@ function cfWrite(cf, register, val) {
 				
 				// Do we write the buffer out?
 				if (cf.left == 0) {
-					let pointer = (cf.lba0 << 9) + (cf.lba1 << 17);
+					let pointer = (cf.lba0 << 9) + (cf.lba1 << 17) + (cf.lba2 << 25);
 					for (let i = 0; i < cf.buffer.length; i++) {
 						cf.data[pointer] = cf.buffer[i];
-						pointer = (pointer + 1) & 0x1FFFFFF;
+						pointer = (pointer + 1) & 0x3FFFFFF;
 					}
 				}
 			}
@@ -325,8 +325,6 @@ function uartInput(ch) {
  * Ouputs a value to the UART
  */
 function uartOutput(ch) {
-	
-	console.log(ch);
 	
 	switch (ch) {
 		case 0x08:
