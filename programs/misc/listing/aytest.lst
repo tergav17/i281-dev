@@ -1,0 +1,62 @@
+00/00:          ; SIMPLE AY-3-8910 TEST
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          
+01/80:          AY0_ADR	= 0XB0
+01/80:          AY1_ADR	= 0XB2
+01/80:          AY0_WR	= 0XB1
+01/80:          AY1_WR	= 0XB3
+01/80:          AY0_RD	= 0XB0
+01/80:          AY1_RD	= 0XB2
+01/80:          
+01/80:          	; SET UP AY CHIPS
+01/80: 30CE     	LOADI	A,0XCE
+01/81: 3407     	LOADI	B,0X07
+01/82: A4B0     	STORE	[AY0_ADR],B
+01/83: A4B2     	STORE	[AY1_ADR],B
+01/84: A0B1     	STORE	[AY0_WR],A
+01/85: A0B3     	STORE	[AY1_WR],A
+01/87:          
+01/86: 300F     	LOADI	A,0X0F
+01/87: 3408     	LOADI	B,0X08
+01/88: A4B0     	STORE	[AY0_ADR],B
+01/89: A4B2     	STORE	[AY1_ADR],B
+01/8A: A0B1     	STORE	[AY0_WR],A
+01/8B: A0B3     	STORE	[AY1_WR],A
+01/8D:          
+01/8C:          	; SET UP THE TONE LOOP
+01/8C: 3800     	LOADI	C,0
+01/8D: 3C00     	LOADI	D,0
+01/8F:          
+01/8E:          	; LOOP
+01/8E: 3000     LOOP:	LOADI	A,0
+01/8F: A0B0     	STORE	[AY0_ADR],A
+01/90: A0B2     	STORE	[AY1_ADR],A
+01/91: A8B1     	STORE	[AY0_WR],C
+01/92: A8B3     	STORE	[AY1_WR],C
+01/93: 3001     	LOADI	A,1
+01/94: A0B0     	STORE	[AY0_ADR],A
+01/95: A0B2     	STORE	[AY1_ADR],A
+01/96: ACB1     	STORE	[AY0_WR],D
+01/97: ACB3     	STORE	[AY1_WR],D
+01/99:          
+01/98:          	; DELAY LOOP
+01/98: 3000     	LOADI	A,0
+01/99: 5001     0:	ADDI	A,1
+01/9A: 2000     	NOOP
+01/9B: 2000     	NOOP
+01/9C: 2000     	NOOP
+01/9D: 2000     	NOOP
+01/9E: 2000     	NOOP
+01/9F: 2000     	NOOP
+01/A0: F1F8     	BRNC	0B
+01/A2:          
+01/A1:          	; INCREMENT C AND D
+01/A1: 5801     	ADDI	C,1
+01/A2: F1EB     	BRNC	LOOP
+01/A3: 5C01     	ADDI	D,1
+01/A4: 3005     	LOADI	A,5
+01/A5: D300     	CMP	A,D
+01/A6: F0E7     	BRAE	LOOP
+01/A7: 3C00     	LOADI	D,0
+01/A8: FFE5     	JUMP	LOOP
+01/AA:          	

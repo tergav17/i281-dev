@@ -1,0 +1,44 @@
+00/00:          ; 50 HZ DELAY TEST
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          
+01/80:          AY0_ADR	= 0XB0
+01/80:          AY1_ADR	= 0XB2
+01/80:          AY0_WR	= 0XB1
+01/80:          AY1_WR	= 0XB3
+01/80:          AY0_RD	= 0XB0
+01/80:          AY1_RD	= 0XB2
+01/80:          
+01/80:          	; SET UP AY CHIPS
+01/80: 3007     	LOADI	A,7
+01/81: A0B2     	STORE	[AY1_ADR],A
+01/82: 30BF     	LOADI	A,0XBF
+01/83: A0B3     	STORE	[AY1_WR],A
+01/85:          
+01/84:          	; RESET D REGISTER
+01/84: 3C00     	LOADI	D,0
+01/86:          
+01/85:          	; SET RESET STATE
+01/85: 300F     	LOADI	A,15
+01/86: A0B2     	STORE	[AY1_ADR],A
+01/87: 3001     	LOADI	A,1
+01/88: A0B3     	STORE	[AY1_WR],A
+01/8A:          
+01/89:          	; MAIN LOOP
+01/89: 5C01     LOOP:	ADDI	D,1
+01/8B:          	
+01/8A:          	; WAIT FOR 50 HZ FLAG
+01/8A: 300E     	LOADI	A,14
+01/8B: A0B2     	STORE	[AY1_ADR],A
+01/8C: 80B2     0:	LOAD	A,[AY1_RD]
+01/8D: C100     	SHIFTR	A
+01/8E: F1FD     	BRNC	0B
+01/90:          
+01/8F:          	; RESET 50 HZ FLAG
+01/8F: 300F     	LOADI	A,15
+01/90: A0B2     	STORE	[AY1_ADR],A
+01/91: 3000     	LOADI	A,0
+01/92: A0B3     	STORE	[AY1_WR],A
+01/93: 3001     	LOADI	A,1
+01/94: A0B3     	STORE	[AY1_WR],A
+01/95: FFF3     	JUMP	LOOP
+01/97:          
