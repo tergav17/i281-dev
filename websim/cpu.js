@@ -51,7 +51,7 @@ cpu_state.segments = new Array(8).fill(0xFF); // Init 7-segment displays
 
 // BIOS ROM selector
 // it's jank, but mere mortals really shouldn't be messing with this anyways
-bios_select = 2;
+bios_select = 1;
 
 if (bios_select == 0) {
 	// Standard BIOS ROM
