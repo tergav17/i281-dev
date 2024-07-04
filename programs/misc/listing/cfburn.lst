@@ -1,0 +1,115 @@
+00/00:          ; CFBURN.S
+01/80:          ; COMPACT FLASH BURN-IN PROGRAM
+01/80:          ; GAVIN TERSTEEG, 2024
+01/80:          ; SDMAY24-14
+01/80:          
+01/80:          ; COMPACT FLASH CARD REQUIRES 32MB TEST PATTERN IMAGE
+01/80:          ; IMAGE IS CREATED WITH 256 * 256 BLOCKS OF INCREMENTING
+01/80:          ; NUMBERS
+01/80:          ; THE OFFSET FOR EACH BLOCK IS THE LOW BYTE OF THE ADDRESS
+01/80:          ; PLUS THE HIGH BYTE OF THE ADDRESS
+01/80:          
+01/80:          ; REQUIRES USE OF BIOS CALLS
+01/80:          
+01/80:          ; DEFINES
+01/80:          DBANK	= 0X80		; DATA BANK ADDRESS 
+01/80:          
+01/80:          UART	= 0X90		; UART BASE ADDRESS
+01/80:          UART_RH	= UART+0X00	; UART READ HOLDING
+01/80:          UART_TH	= UART+0X00	; UART TRANSMIT HOLDING
+01/80:          UART_DL = UART+0X00	; UART DIVISOR LOW
+01/80:          UART_DH = UART+0X01	; UART DIVISOR HIGH
+01/80:          UART_LC = UART+0X03	; UART LINE CONTROL
+01/80:          UART_LS	= UART+0X05	; UART LINE STATUS
+01/80:          SCRATCH	= UART+0X07	; SCRATCH BYTE ADDRESS
+01/80:          
+01/80:          CF	= 0XA0		; COMPACT FLASH BASE ADDRESS
+01/80:          CF_DATA	= CF+0X00	; CF DATA
+01/80:          CF_ERR	= CF+0X01	; CF ERROR
+01/80:          CF_FEAT	= CF+0x01	; CF FEATURES
+01/80:          CF_CNT	= CF+0X02	; CF SECTOR COUNT
+01/80:          CF_LBA0	= CF+0X03	; CF LBA BITS 0-7
+01/80:          CF_LBA1	= CF+0X04	; CF LBA BITS 8-15
+01/80:          CF_LBA2	= CF+0X05	; CF LBA BITS 16-23
+01/80:          CF_LBA3	= CF+0X06	; CF LBA BITS 24-27
+01/80:          CF_STAT	= CF+0X07	; CF STATUS
+01/80:          CF_CMD	= CF+0X07	; CF COMMAND
+01/80:          
+01/80:          CF_8BIT	= 0X01		; 8 BIT MODE
+01/80:          CF_DCAC	= 0X82		; DISABLE CACHE
+01/80:          
+01/80:          CF_READ	= 0X20		; READ COMMAND
+01/80:          CF_SETF	= 0XEF		; SET FEATURE COMMAND
+01/80:          .TEXT
+01/80:          	; START HERE
+01/80:          	; LET B BE OUR STRING POINTER 
+01/80: 3400     START:	LOADI	B,STRING
+01/82:          
+01/81:          
+01/81:          
+01/81:          	; PRINT A STRING TO THE CONSOLE
+01/81:          	; B = STRING TO PRINT
+01/81:          	; C = RETURN ADDRESS
+01/81:          	; USES: A, B, C
+01/81: 9100     PRINT:	LOADF	A,[B]
+01/83:          
+01/82:          	; MAKE SURE IT ISNT ZERO
+01/82: 5000     	ADDI	A,0
+01/83: F608     	BRZ	1F
+01/85:          	
+01/84:          	; GET LINE STATUS REGISTER
+01/84: 8895     0:	LOAD	C,[UART_LS]
+01/86:          	
+01/85:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
+01/85: 4A00     	SHIFTL	C
+01/86: 4A00     	SHIFTL	C
+01/87: 4A00     	SHIFTL	C
+01/88: F1FB     	BRNC	0B
+01/8A:          	
+01/89:          	; TRANSMIT BYTE
+01/89: A090     	STORE	[UART_TH],A
+01/8B:          	
+01/8A:          	; INCREMENT POINTER
+01/8A: 5401     	ADDI	B,1
+01/8C:          	
+01/8B:          	; RETURN TO PRINT LOOP
+01/8B: FFF5     	JUMP	PRINT
+01/8D:          	
+01/8C:          	; AND RETURN
+01/8C: FE73     1:	JUMPR	C
+01/8E:          
+01/8D:          	; WAIT FOR THE CF CARD TO BECOME READY
+01/8D:          	; FOR THIS TO HAPPEN, THE BUSY FLAG MUST BE 0
+01/8D:          	; AND THE READY FLAG MUST BE 1
+01/8D:          	; IF A CF CARD ISN'T PRESENT, THIS ROUTINE HANGS
+01/8D:          	; BUT WE DON'T CARE
+01/8D:          	; C = RETURN ADDRESS
+01/8D:          	; USES: A
+01/8D: 80A7     CFWAIT:	LOAD	A,[CF_STAT]
+01/8F:          
+01/8E:          	; CHECK BIT 7 (BUSY FLAG)
+01/8E: 4000     	SHIFTL	A
+01/90:          	
+01/8F:          	; GO BACK TO START BUSY
+01/8F: F0FD     	BRC	CFWAIT
+01/91:          	
+01/90:          	; CHECK BIT 6 (READY FLAG)
+01/90: 4000     	SHIFTL	A
+01/92:          	
+01/91:          	; GO BACK TO START IF NOT READY
+01/91: F1FB     	BRNC	CFWAIT
+01/93:          	
+01/92:          	; RETURN FROM FUNCTION CALL
+01/92: FE6D     	JUMPR	C
+01/94:          	
+01/93:          
+01/93:          
+01/93:          .DATA
+01/00: 0A0D4932
+       38312043
+       46204255
+       524E2D49
+       4E205445
+       53540A0D
+       00       .DEFL BYTE STRING	0x0A,0X0D,"I281 CF BURN-IN TEST",0X0A,0x0D,0
+01/19:          	
