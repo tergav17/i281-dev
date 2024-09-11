@@ -1,6 +1,6 @@
 I281_ASM = "../../i281as"
 
-all: binary/50test.sav binary/aytest.sav binary/cfdrvr.sav
+all: binary/50test.sav binary/aytest.sav binary/cfdrvr.sav binary/cfburn.sav
 
 binary/%.sav: source/%.s
 	$(I281_ASM) -o $* source/$*.s
