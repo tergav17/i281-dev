@@ -1,0 +1,17 @@
+ ____  _____ _____ 
+|    \|     |   __|
+|  |  |  |  |__   |
+|____/|_____|_____|      
+ ___ ___ ___       
+|_  | . |_  |      
+|  _| . |_| |_     
+|___|___|_____|    
+                   
+KERNEL VERSION 1.4
+CONFIGURATION:
+	TTY: DMEM UART
+	BLK: DMEM COMPACT FLASH
+	AUX: N/A
+	PRT: MEGA-IO PARALLEL INTERFACE
+
+IMAGE GENERATED ON 10/09/24, 22:25:01

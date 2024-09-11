@@ -42,70 +42,84 @@
 01/80:          CF_SETF	= 0XEF		; SET FEATURE COMMAND
 01/80:          .TEXT
 01/80:          	; START HERE
-01/80:          	; LET B BE OUR STRING POINTER 
+01/80:          	; PRINT "HELLO" SPLASH
 01/80: 3400     START:	LOADI	B,STRING
-01/82:          
-01/81:          
-01/81:          
-01/81:          	; PRINT A STRING TO THE CONSOLE
-01/81:          	; B = STRING TO PRINT
-01/81:          	; C = RETURN ADDRESS
-01/81:          	; USES: A, B, C
-01/81: 9100     PRINT:	LOADF	A,[B]
-01/83:          
-01/82:          	; MAKE SURE IT ISNT ZERO
-01/82: 5000     	ADDI	A,0
-01/83: F608     	BRZ	1F
-01/85:          	
-01/84:          	; GET LINE STATUS REGISTER
-01/84: 8895     0:	LOAD	C,[UART_LS]
-01/86:          	
-01/85:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
-01/85: 4A00     	SHIFTL	C
-01/86: 4A00     	SHIFTL	C
-01/87: 4A00     	SHIFTL	C
-01/88: F1FB     	BRNC	0B
-01/8A:          	
-01/89:          	; TRANSMIT BYTE
-01/89: A090     	STORE	[UART_TH],A
-01/8B:          	
-01/8A:          	; INCREMENT POINTER
-01/8A: 5401     	ADDI	B,1
-01/8C:          	
-01/8B:          	; RETURN TO PRINT LOOP
-01/8B: FFF5     	JUMP	PRINT
-01/8D:          	
-01/8C:          	; AND RETURN
-01/8C: FE73     1:	JUMPR	C
-01/8E:          
-01/8D:          	; WAIT FOR THE CF CARD TO BECOME READY
-01/8D:          	; FOR THIS TO HAPPEN, THE BUSY FLAG MUST BE 0
-01/8D:          	; AND THE READY FLAG MUST BE 1
-01/8D:          	; IF A CF CARD ISN'T PRESENT, THIS ROUTINE HANGS
-01/8D:          	; BUT WE DON'T CARE
-01/8D:          	; C = RETURN ADDRESS
-01/8D:          	; USES: A
-01/8D: 80A7     CFWAIT:	LOAD	A,[CF_STAT]
-01/8F:          
-01/8E:          	; CHECK BIT 7 (BUSY FLAG)
-01/8E: 4000     	SHIFTL	A
-01/90:          	
-01/8F:          	; GO BACK TO START BUSY
-01/8F: F0FD     	BRC	CFWAIT
-01/91:          	
-01/90:          	; CHECK BIT 6 (READY FLAG)
-01/90: 4000     	SHIFTL	A
-01/92:          	
-01/91:          	; GO BACK TO START IF NOT READY
-01/91: F1FB     	BRNC	CFWAIT
+01/81: 3883     	LOADI	C,@+2
+01/82: FF07     	JUMP	PRINT
+01/84:          	
+01/83:          	; RESET TEST STATE
+01/83: 3000     	LOADI	A,0
+01/84: A019     	STORE	[ADDR_LO],A
+01/85: A01A     	STORE	[ADDR_HI],A
+01/87:          	
+01/86:          	; TESTS A BLOCK
+01/86: 8019     DOBLK:	LOAD	A,[ADDR_LO]
+01/87: A0A3     	STORE	[CF_LBA0],A
+01/88: 801A     	LOAD	A,[ADDR_HI]
+01/89: A0A4     	STORE	[CF_LBA1],A
+01/8B:          
+01/8A:          
+01/8A:          
+01/8A:          
+01/8A:          	; PRINT A STRING TO THE CONSOLE
+01/8A:          	; B = STRING TO PRINT
+01/8A:          	; C = RETURN ADDRESS
+01/8A:          	; USES: A, B, C
+01/8A: 9100     PRINT:	LOADF	A,[B]
+01/8C:          
+01/8B:          	; MAKE SURE IT ISNT ZERO
+01/8B: 5000     	ADDI	A,0
+01/8C: F608     	BRZ	1F
+01/8E:          	
+01/8D:          	; GET LINE STATUS REGISTER
+01/8D: 8895     0:	LOAD	C,[UART_LS]
+01/8F:          	
+01/8E:          	; READ 5TH BIT TO SEE IF WE CAN TRANSMIT YET
+01/8E: 4A00     	SHIFTL	C
+01/8F: 4A00     	SHIFTL	C
+01/90: 4A00     	SHIFTL	C
+01/91: F1FB     	BRNC	0B
 01/93:          	
-01/92:          	; RETURN FROM FUNCTION CALL
-01/92: FE6D     	JUMPR	C
+01/92:          	; TRANSMIT BYTE
+01/92: A090     	STORE	[UART_TH],A
 01/94:          	
-01/93:          
-01/93:          
-01/93:          .DATA
-01/93:          
+01/93:          	; INCREMENT POINTER
+01/93: 5401     	ADDI	B,1
+01/95:          	
+01/94:          	; RETURN TO PRINT LOOP
+01/94: FFF5     	JUMP	PRINT
+01/96:          	
+01/95:          	; AND RETURN
+01/95: FE6A     1:	JUMPR	C
+01/97:          
+01/96:          	; WAIT FOR THE CF CARD TO BECOME READY
+01/96:          	; FOR THIS TO HAPPEN, THE BUSY FLAG MUST BE 0
+01/96:          	; AND THE READY FLAG MUST BE 1
+01/96:          	; IF A CF CARD ISN'T PRESENT, THIS ROUTINE HANGS
+01/96:          	; BUT WE DON'T CARE
+01/96:          	; C = RETURN ADDRESS
+01/96:          	; USES: A
+01/96: 80A7     CFWAIT:	LOAD	A,[CF_STAT]
+01/98:          
+01/97:          	; CHECK BIT 7 (BUSY FLAG)
+01/97: 4000     	SHIFTL	A
+01/99:          	
+01/98:          	; GO BACK TO START BUSY
+01/98: F0FD     	BRC	CFWAIT
+01/9A:          	
+01/99:          	; CHECK BIT 6 (READY FLAG)
+01/99: 4000     	SHIFTL	A
+01/9B:          	
+01/9A:          	; GO BACK TO START IF NOT READY
+01/9A: F1FB     	BRNC	CFWAIT
+01/9C:          	
+01/9B:          	; RETURN FROM FUNCTION CALL
+01/9B: FE64     	JUMPR	C
+01/9D:          	
+01/9C:          
+01/9C:          
+01/9C:          .DATA
+01/9C:          
 01/00:          	; HELLO SPLASH
 01/00: 0A0D4932
        38312043
@@ -118,3 +132,4 @@
 01/19:          	; TEST STATE
 01/19: 00       .DEFL BYTE ADDR_LO	0
 01/1A: 00       .DEFL BYTE ADDR_HI	0
+01/1B: 00       .DEFL BYTE COUNT	0
